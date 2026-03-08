@@ -7,6 +7,7 @@ import VideoSection from './components/VideoSection';
 import Footer from './components/Footer';
 import Login from './pages/Login'; 
 import Register from './pages/Register';
+import FindTeams from './pages/FindTeams';
 import DashboardLayout from './components/DashboardLayout';
 
 function App() {
@@ -31,7 +32,8 @@ function App() {
           } />
 
           <Route path="/login" element={<><Navbar /><Login /><Footer /></>} />
-          <Route path="/register" element={<><Navbar /><Register /><Footer /></>} /> 
+          <Route path="/register" element={<><Navbar /><Register /><Footer /></>} />
+          <Route path="/find-teams" element={<><Navbar /><FindTeams /><Footer /></>} />
 
           {/* Ruta del Dashboard: Aqui NO queremos nada mas que el Layout nuevo */}
           <Route path="/dashboard" element={<DashboardLayout />}>

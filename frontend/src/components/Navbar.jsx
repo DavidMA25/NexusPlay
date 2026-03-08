@@ -22,7 +22,7 @@ export default function Navbar() {
                 {/* Enlaces centrales */}
                 <div className="hidden md:flex items-center gap-12 text-sm text-gray-300">
                     <a href="#" className="hover:text-white transition-colors">Find Players</a>
-                    <a href="#" className="hover:text-white transition-colors">Find Teams</a>
+                    <Link to="/find-teams" className="hover:text-white transition-colors">Find Teams</Link>
                     <a href="#" className="hover:text-white transition-colors">Events</a>
                     <a href="#" className="hover:text-white transition-colors">News</a>
                 </div>

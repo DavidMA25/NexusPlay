@@ -9,6 +9,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import FindTeams from './pages/FindTeams';
 import DashboardLayout from './components/DashboardLayout';
+import DashboardHome from './pages/DashboardHome';
+
 
 function App() {
   return (
@@ -35,9 +37,9 @@ function App() {
           <Route path="/register" element={<><Navbar /><Register /><Footer /></>} />
           <Route path="/find-teams" element={<><Navbar /><FindTeams /><Footer /></>} />
 
-          {/* Ruta del Dashboard: Aqui NO queremos nada mas que el Layout nuevo */}
+          {/* Ruta del Dashboard  */}
           <Route path="/dashboard" element={<DashboardLayout />}>
-            <Route index element={<h1 className="text-white text-2xl p-8">Aqui meteremos el panel resumen</h1>} />
+            <Route index element={<DashboardHome />} />
           </Route>
         </Routes>
 

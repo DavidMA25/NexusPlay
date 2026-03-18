@@ -10,6 +10,7 @@ import Register from './pages/Register';
 import FindTeams from './pages/FindTeams';
 import DashboardLayout from './components/DashboardLayout';
 import DashboardHome from './pages/DashboardHome';
+import FindPlayers from './pages/FindPlayers';
 
 
 function App() {
@@ -40,9 +41,9 @@ function App() {
           {/* Ruta del Dashboard  */}
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<DashboardHome />} />
+            <Route path="players" element={<FindPlayers />} />
           </Route>
         </Routes>
-
       </div>
     </Router>
   );

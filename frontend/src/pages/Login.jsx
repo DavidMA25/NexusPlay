@@ -1,8 +1,26 @@
 import { Eye, EyeOff, Chrome } from 'lucide-react';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
     const [showPassword, setShowPassword] = useState(false);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const { login } = useAuth();
+    const navigate = useNavigate();
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError('');
+        try {
+            await login(email, password);
+            navigate('/dashboard');
+        } catch (err) {
+            setError(err.response?.data?.message || 'Error al iniciar sesión. Verifica tus credenciales.');
+        }
+    };
 
     return (
         <div className="min-h-screen flex items-center justify-center px-4">
@@ -25,7 +43,12 @@ export default function Login() {
                 </div>
 
                 {/* Formulario */}
-                <form className="space-y-6">
+                {error && (
+                    <div className="bg-red-500/10 border border-red-500/50 text-red-500 p-3 rounded-lg text-sm mb-6 text-center">
+                        {error}
+                    </div>
+                )}
+                <form className="space-y-6" onSubmit={handleSubmit}>
 
                     {/* Email Input */}
                     <div>
@@ -34,6 +57,9 @@ export default function Login() {
                         </label>
                         <input
                             type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
                             placeholder="you@example.com"
                             className="w-full bg-[#1a1a1a] border border-gray-700 rounded-lg py-3 px-4 text-white text-sm focus:outline-none focus:border-brand-red focus:ring-1 focus:ring-brand-red transition-all placeholder-gray-500"
                         />
@@ -47,6 +73,9 @@ export default function Login() {
                         <div className="relative">
                             <input
                                 type={showPassword ? "text" : "password"}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
                                 placeholder="••••••••"
                                 className="w-full bg-[#1a1a1a] border border-gray-700 rounded-lg py-3 px-4 text-white text-sm focus:outline-none focus:border-brand-red focus:ring-1 focus:ring-brand-red transition-all placeholder-gray-500 pr-10"
                             />
@@ -84,21 +113,6 @@ export default function Login() {
                         Login
                     </button>
                 </form>
-
-                {/* Separador "or" */}
-                <div className="flex items-center gap-4 my-6">
-                    <div className="h-px bg-gray-800 flex-1"></div>
-                    <span className="text-gray-500 text-xs uppercase">or</span>
-                    <div className="h-px bg-gray-800 flex-1"></div>
-                </div>
-
-                {/* Botón de Google */}
-                <button
-                    className="w-full bg-[#1a1a1a] hover:bg-[#252525] border border-gray-700 text-white font-medium py-3 rounded-lg flex items-center justify-center gap-3 transition-colors"
-                >
-                    <Chrome size={20} className="text-white" />
-                    Continue with Google
-                </button>
 
                 {/* Footer del Login */}
                 <p className="text-center text-gray-400 text-sm mt-8">

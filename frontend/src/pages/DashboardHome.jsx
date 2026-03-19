@@ -1,3 +1,4 @@
+import { useAuth } from '../context/AuthContext';
 import { 
   Eye, 
   MessageSquare, 
@@ -10,6 +11,7 @@ import {
 } from 'lucide-react';
 
 export default function DashboardHome() {
+  const { user } = useAuth();
   
   // 1. Array de Estadísticas (El que ya teníamos)
   const stats = [
@@ -71,7 +73,7 @@ export default function DashboardHome() {
       {/* Cabecera de bienvenida */}
       <div>
         <h1 className="text-3xl font-bold text-white mb-2">
-          Welcome back, <span className="text-brand-red">Shadow</span>!
+          Welcome back, <span className="text-brand-red">{user?.name || 'User'}</span>!
         </h1>
         <p className="text-gray-400 text-sm">
           Here's what's happening with your eSports career.

@@ -11,6 +11,7 @@ import FindTeams from './pages/FindTeams';
 import DashboardLayout from './components/DashboardLayout';
 import DashboardHome from './pages/DashboardHome';
 import FindPlayers from './pages/FindPlayers';
+import ProtectedRoute from './components/ProtectedRoute';
 
 
 function App() {
@@ -39,7 +40,7 @@ function App() {
           <Route path="/find-teams" element={<><Navbar /><FindTeams /><Footer /></>} />
 
           {/* Ruta del Dashboard  */}
-          <Route path="/dashboard" element={<DashboardLayout />}>
+          <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
             <Route index element={<DashboardHome />} />
             <Route path="players" element={<FindPlayers />} />
           </Route>
@@ -49,4 +50,4 @@ function App() {
   );
 }
 
-export default App;
+export default App;

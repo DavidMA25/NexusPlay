@@ -1,7 +1,16 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import logo from '../assets/logo.png';
 
 export default function Navbar() {
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
+
+    const handleLogout = async () => {
+        await logout();
+        navigate('/');
+    };
+
     return (
         <nav className="bg-black text-white border-b border-gray-900">
             <div className="container mx-auto px-4 h-20 flex items-center justify-between">
@@ -21,26 +30,43 @@ export default function Navbar() {
                     <a href="#" className="hover:text-white transition-colors">News</a>
                 </div>
 
-                {/* Botones de Auth */}
+                {/* Botones de Auth — cambian según estado de sesión */}
                 <div className="flex items-center gap-6">
-                    {/* Enlace al Login */}
-                    <Link 
-                        to="/login" 
-                        className="text-sm text-gray-300 hover:text-white transition-colors"
-                    >
-                        Login
-                    </Link>
-                    
-                    {/* Enlace al Register (Corregido: ahora es un Link y apunta a /register) */}
-                    <Link 
-                        to="/Register" 
-                        className="bg-brand-red hover:bg-[#FF4D4D] text-white text-sm font-medium py-2 px-6 rounded-md transition-colors shadow-[0_0_15px_rgba(255,51,51,0.5)]"
-                    >
-                        Register
-                    </Link>
+                    {user ? (
+                        <>
+                            <Link
+                                to="/dashboard"
+                                className="text-sm text-gray-300 hover:text-white transition-colors"
+                            >
+                                Dashboard
+                            </Link>
+                            <span className="text-sm text-gray-400">{user.name}</span>
+                            <button
+                                onClick={handleLogout}
+                                className="bg-brand-red hover:bg-[#FF4D4D] text-white text-sm font-medium py-2 px-6 rounded-md transition-colors shadow-[0_0_15px_rgba(255,51,51,0.5)]"
+                            >
+                                Logout
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <Link
+                                to="/login"
+                                className="text-sm text-gray-300 hover:text-white transition-colors"
+                            >
+                                Login
+                            </Link>
+                            <Link
+                                to="/register"
+                                className="bg-brand-red hover:bg-[#FF4D4D] text-white text-sm font-medium py-2 px-6 rounded-md transition-colors shadow-[0_0_15px_rgba(255,51,51,0.5)]"
+                            >
+                                Register
+                            </Link>
+                        </>
+                    )}
                 </div>
 
             </div>
         </nav>
     );
-}
+}

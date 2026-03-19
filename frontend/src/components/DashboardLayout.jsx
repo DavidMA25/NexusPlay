@@ -12,12 +12,14 @@ import {
     ChevronDown
 } from 'lucide-react';
 
-// Importamos las herramientas de navegacion. 
-// Outlet es crucial aqui: es el "hueco" donde se cargaran las subpaginas.
 import { Link, Outlet, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import logo from '../assets/logo.png';
 
 export default function DashboardLayout() {
+    // Extraemos los datos del usuario logueado en tiempo real desde AuthContext
+    const { user } = useAuth();
+    
     // Guardo la ruta actual en una variable. 
     // Lo uso luego para saber en que pagina estoy y pintar ese boton de rojo.
     const location = useLocation();
@@ -88,14 +90,14 @@ export default function DashboardLayout() {
                 {/* Zona inferior del menu: Tarjeta de perfil del usuario logueado */}
                 <div className="p-4 border-t border-gray-800">
                     <div className="flex items-center gap-3 px-2">
-                        {/* Avatar provisional (simulando que el usuario se llama Shadow) */}
+                        {/* Avatar dinámico generado a partir de la primera letra del nombre */}
                         <div
-                            className="w-10 h-10 rounded-full bg-brand-red/20 border border-brand-red flex items-center justify-center text-brand-red font-bold shrink-0"
+                            className="w-10 h-10 rounded-full bg-brand-red/20 border border-brand-red flex items-center justify-center text-brand-red font-bold shrink-0 uppercase"
                         >
-                            S
+                            {user?.name?.charAt(0) || 'U'}
                         </div>
                         <div>
-                            <p className="text-sm font-bold text-white">Shadow</p>
+                            <p className="text-sm font-bold text-white line-clamp-1">{user?.name || 'User'}</p>
                             <p className="text-xs text-green-500">Online</p>
                         </div>
                     </div>
@@ -138,9 +140,9 @@ export default function DashboardLayout() {
                         {/* Desplegable del perfil con separador visual (border-l) */}
                         <div className="flex items-center gap-2 cursor-pointer border-l border-gray-800 pl-6">
                             <div
-                                className="w-8 h-8 rounded-full bg-brand-red/20 border border-brand-red flex items-center justify-center text-brand-red font-bold text-sm"
+                                className="w-8 h-8 rounded-full bg-brand-red/20 border border-brand-red flex items-center justify-center text-brand-red font-bold text-sm uppercase"
                             >
-                                S
+                                {user?.name?.charAt(0) || 'U'}
                             </div>
                             <ChevronDown size={16} className="text-gray-500" />
                         </div>

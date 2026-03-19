@@ -1,10 +1,46 @@
 import { Eye, EyeOff, Chrome, User, Trophy } from 'lucide-react';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState('player'); 
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [teamName, setTeamName] = useState('');
+  const [region, setRegion] = useState('');
+  const [website, setWebsite] = useState('');
+  const [description, setDescription] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  
+  const { register } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+      e.preventDefault();
+      setError('');
+      if (password !== confirmPassword) {
+          setError('Las contraseñas no coinciden');
+          return;
+      }
+      if (role === 'team' && (!teamName || !region)) {
+          setError('El nombre del equipo y la región son obligatorios');
+          return;
+      }
+      setLoading(true);
+      try {
+          await register(name, email, password, role, teamName, region, website, description);
+          navigate('/dashboard');
+      } catch (err) {
+          setError(err.response?.data?.message || 'Error al crear la cuenta. Intenta nuevamente.');
+      } finally {
+          setLoading(false);
+      }
+  }; 
 
   return (
     /* CAMBIO AQUÍ: min-h-[calc(100vh-80px)] descuenta el Navbar y py-12 iguala los márgenes */
@@ -32,7 +68,12 @@ export default function Register() {
         </div>
 
         {/* Formulario */}
-        <form className="space-y-5">
+        {error && (
+            <div className="bg-red-500/10 border border-red-500/50 text-red-500 p-3 rounded-lg text-sm mb-6 text-center">
+                {error}
+            </div>
+        )}
+        <form className="space-y-5" onSubmit={handleSubmit}>
 
           {/* Selector de Rol (Player / Team) */}
           <div className="flex gap-4 mb-6">
@@ -62,6 +103,63 @@ export default function Register() {
             </button>
           </div>
           
+          {role === 'team' && (
+            <div className="space-y-4 p-4 border border-brand-red/30 bg-brand-red/5 rounded-lg mb-6">
+              <h3 className="text-brand-red text-sm font-semibold mb-2">Team Details</h3>
+              
+              <div>
+                <label className="block text-gray-300 text-sm font-medium mb-2">Team Name *</label>
+                <input 
+                  type="text" 
+                  value={teamName}
+                  onChange={(e) => setTeamName(e.target.value)}
+                  required={role === 'team'}
+                  placeholder="Your Team Name"
+                  className="w-full bg-[#1a1a1a] border border-gray-700 rounded-lg py-3 px-4 text-white text-sm focus:outline-none focus:border-brand-red focus:ring-1 focus:ring-brand-red transition-all placeholder-gray-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-300 text-sm font-medium mb-2">Region *</label>
+                <select 
+                  value={region}
+                  onChange={(e) => setRegion(e.target.value)}
+                  required={role === 'team'}
+                  className="w-full bg-[#1a1a1a] border border-gray-700 rounded-lg py-3 px-4 text-white text-gray-400 text-sm focus:outline-none focus:border-brand-red focus:ring-1 focus:ring-brand-red transition-all"
+                >
+                  <option value="" disabled>Select your region</option>
+                  <option value="EU" className="text-white">Europe (EU)</option>
+                  <option value="NA" className="text-white">North America (NA)</option>
+                  <option value="SA" className="text-white">South America (SA)</option>
+                  <option value="ASIA" className="text-white">Asia</option>
+                  <option value="OCE" className="text-white">Oceania (OCE)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-gray-300 text-sm font-medium mb-2">Website (Optional)</label>
+                <input 
+                  type="url" 
+                  value={website}
+                  onChange={(e) => setWebsite(e.target.value)}
+                  placeholder="https://your-team.com"
+                  className="w-full bg-[#1a1a1a] border border-gray-700 rounded-lg py-3 px-4 text-white text-sm focus:outline-none focus:border-brand-red focus:ring-1 focus:ring-brand-red transition-all placeholder-gray-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-300 text-sm font-medium mb-2">Description (Optional)</label>
+                <textarea 
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows="3"
+                  placeholder="Tell us about your team..."
+                  className="w-full bg-[#1a1a1a] border border-gray-700 rounded-lg py-3 px-4 text-white text-sm focus:outline-none focus:border-brand-red focus:ring-1 focus:ring-brand-red transition-all placeholder-gray-500 resize-none"
+                ></textarea>
+              </div>
+            </div>
+          )}
+
           {/* Username Input */}
           <div>
             <label className="block text-gray-300 text-sm font-medium mb-2">
@@ -69,6 +167,9 @@ export default function Register() {
             </label>
             <input 
               type="text" 
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
               placeholder="Choose a username"
               className="w-full bg-[#1a1a1a] border border-gray-700 rounded-lg py-3 px-4 text-white text-sm focus:outline-none focus:border-brand-red focus:ring-1 focus:ring-brand-red transition-all placeholder-gray-500"
             />
@@ -81,6 +182,9 @@ export default function Register() {
             </label>
             <input 
               type="email" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
               placeholder="you@example.com"
               className="w-full bg-[#1a1a1a] border border-gray-700 rounded-lg py-3 px-4 text-white text-sm focus:outline-none focus:border-brand-red focus:ring-1 focus:ring-brand-red transition-all placeholder-gray-500"
             />
@@ -94,6 +198,9 @@ export default function Register() {
             <div className="relative">
               <input 
                 type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
                 placeholder="........"
                 className="w-full bg-[#1a1a1a] border border-gray-700 rounded-lg py-3 px-4 text-white text-sm focus:outline-none focus:border-brand-red focus:ring-1 focus:ring-brand-red transition-all placeholder-gray-500 pr-10"
               />
@@ -114,6 +221,9 @@ export default function Register() {
             </label>
             <input 
               type="password" 
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
               placeholder="........"
               className="w-full bg-[#1a1a1a] border border-gray-700 rounded-lg py-3 px-4 text-white text-sm focus:outline-none focus:border-brand-red focus:ring-1 focus:ring-brand-red transition-all placeholder-gray-500"
             />
@@ -132,26 +242,13 @@ export default function Register() {
 
           {/* Botón principal */}
           <button 
-            className="w-full bg-brand-red hover:bg-[#FF4D4D] text-white font-bold py-3 rounded-lg shadow-lg shadow-brand-red/20 transition-all hover:shadow-brand-red/40 mt-4"
+            type="submit"
+            disabled={loading}
+            className="w-full bg-brand-red hover:bg-[#FF4D4D] text-white font-bold py-3 rounded-lg shadow-lg shadow-brand-red/20 transition-all hover:shadow-brand-red/40 mt-4 disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Create Account
+            {loading ? 'Creating account...' : 'Create Account'}
           </button>
         </form>
-
-        {/* Separador "or" */}
-        <div className="flex items-center gap-4 my-6">
-          <div className="h-px bg-gray-800 flex-1"></div>
-          <span className="text-gray-500 text-xs uppercase">or</span>
-          <div className="h-px bg-gray-800 flex-1"></div>
-        </div>
-
-        {/* Botón de Google */}
-        <button 
-          className="w-full bg-[#1a1a1a] hover:bg-[#252525] border border-gray-700 text-white font-medium py-3 rounded-lg flex items-center justify-center gap-3 transition-colors"
-        >
-          <Chrome size={20} className="text-white" />
-          Continue with Google
-        </button>
 
         {/* Footer */}
         <p className="text-center text-gray-400 text-sm mt-8">

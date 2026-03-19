@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import logo from '../assets/logo.png';
 
 export default function Navbar() {
     return (
@@ -8,14 +9,7 @@ export default function Navbar() {
                 {/* Logo */}
                 <div className="flex items-center gap-2 cursor-pointer">
                     <Link to="/" className="flex items-center gap-2">
-                        <div 
-                            className="bg-brand-red text-white font-bold w-8 h-8 flex items-center justify-center rounded"
-                        >
-                            N
-                        </div>
-                        <span className="text-xl font-bold">
-                            <span className="text-brand-red">Nexus</span>Play
-                        </span>
+                        <img src={logo} alt="NexusPlay Logo" className="h-8 w-auto object-contain" />
                     </Link>
                 </div>
 

@@ -15,6 +15,7 @@ import {
 // Importamos las herramientas de navegacion. 
 // Outlet es crucial aqui: es el "hueco" donde se cargaran las subpaginas.
 import { Link, Outlet, useLocation } from 'react-router-dom';
+import logo from '../assets/logo.png';
 
 export default function DashboardLayout() {
     // Guardo la ruta actual en una variable. 
@@ -46,15 +47,7 @@ export default function DashboardLayout() {
                 {/* Cabecera del Sidebar con el Logo */}
                 <div className="h-20 flex items-center px-6 border-b border-gray-800">
                     <Link to="/" className="flex items-center gap-2">
-                        {/* El cuadradito rojo con la N de NexusPlay */}
-                        <div
-                            className="bg-brand-red text-white font-bold w-8 h-8 flex items-center justify-center rounded"
-                        >
-                            N
-                        </div>
-                        <span className="text-xl font-bold">
-                            <span className="text-brand-red">Nexus</span>Play
-                        </span>
+                        <img src={logo} alt="NexusPlay Logo" className="h-8 w-auto object-contain" />
                     </Link>
                 </div>
 

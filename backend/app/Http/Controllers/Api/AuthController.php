@@ -14,16 +14,33 @@ class AuthController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|min:6'
+            'password' => 'required|min:6',
+            'role' => 'sometimes|in:player,team',
+            'team_name' => 'required_if:role,team|string|max:255',
+            'region' => 'required_if:role,team|string|max:100',
+            'website' => 'nullable|string|max:255',
+            'description' => 'nullable|string'
         ]);
+
+        $userRole = (isset($data['role']) && $data['role'] === 'team') ? 'recruiter' : 'player';
 
         $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
+            'role' => $userRole,
         ]);
 
-        // crear token automáticamente
+        if (isset($data['role']) && $data['role'] === 'team') {
+            \App\Models\Team::create([
+                'owner_id' => $user->id,
+                'name' => $data['team_name'],
+                'region' => $data['region'],
+                'website' => $data['website'] ?? null,
+                'description' => $data['description'] ?? null,
+            ]);
+        }
+
         $token = $user->createToken('api-token')->plainTextToken;
 
         return response()->json([
@@ -31,7 +48,7 @@ class AuthController extends Controller
             'user' => $user
         ], 201);
     }
-    
+
     public function login(Request $request)
     {
         $request->validate([
@@ -47,12 +64,23 @@ class AuthController extends Controller
             ], 401);
         }
 
-        // 🔥 crear token
         $token = $user->createToken('api-token')->plainTextToken;
 
         return response()->json([
             'token' => $token,
             'user' => $user
         ]);
+    }
+
+    public function user(Request $request)
+    {
+        return response()->json($request->user());
+    }
+
+    public function logout(Request $request)
+    {
+        $request->user()->currentAccessToken()->delete();
+
+        return response()->json(['message' => 'Logged out successfully']);
     }
 }

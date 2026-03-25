@@ -13,6 +13,7 @@ import DashboardHome from './pages/DashboardHome';
 import FindPlayers from './pages/FindPlayers';
 import ProtectedRoute from './components/ProtectedRoute';
 import Events from './pages/Events';
+import ProfileSettings from './pages/ProfileSettings';
 
 function App() {
   return (
@@ -46,6 +47,8 @@ function App() {
             <Route path="teams" element={<FindTeams />} />
             {/* Nueva ruta para los torneos y eventos que acabo de maquetar */}
             <Route path="events" element={<Events />} />
+            {/* La nueva pantalla para editar el perfil que pidio Mario con los juegos y rangos */}
+            <Route path="profile-settings" element={<ProfileSettings />} />
           </Route>
         </Routes>
 

@@ -1,5 +1,3 @@
-// Importamos todos los iconos que necesitamos para el menu lateral y la barra superior.
-// Usar lucide-react nos asegura que todos los iconos mantengan el mismo grosor y estilo.
 import {
     LayoutDashboard,
     Users,
@@ -9,16 +7,23 @@ import {
     Bell,
     Settings,
     Search,
-    ChevronDown
+    ChevronDown,
+    UserCircle,
+    UserCog,
+    LogOut
 } from 'lucide-react';
 
+import { useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import logo from '../assets/logo.png';
 
 export default function DashboardLayout() {
-    // Extraemos los datos del usuario logueado en tiempo real desde AuthContext
-    const { user } = useAuth();
+    // Extraemos los datos del usuario logueado y la funcion de cerrar sesion desde AuthContext
+    const { user, logout } = useAuth();
+    
+    // Estado para controlar si el desplegable del perfil esta visible o no
+    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
     
     // Guardo la ruta actual en una variable. 
     // Lo uso luego para saber en que pagina estoy y pintar ese boton de rojo.
@@ -110,7 +115,7 @@ export default function DashboardLayout() {
 
                 {/* Barra superior de busqueda y utilidades */}
                 <header
-                    className="h-20 border-b border-gray-800 bg-[#0a0a0a] flex items-center justify-between px-8 shrink-0"
+                    className="h-20 border-b border-gray-800 bg-[#0a0a0a] flex items-center justify-between px-8 shrink-0 relative"
                 >
 
                     {/* Input de busqueda con su icono metido dentro usando absolute */}
@@ -137,19 +142,83 @@ export default function DashboardLayout() {
                             ></span>
                         </button>
 
-                        {/* Desplegable del perfil con separador visual (border-l) */}
-                        <div className="flex items-center gap-2 cursor-pointer border-l border-gray-800 pl-6">
-                            <div
-                                className="w-8 h-8 rounded-full bg-brand-red/20 border border-brand-red flex items-center justify-center text-brand-red font-bold text-sm uppercase"
+                        {/* Contenedor relativo para poder posicionar el menu desplegable justo debajo */}
+                        <div className="relative">
+                            
+                            {/* Boton del perfil que al hacer click cambia el estado abierto/cerrado */}
+                            <div 
+                                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                                className="flex items-center gap-2 cursor-pointer border-l border-gray-800 pl-6 hover:opacity-80 transition-opacity"
                             >
-                                {user?.name?.charAt(0) || 'U'}
+                                <div
+                                    className="w-8 h-8 rounded-full bg-brand-red/20 border border-brand-red flex items-center justify-center text-brand-red font-bold text-sm uppercase"
+                                >
+                                    {user?.name?.charAt(0) || 'U'}
+                                </div>
+                                <ChevronDown 
+                                    size={16} 
+                                    className={`text-gray-500 transition-transform duration-200 ${isProfileMenuOpen ? 'rotate-180' : ''}`} 
+                                />
                             </div>
-                            <ChevronDown size={16} className="text-gray-500" />
+
+                            {/* El menu desplegable. Solo se renderiza si isProfileMenuOpen es true */}
+                            {isProfileMenuOpen && (
+                                <div className="absolute right-0 mt-6 w-56 bg-[#121212] border border-gray-800 rounded-xl shadow-2xl overflow-hidden z-50">
+                                    
+                                    {/* Cabecera del desplegable con el correo */}
+                                    <div className="p-4 border-b border-gray-800 bg-[#1a1a1a]">
+                                        <p className="text-sm font-bold text-white truncate">{user?.name || 'User'}</p>
+                                        <p className="text-xs text-gray-400 truncate mt-0.5">{user?.email || 'user@nexusplay.com'}</p>
+                                    </div>
+                                    
+                                    {/* Opciones del menu */}
+                                    <div className="p-2 space-y-1">
+                                        <Link 
+                                            to="/dashboard/profile" 
+                                            onClick={() => setIsProfileMenuOpen(false)}
+                                            className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
+                                        >
+                                            <UserCircle size={16} />
+                                            Ver perfil
+                                        </Link>
+                                        <Link 
+                                            to="/dashboard/profile-settings" 
+                                            onClick={() => setIsProfileMenuOpen(false)}
+                                            className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
+                                        >
+                                            <UserCog size={16} />
+                                            Ajustes de perfil
+                                        </Link>
+                                        <Link 
+                                            to="/dashboard/settings" 
+                                            onClick={() => setIsProfileMenuOpen(false)}
+                                            className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
+                                        >
+                                            <Settings size={16} />
+                                            Ajustes
+                                        </Link>
+                                    </div>
+                                    
+                                    {/* Boton de Logout en rojo para destacar */}
+                                    <div className="p-2 border-t border-gray-800">
+                                        <button 
+                                            onClick={() => {
+                                                setIsProfileMenuOpen(false);
+                                                logout();
+                                            }}
+                                            className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-brand-red hover:bg-brand-red/10 rounded-lg transition-colors font-medium"
+                                        >
+                                            <LogOut size={16} />
+                                            Logout
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </header>
 
-                {/* EL CORAZON DEL DASHBOARD: 
+                {/* 
                     Este es el contenedor dinámico. El Outlet de React Router inyecta aqui 
                     el contenido de la ruta en la que estemos (ej: las estadisticas, la lista de jugadores, etc) 
                     sin tener que recargar ni el menu lateral ni la barra superior.

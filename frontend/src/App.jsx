@@ -13,7 +13,6 @@ import DashboardHome from './pages/DashboardHome';
 import FindPlayers from './pages/FindPlayers';
 import ProtectedRoute from './components/ProtectedRoute';
 
-
 function App() {
   return (
     <Router>
@@ -23,7 +22,7 @@ function App() {
         }}>
 
         <Routes>
-          {/* Rutas publicas: Aqui SI queremos el Navbar y el Footer del Home */}
+          {/* Rutas publicas: Aqui SI queremos el Navbar y el Footer de la landing */}
           <Route path="/" element={
             <>
               <Navbar />
@@ -37,17 +36,19 @@ function App() {
 
           <Route path="/login" element={<><Navbar /><Login /><Footer /></>} />
           <Route path="/register" element={<><Navbar /><Register /><Footer /></>} />
-          <Route path="/find-teams" element={<><Navbar /><FindTeams /><Footer /></>} />
+          
 
-          {/* Ruta del Dashboard  */}
           <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
             <Route index element={<DashboardHome />} />
             <Route path="players" element={<FindPlayers />} />
+            {/* La ruta de los equipos arreglada para que no me de el pantallazo en negro */}
+            <Route path="teams" element={<FindTeams />} />
           </Route>
         </Routes>
+
       </div>
     </Router>
   );
 }
 
-export default App;
+export default App;

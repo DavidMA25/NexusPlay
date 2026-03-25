@@ -6,14 +6,13 @@ const AuthContext = createContext();
 export const useAuth = () => useContext(AuthContext);
 
 const api = axios.create({
-    baseURL: 'http://localhost:8000/api', // ajusta el puerto si tu backend es distinto
+    baseURL: 'http://localhost:8000/api',
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
     }
 });
 
-// We add an interceptor to inject the token into every request using localStorage directly
 api.interceptors.request.use((config) => {
     const currentToken = localStorage.getItem('nexus_token');
     if (currentToken) {
@@ -23,12 +22,16 @@ api.interceptors.request.use((config) => {
 });
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
-    const [token, setToken] = useState(localStorage.getItem('nexus_token') || null);
-    const [loading, setLoading] = useState(true);
+    // BYPASS PARA FRONTEND: Forzamos usuario y token para entrar directo al Dashboard
+    const [user, setUser] = useState({ id: 1, name: 'Shadow', email: 'shadow@nexusplay.com', role: 'player' });
+    const [token, setToken] = useState('bypass-token-frontend');
+    const [loading, setLoading] = useState(false);
 
-    // Check user data on load or token change
     useEffect(() => {
+        /*
+        BYPASS: Comentamos la llamada real al backend temporalmente.
+        Así evitamos que dé error de red y te borre el usuario falso.
+        
         const fetchUser = async () => {
             if (!token) {
                 setLoading(false);
@@ -39,13 +42,14 @@ export const AuthProvider = ({ children }) => {
                 setUser(response.data);
             } catch (error) {
                 console.error("Token might be invalid", error);
-                logout(); // Si falla, tiramos el token
+                logout(); 
             } finally {
                 setLoading(false);
             }
         };
 
         fetchUser();
+        */
     }, [token]);
 
     const login = async (email, password) => {

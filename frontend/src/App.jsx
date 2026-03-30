@@ -14,6 +14,7 @@ import FindPlayers from './pages/FindPlayers';
 import ProtectedRoute from './components/ProtectedRoute';
 import Events from './pages/Events';
 import ProfileSettings from './pages/ProfileSettings';
+import ViewProfile from './pages/ViewProfile';
 
 function App() {
   return (
@@ -49,6 +50,8 @@ function App() {
             <Route path="events" element={<Events />} />
             {/* La nueva pantalla para editar el perfil que pidio Mario con los juegos y rangos */}
             <Route path="profile-settings" element={<ProfileSettings />} />
+            {/* Pagina de ver perfil propio accesible desde el menu desplegable del navbar */}
+            <Route path="profile" element={<ViewProfile />} />
           </Route>
         </Routes>
 

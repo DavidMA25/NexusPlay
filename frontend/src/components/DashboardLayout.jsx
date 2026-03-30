@@ -40,6 +40,7 @@ export default function DashboardLayout() {
         // A algunos items les paso la propiedad 'badge' para mostrar el circulito rojo de notificaciones
         { path: '/dashboard/messages', icon: <MessageSquare size={20} />, label: 'Messages', badge: 8 },
         { path: '/dashboard/notifications', icon: <Bell size={20} />, label: 'Notifications', badge: 3 },
+        { path: '/dashboard/profile', icon: <UserCircle size={20} />, label: 'My Profile' },
         { path: '/dashboard/settings', icon: <Settings size={20} />, label: 'Settings' },
     ];
 
@@ -97,9 +98,13 @@ export default function DashboardLayout() {
                     <div className="flex items-center gap-3 px-2">
                         {/* Avatar dinámico generado a partir de la primera letra del nombre */}
                         <div
-                            className="w-10 h-10 rounded-full bg-brand-red/20 border border-brand-red flex items-center justify-center text-brand-red font-bold shrink-0 uppercase"
+                            className="w-10 h-10 rounded-full bg-brand-red/20 border border-brand-red flex items-center justify-center text-brand-red font-bold shrink-0 uppercase overflow-hidden"
                         >
-                            {user?.name?.charAt(0) || 'U'}
+                            {user?.avatar_url ? (
+                                <img src={`http://localhost:8000${user.avatar_url}`} alt="Avatar" className="w-full h-full object-cover" />
+                            ) : (
+                                user?.name?.charAt(0) || 'U'
+                            )}
                         </div>
                         <div>
                             <p className="text-sm font-bold text-white line-clamp-1">{user?.name || 'User'}</p>
@@ -151,9 +156,13 @@ export default function DashboardLayout() {
                                 className="flex items-center gap-2 cursor-pointer border-l border-gray-800 pl-6 hover:opacity-80 transition-opacity"
                             >
                                 <div
-                                    className="w-8 h-8 rounded-full bg-brand-red/20 border border-brand-red flex items-center justify-center text-brand-red font-bold text-sm uppercase"
+                                    className="w-8 h-8 rounded-full bg-brand-red/20 border border-brand-red flex items-center justify-center text-brand-red font-bold text-sm uppercase overflow-hidden"
                                 >
-                                    {user?.name?.charAt(0) || 'U'}
+                                    {user?.avatar_url ? (
+                                        <img src={`http://localhost:8000${user.avatar_url}`} alt="Avatar" className="w-full h-full object-cover" />
+                                    ) : (
+                                        user?.name?.charAt(0) || 'U'
+                                    )}
                                 </div>
                                 <ChevronDown 
                                     size={16} 

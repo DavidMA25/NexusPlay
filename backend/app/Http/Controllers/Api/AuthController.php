@@ -74,7 +74,72 @@ class AuthController extends Controller
 
     public function user(Request $request)
     {
-        return response()->json($request->user());
+        return response()->json($request->user()->load(['profile', 'stats']));
+    }
+
+    public function updateSettings(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'bio' => 'nullable|string',
+            'language' => 'nullable|string|max:255',
+            'region' => 'nullable|string|max:100',
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
+
+        $user = $request->user();
+
+        if ($request->hasFile('avatar')) {
+            if ($user->avatar_url) {
+                $oldPath = str_replace('/storage/', '', $user->avatar_url);
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($oldPath);
+            }
+            $path = $request->file('avatar')->store('avatars', 'public');
+            $user->avatar_url = '/storage/' . $path;
+        }
+
+        $user->name = $request->name;
+        if ($request->has('bio')) {
+            $user->bio = $request->bio;
+        }
+        $user->save();
+
+        if ($request->has('language') || $request->has('region')) {
+            $profile = $user->profile()->firstOrCreate(
+                ['user_id' => $user->id],
+                ['availability_status' => 'Available', 'languages' => '', 'region' => '']
+            );
+            
+            if ($request->has('language')) {
+                $profile->languages = $request->language;
+            }
+            if ($request->has('region')) {
+                $profile->region = $request->region;
+            }
+            $profile->save();
+        }
+
+        if ($request->has('games')) {
+            $games = json_decode($request->games, true);
+            if (is_array($games)) {
+                $user->stats()->delete();
+                foreach ($games as $gameData) {
+                    $user->stats()->create([
+                        'game_igdb_id' => crc32($gameData['game'] ?? 'Unknown'),
+                        'game_name' => $gameData['game'] ?? 'Unknown',
+                        'rank_tier' => $gameData['rank'] ?? 'Unranked',
+                        'platform' => $gameData['platform'] ?? 'PC',
+                        'region' => $request->region ?? 'Global',
+                        'role_main' => 'Flex',
+                    ]);
+                }
+            }
+        }
+
+        return response()->json([
+            'message' => 'Profile settings updated successfully.',
+            'user' => $user->load(['profile', 'stats'])
+        ]);
     }
 
     public function logout(Request $request)

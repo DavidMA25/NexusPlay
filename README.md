@@ -38,6 +38,10 @@
      ```bash
      php artisan key:generate
      ```
+   - Enlaza el storage público para poder ver las imágenes de los usuarios:
+     ```bash
+     php artisan storage:link
+     ```
    - Por último, ejecuta las migraciones para crear las tablas necesarias en la base de datos:
      ```bash
      php artisan migrate

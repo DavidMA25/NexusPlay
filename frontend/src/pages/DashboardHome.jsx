@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { 
   Eye, 
@@ -7,13 +8,55 @@ import {
   Trophy, 
   Calendar, 
   TrendingUp, 
-  ArrowRight 
+  ArrowRight,
+  Megaphone,
+  X,
+  Send
 } from 'lucide-react';
 
 export default function DashboardHome() {
-  const { user } = useAuth();
+  const { user, api } = useAuth();
+  const [showAdModal, setShowAdModal] = useState(false);
+  const [myStats, setMyStats] = useState([]);
+  const [selectedStatId, setSelectedStatId] = useState('');
+  const [adMessage, setAdMessage] = useState('');
+  const [publishing, setPublishing] = useState(false);
+  const [publishSuccess, setPublishSuccess] = useState(false);
+  const [publishError, setPublishError] = useState('');
+
+  // Fetch user's player stats when modal opens
+  useEffect(() => {
+    if (showAdModal) {
+      api.get('/player-stats').then(res => {
+        setMyStats(res.data.data || res.data);
+      }).catch(err => console.error('Error fetching stats:', err));
+    }
+  }, [showAdModal]);
+
+  const handlePublishAd = async () => {
+    if (!selectedStatId || !adMessage.trim()) return;
+    setPublishing(true);
+    setPublishError('');
+    try {
+      await api.post('/player-ads', {
+        player_stat_id: parseInt(selectedStatId),
+        message: adMessage.trim()
+      });
+      setPublishSuccess(true);
+      setTimeout(() => {
+        setShowAdModal(false);
+        setSelectedStatId('');
+        setAdMessage('');
+        setPublishSuccess(false);
+      }, 1500);
+    } catch (err) {
+      setPublishError(err.response?.data?.message || 'Error publishing ad.');
+    } finally {
+      setPublishing(false);
+    }
+  };
   
-  // 1. Array de Estadísticas (El que ya teníamos)
+  // 1. Array de Estadísticas
   const stats = [
     { title: "Profile Views", value: "1,247", increase: "+12%", icon: <Eye size={20} className="text-brand-red" /> },
     { title: "New Messages", value: "8", increase: "+3", icon: <MessageSquare size={20} className="text-brand-red" /> },
@@ -70,14 +113,23 @@ export default function DashboardHome() {
   return (
     <div className="space-y-8">
       
-      {/* Cabecera de bienvenida */}
-      <div>
-        <h1 className="text-3xl font-bold text-white mb-2">
-          Welcome back, <span className="text-brand-red">{user?.name || 'User'}</span>!
-        </h1>
-        <p className="text-gray-400 text-sm">
-          Here's what's happening with your eSports career.
-        </p>
+      {/* Cabecera de bienvenida + Botón Publish Ad */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-white mb-2">
+            Welcome back, <span className="text-brand-red">{user?.name || 'User'}</span>!
+          </h1>
+          <p className="text-gray-400 text-sm">
+            Here's what's happening with your eSports career.
+          </p>
+        </div>
+        <button 
+          onClick={() => setShowAdModal(true)}
+          className="flex items-center gap-2 bg-brand-red hover:bg-[#FF4D4D] text-white px-6 py-3 rounded-lg text-sm font-medium transition-all shadow-[0_0_10px_rgba(255,51,51,0.2)] hover:shadow-[0_0_20px_rgba(255,51,51,0.4)] whitespace-nowrap"
+        >
+          <Megaphone size={18} />
+          Publish Ad
+        </button>
       </div>
 
       {/* Grid de Tarjetas Superiores */}
@@ -104,7 +156,7 @@ export default function DashboardHome() {
       {/* Layout Inferior: Actividad y Sidebars */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
          
-         {/* COLUMNA IZQUIERDA: Recent Activity (Ocupa 2/3 del espacio) */}
+         {/* COLUMNA IZQUIERDA: Recent Activity */}
          <div className="lg:col-span-2">
             <h2 className="text-lg font-bold text-white mb-4">Recent Activity</h2>
             <div className="space-y-4">
@@ -114,11 +166,9 @@ export default function DashboardHome() {
                   className="bg-[#121212] border border-gray-800 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:border-gray-700"
                 >
                   <div className="flex items-center gap-4">
-                    {/* Icono de la actividad */}
                     <div className="w-12 h-12 rounded-lg bg-brand-red/10 flex items-center justify-center shrink-0">
                       {item.icon}
                     </div>
-                    {/* Textos */}
                     <div>
                       <h4 className="text-white font-medium text-sm">{item.title}</h4>
                       <p className="text-gray-400 text-xs mt-0.5">{item.desc}</p>
@@ -126,7 +176,6 @@ export default function DashboardHome() {
                     </div>
                   </div>
                   
-                  {/* Botón de acción con efecto de brillo */}
                   <button 
                     className="flex items-center justify-center gap-2 bg-brand-red/10 text-brand-red hover:bg-brand-red hover:text-white px-4 py-2 rounded-lg text-xs font-medium transition-all shadow-[0_0_10px_rgba(255,51,51,0.1)] hover:shadow-[0_0_15px_rgba(255,51,51,0.4)] whitespace-nowrap"
                   >
@@ -137,7 +186,7 @@ export default function DashboardHome() {
             </div>
          </div>
 
-         {/* COLUMNA DERECHA: Recommended & Events (Ocupa 1/3 del espacio) */}
+         {/* COLUMNA DERECHA: Recommended & Events */}
          <div className="space-y-6">
             
             {/* Tarjeta: Recommended For You */}
@@ -176,6 +225,94 @@ export default function DashboardHome() {
 
          </div>
       </div>
+
+      {/* ===== MODAL: Publish Ad ===== */}
+      {showAdModal && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4 animate-[fadeIn_0.2s_ease-out]"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowAdModal(false); }}
+        >
+          <div className="w-full max-w-md bg-[#121212] border border-gray-800 rounded-xl shadow-2xl animate-[slideUp_0.3s_ease-out] overflow-hidden">
+            
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-800">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-brand-red/10 flex items-center justify-center">
+                  <Megaphone size={20} className="text-brand-red" />
+                </div>
+                <div>
+                  <h3 className="text-white font-bold text-lg">Publish Ad</h3>
+                  <p className="text-gray-500 text-xs">Find players for your game</p>
+                </div>
+              </div>
+              <button onClick={() => setShowAdModal(false)} className="text-gray-500 hover:text-white transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 space-y-5">
+              
+              {/* Game Select */}
+              <div>
+                <label className="text-xs text-gray-400 mb-2 block font-medium uppercase tracking-wider">Select Game</label>
+                {myStats.length === 0 ? (
+                  <p className="text-gray-500 text-sm">You have no games added yet. Go to Profile Settings to add games.</p>
+                ) : (
+                  <select 
+                    value={selectedStatId} 
+                    onChange={(e) => setSelectedStatId(e.target.value)}
+                    className="w-full bg-[#0a0a0a] border border-gray-800 text-white text-sm rounded-lg p-3 focus:border-brand-red outline-none transition-colors"
+                  >
+                    <option value="">Choose a game...</option>
+                    {myStats.map((stat) => (
+                      <option key={stat.id} value={stat.id}>
+                        {stat.game_name || `Game #${stat.game_igdb_id}`} — {stat.rank_tier} ({stat.platform || 'PC'})
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              {/* Message */}
+              <div>
+                <label className="text-xs text-gray-400 mb-2 block font-medium uppercase tracking-wider">Short Message</label>
+                <textarea
+                  value={adMessage}
+                  onChange={(e) => setAdMessage(e.target.value)}
+                  maxLength={255}
+                  rows={3}
+                  placeholder="Looking for teammates for ranked grind tonight..."
+                  className="w-full bg-[#0a0a0a] border border-gray-800 text-white text-sm rounded-lg p-3 focus:border-brand-red outline-none transition-colors resize-none placeholder-gray-600"
+                />
+                <p className="text-right text-gray-600 text-[10px] mt-1">{adMessage.length}/255</p>
+              </div>
+
+              {/* Error */}
+              {publishError && (
+                <p className="text-red-500 text-xs bg-red-500/10 rounded-lg px-3 py-2">{publishError}</p>
+              )}
+
+              {/* Success */}
+              {publishSuccess && (
+                <p className="text-green-500 text-xs bg-green-500/10 rounded-lg px-3 py-2">✓ Ad published successfully!</p>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="p-6 border-t border-gray-800">
+              <button 
+                onClick={handlePublishAd}
+                disabled={!selectedStatId || !adMessage.trim() || publishing || publishSuccess}
+                className="w-full flex items-center justify-center gap-2 bg-brand-red hover:bg-[#FF4D4D] disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-lg text-sm font-medium transition-all shadow-[0_0_10px_rgba(255,51,51,0.2)] hover:shadow-[0_0_15px_rgba(255,51,51,0.4)]"
+              >
+                <Send size={16} />
+                {publishing ? 'Publishing...' : 'Publish Ad'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

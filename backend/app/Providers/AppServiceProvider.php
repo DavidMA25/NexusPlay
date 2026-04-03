@@ -32,7 +32,7 @@ class AppServiceProvider extends ServiceProvider
                     'hash' => sha1($notifiable->getEmailForVerification()),
                 ]
             );
-            return env('FRONTEND_URL', 'http://localhost:5173').'/verify-email?verify_url='.urlencode($url);
+            return env('FRONTEND_URL', 'http://localhost:5173').'/verify-email-callback?verify_url='.urlencode($url);
         });
     }
 }

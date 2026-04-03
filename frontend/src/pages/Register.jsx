@@ -34,7 +34,7 @@ export default function Register() {
       setLoading(true);
       try {
           await register(name, email, password, role, teamName, region, website, description);
-          navigate('/dashboard');
+          navigate('/verify-email');
       } catch (err) {
           setError(err.response?.data?.message || 'Error al crear la cuenta. Intenta nuevamente.');
       } finally {

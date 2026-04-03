@@ -5,26 +5,23 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class PlayerStat extends Model
+class PlayerAd extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'user_id',
-        'game_igdb_id',
-        'rank_tier',
-        'region',
-        'role_main',
-        'platform',
-        'game_name'
-    ];
-
-    protected $casts = [
-        'game_igdb_id' => 'integer'
+        'player_stat_id',
+        'message',
     ];
 
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function stat()
+    {
+        return $this->belongsTo(PlayerStat::class, 'player_stat_id');
     }
 }

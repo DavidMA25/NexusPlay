@@ -22,16 +22,18 @@ api.interceptors.request.use((config) => {
 });
 
 export const AuthProvider = ({ children }) => {
-    // BYPASS PARA FRONTEND: Forzamos usuario y token para entrar directo al Dashboard
-    const [user, setUser] = useState({ id: 1, name: 'Shadow', email: 'shadow@nexusplay.com', role: 'player' });
-    const [token, setToken] = useState('bypass-token-frontend');
-    const [loading, setLoading] = useState(false);
+    // BYPASS PARA FRONTEND (comentado — descomenta las 3 líneas siguientes y comenta las de debajo para activarlo):
+    // const [user, setUser] = useState({ id: 1, name: 'Shadow', email: 'shadow@nexusplay.com', role: 'player' });
+    // const [token, setToken] = useState('bypass-token-frontend');
+    // const [loading, setLoading] = useState(false);
+
+    const [user, setUser] = useState(null);
+    const [token, setToken] = useState(() => localStorage.getItem('nexus_token'));
+    const [emailVerified, setEmailVerified] = useState(false);
+    const [needsVerification, setNeedsVerification] = useState(false);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        /*
-        BYPASS: Comentamos la llamada real al backend temporalmente.
-        Así evitamos que dé error de red y te borre el usuario falso.
-        
         const fetchUser = async () => {
             if (!token) {
                 setLoading(false);
@@ -39,26 +41,31 @@ export const AuthProvider = ({ children }) => {
             }
             try {
                 const response = await api.get('/user');
+                const verified = response.data.email_verified ?? false;
                 setUser(response.data);
+                setEmailVerified(verified);
+                setNeedsVerification(!verified);
             } catch (error) {
-                console.error("Token might be invalid", error);
-                logout(); 
+                console.error('Token might be invalid', error);
+                logout();
             } finally {
                 setLoading(false);
             }
         };
 
         fetchUser();
-        */
     }, [token]);
 
     const login = async (email, password) => {
         const response = await api.post('/login', { email, password });
-        const { user: userData, token: authToken } = response.data;
+        const { user: userData, token: authToken, email_verified } = response.data;
+        const verified = email_verified ?? false;
 
         localStorage.setItem('nexus_token', authToken);
         setToken(authToken);
         setUser(userData);
+        setEmailVerified(verified);
+        setNeedsVerification(!verified);
         return userData;
     };
 
@@ -70,13 +77,15 @@ export const AuthProvider = ({ children }) => {
             payload.website = website;
             payload.description = description;
         }
-        
+
         const response = await api.post('/register', payload);
         const { user: userData, token: authToken } = response.data;
 
         localStorage.setItem('nexus_token', authToken);
         setToken(authToken);
         setUser(userData);
+        setEmailVerified(false);
+        setNeedsVerification(true);
         return userData;
     };
 
@@ -91,10 +100,27 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('nexus_token');
         setToken(null);
         setUser(null);
+        setEmailVerified(false);
+        setNeedsVerification(false);
+    };
+
+    const updateUser = (newUserData) => {
+        setUser(newUserData);
+    };
+
+    const resendVerificationEmail = async () => {
+        await api.post('/email/resend');
+    };
+
+    const verifyEmail = async (verifyUrl) => {
+        const response = await api.get(verifyUrl.replace('http://localhost:8000/api', ''));
+        setEmailVerified(true);
+        setNeedsVerification(false);
+        return response.data;
     };
 
     return (
-        <AuthContext.Provider value={{ user, token, login, register, logout, loading, api }}>
+        <AuthContext.Provider value={{ user, token, emailVerified, needsVerification, login, register, logout, loading, api, updateUser, resendVerificationEmail, verifyEmail }}>
             {children}
         </AuthContext.Provider>
     );

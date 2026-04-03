@@ -2,7 +2,7 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function ProtectedRoute({ children }) {
-    const { token, loading } = useAuth();
+    const { token, loading, needsVerification } = useAuth();
 
     if (loading) {
         return (
@@ -13,10 +13,12 @@ export default function ProtectedRoute({ children }) {
     }
 
     if (!token) {
-        // Redirige al login si no hay token
         return <Navigate to="/login" replace />;
     }
 
-    // Permite renderizar a los hijos o al Outlet (útil si envuelve rutas en App.jsx)
+    if (needsVerification) {
+        return <Navigate to="/verify-email" replace />;
+    }
+
     return children ? children : <Outlet />;
 }

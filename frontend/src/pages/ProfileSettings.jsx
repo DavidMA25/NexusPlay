@@ -1,25 +1,47 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Camera, Plus, Trash2, Save, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function ProfileSettings() {
     // Me traigo al usuario del contexto para precargar su nombre
-    const { user } = useAuth();
+    const { user, api, updateUser } = useAuth();
 
     // Estados para la informacion basica del perfil
     const [username, setUsername] = useState(user?.name || '');
-    const [bio, setBio] = useState('');
-    const [language, setLanguage] = useState('Spanish');
+    const [bio, setBio] = useState(user?.bio || '');
+    const [language, setLanguage] = useState(user?.profile?.languages || 'Spanish');
+    const [region, setRegion] = useState(user?.profile?.region || 'Europe');
+    const [statusMessage, setStatusMessage] = useState(null);
+    const [avatarFile, setAvatarFile] = useState(null);
+    const [avatarPreview, setAvatarPreview] = useState(user?.avatar_url || null);
+    const fileInputRef = useRef(null);
+
+    const handleAvatarClick = () => fileInputRef.current.click();
+    
+    const handleAvatarChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setAvatarFile(file);
+            setAvatarPreview(URL.createObjectURL(file));
+        }
+    };
 
     // Estado dinamico para los juegos. Empieza con uno por defecto vacio o de ejemplo.
     // Usamos Date.now() para generar IDs unicos rapidos para que React no se queje al renderizar listas.
-    const [userGames, setUserGames] = useState([
-        { id: 1, game: 'Valorant', rank: 'Diamond' }
-    ]);
+    const [userGames, setUserGames] = useState(
+        user?.stats?.length > 0 
+        ? user.stats.map(stat => ({
+            id: stat.id,
+            game: stat.game_name || `Game #${stat.game_igdb_id}`,
+            rank: stat.rank_tier,
+            platform: stat.platform || 'PC'
+          }))
+        : [{ id: Date.now(), game: 'Valorant', rank: 'Diamond', platform: 'PC' }]
+    );
 
     // Funcion para anadir una nueva fila de juego al pulsar el boton "+"
     const addGameRow = () => {
-        setUserGames([...userGames, { id: Date.now(), game: '', rank: '' }]);
+        setUserGames([...userGames, { id: Date.now(), game: '', rank: '', platform: 'PC' }]);
     };
 
     // Funcion para borrar una fila concreta al pulsar la papelera
@@ -35,11 +57,30 @@ export default function ProfileSettings() {
     };
 
     // Funcion que se ejecuta al darle al boton de guardar
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Aqui es donde Mario y Daniel conectaran su API para guardar en base de datos.
-        // De momento, lo escupimos por consola para demostrar que el frontend recopila todo bien.
-        console.log("Datos listos para enviar al backend:", { username, bio, language, userGames });
+        setStatusMessage(null);
+        try {
+            const formData = new FormData();
+            formData.append('name', username);
+            if (bio) formData.append('bio', bio);
+            if (language) formData.append('language', language);
+            if (region) formData.append('region', region);
+            if (avatarFile) formData.append('avatar', avatarFile);
+            
+            formData.append('games', JSON.stringify(userGames));
+
+            const response = await api.post('/user/settings', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            if (updateUser && response.data.user) {
+                updateUser(response.data.user);
+            }
+            setStatusMessage({ type: 'success', text: 'Profile updated successfully!' });
+        } catch (error) {
+            console.error("Error updating profile:", error);
+            setStatusMessage({ type: 'error', text: 'Error updating profile. Please ensure the username is valid.' });
+        }
     };
 
     return (
@@ -53,6 +94,12 @@ export default function ProfileSettings() {
                 </p>
             </div>
 
+            {statusMessage && (
+                <div className={`p-4 rounded-lg text-sm font-medium ${statusMessage.type === 'success' ? 'bg-green-500/20 border border-green-500 text-green-400' : 'bg-red-500/20 border border-red-500 text-red-500'}`}>
+                    {statusMessage.text}
+                </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-8">
                 
                 {/* SECCION 1: Avatar y Datos Basicos */}
@@ -64,9 +111,13 @@ export default function ProfileSettings() {
                     
                     {/* Zona del Avatar */}
                     <div className="flex items-center gap-6 mb-8">
-                        <div className="relative group cursor-pointer">
+                        <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
                             <div className="w-24 h-24 rounded-full bg-brand-red/20 border-2 border-brand-red flex items-center justify-center text-brand-red font-bold text-3xl uppercase overflow-hidden">
-                                {username.charAt(0) || 'U'}
+                                {avatarPreview ? (
+                                    <img src={avatarPreview.startsWith('blob:') ? avatarPreview : `http://localhost:8000${avatarPreview}`} alt="Avatar" className="w-full h-full object-cover" />
+                                ) : (
+                                    username.charAt(0) || 'U'
+                                )}
                                 {/* Overlay oscuro que aparece al pasar el raton para simular que puedes cambiar la foto */}
                                 <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                     <Camera size={24} className="text-white" />
@@ -74,10 +125,17 @@ export default function ProfileSettings() {
                             </div>
                         </div>
                         <div>
-                            <button type="button" className="bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors mb-2 block">
+                            <input 
+                                type="file" 
+                                ref={fileInputRef} 
+                                onChange={handleAvatarChange} 
+                                accept=".jpg,.jpeg,.png" 
+                                className="hidden" 
+                            />
+                            <button type="button" onClick={handleAvatarClick} className="bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors mb-2 block">
                                 Upload New Avatar
                             </button>
-                            <p className="text-xs text-gray-500">Recomended size: 256x256px. Max 2MB.</p>
+                            <p className="text-xs text-gray-500">Recommended size: 256x256px. Max 2MB.</p>
                         </div>
                     </div>
 
@@ -104,6 +162,22 @@ export default function ProfileSettings() {
                                 <option value="Spanish">Spanish</option>
                                 <option value="English">English</option>
                                 <option value="French">French</option>
+                            </select>
+                        </div>
+
+                        {/* Region */}
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-300">Region</label>
+                            <select 
+                                value={region}
+                                onChange={(e) => setRegion(e.target.value)}
+                                className="w-full bg-[#0a0a0a] border border-gray-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-red transition-colors appearance-none"
+                            >
+                                <option value="Asia">Asia</option>
+                                <option value="Europe">Europe</option>
+                                <option value="North America">North America</option>
+                                <option value="South America">South America</option>
+                                <option value="Oceania">Oceania</option>
                             </select>
                         </div>
                     </div>
@@ -160,6 +234,23 @@ export default function ProfileSettings() {
                                         placeholder="e.g. Diamond II"
                                         className="w-full bg-transparent text-sm text-white focus:outline-none"
                                     />
+                                </div>
+
+                                <div className="w-px h-10 bg-gray-800 mx-2 hidden sm:block"></div>
+
+                                <div className="flex-1 space-y-1">
+                                    <label className="text-xs text-gray-500 uppercase font-bold tracking-wider">Platform</label>
+                                    <select 
+                                        value={gameObj.platform || 'PC'}
+                                        onChange={(e) => handleGameChange(gameObj.id, 'platform', e.target.value)}
+                                        className="w-full bg-transparent text-sm text-white focus:outline-none appearance-none cursor-pointer"
+                                    >
+                                        <option value="PC" className="bg-[#0a0a0a]">PC</option>
+                                        <option value="PlayStation" className="bg-[#0a0a0a]">PlayStation</option>
+                                        <option value="Xbox" className="bg-[#0a0a0a]">Xbox</option>
+                                        <option value="Nintendo" className="bg-[#0a0a0a]">Nintendo</option>
+                                        <option value="Mobile" className="bg-[#0a0a0a]">Mobile</option>
+                                    </select>
                                 </div>
 
                                 {/* Boton para borrar esa fila en concreto. Si solo queda 1, lo deshabilitamos para que no se quede vacio */}

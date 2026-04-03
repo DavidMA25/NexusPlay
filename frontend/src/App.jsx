@@ -5,7 +5,7 @@ import Features from './components/Features';
 import Community from './components/Community';
 import VideoSection from './components/VideoSection';
 import Footer from './components/Footer';
-import Login from './pages/Login'; 
+import Login from './pages/Login';
 import Register from './pages/Register';
 import FindTeams from './pages/FindTeams';
 import DashboardLayout from './components/DashboardLayout';
@@ -14,6 +14,9 @@ import FindPlayers from './pages/FindPlayers';
 import ProtectedRoute from './components/ProtectedRoute';
 import Events from './pages/Events';
 import ProfileSettings from './pages/ProfileSettings';
+import ViewProfile from './pages/ViewProfile';
+import VerifyEmailNotice from './pages/VerifyEmailNotice';
+import VerifyEmailCallback from './pages/VerifyEmailCallback';
 
 function App() {
   return (
@@ -24,7 +27,7 @@ function App() {
         }}>
 
         <Routes>
-          {/* Rutas publicas: Aqui SI meto el Navbar y el Footer de la landing page */}
+          {/* Rutas publicas */}
           <Route path="/" element={
             <>
               <Navbar />
@@ -38,17 +41,19 @@ function App() {
 
           <Route path="/login" element={<><Navbar /><Login /><Footer /></>} />
           <Route path="/register" element={<><Navbar /><Register /><Footer /></>} />
-          
-          {/* Rutas del Dashboard protegidas para que no entre cualquiera sin loguearse */}
+
+          {/* Verificación de email */}
+          <Route path="/verify-email" element={<><Navbar /><VerifyEmailNotice /><Footer /></>} />
+          <Route path="/verify-email-callback" element={<><Navbar /><VerifyEmailCallback /><Footer /></>} />
+
+          {/* Rutas del Dashboard protegidas */}
           <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
             <Route index element={<DashboardHome />} />
             <Route path="players" element={<FindPlayers />} />
-            {/* La ruta de los equipos arreglada para que no me de el pantallazo en negro */}
             <Route path="teams" element={<FindTeams />} />
-            {/* Nueva ruta para los torneos y eventos que acabo de maquetar */}
             <Route path="events" element={<Events />} />
-            {/* La nueva pantalla para editar el perfil que pidio Mario con los juegos y rangos */}
             <Route path="profile-settings" element={<ProfileSettings />} />
+            <Route path="profile" element={<ViewProfile />} />
           </Route>
         </Routes>
 

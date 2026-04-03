@@ -23,22 +23,18 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
+        $name = fake()->name();
+        $nickname = fake()->unique()->userName();
+        
         return [
-            'name' => fake()->name(),
+            'name' => $name,
             'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
+            'nickname' => $nickname,
+            'role' => 'player',
+            'avatar_url' => 'https://api.dicebear.com/7.x/adventurer/svg?seed=' . urlencode($nickname),
+            'bio' => fake()->realText(150),
             'remember_token' => Str::random(10),
         ];
-    }
-
-    /**
-     * Indicate that the model's email address should be unverified.
-     */
-    public function unverified(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
-        ]);
     }
 }

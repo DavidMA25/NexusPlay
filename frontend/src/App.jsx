@@ -17,6 +17,8 @@ import ProfileSettings from './pages/ProfileSettings';
 import ViewProfile from './pages/ViewProfile';
 import VerifyEmailNotice from './pages/VerifyEmailNotice';
 import VerifyEmailCallback from './pages/VerifyEmailCallback';
+import MyTeams from './pages/MyTeams';
+import TeamProfile from './pages/TeamProfile';
 
 function App() {
   return (
@@ -27,7 +29,7 @@ function App() {
         }}>
 
         <Routes>
-          {/* Rutas publicas */}
+          {/* Rutas publicas: Aqui SI meto el Navbar y el Footer de la landing page */}
           <Route path="/" element={
             <>
               <Navbar />
@@ -42,11 +44,11 @@ function App() {
           <Route path="/login" element={<><Navbar /><Login /><Footer /></>} />
           <Route path="/register" element={<><Navbar /><Register /><Footer /></>} />
 
-          {/* Verificación de email */}
+          {/* Rutas de verificacion de email que monto Daniel */}
           <Route path="/verify-email" element={<><Navbar /><VerifyEmailNotice /><Footer /></>} />
           <Route path="/verify-email-callback" element={<><Navbar /><VerifyEmailCallback /><Footer /></>} />
 
-          {/* Rutas del Dashboard protegidas */}
+          {/* Rutas del Dashboard protegidas para que no entre cualquiera sin loguearse */}
           <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
             <Route index element={<DashboardHome />} />
             <Route path="players" element={<FindPlayers />} />
@@ -54,6 +56,10 @@ function App() {
             <Route path="events" element={<Events />} />
             <Route path="profile-settings" element={<ProfileSettings />} />
             <Route path="profile" element={<ViewProfile />} />
+            {/* Panel de control interno para gestionar mis equipos */}
+            <Route path="my-teams" element={<MyTeams />} />
+            {/* Vista publica de un equipo (como el Phoenix Squad de mis capturas) */}
+            <Route path="team-profile" element={<TeamProfile />} />
           </Route>
         </Routes>
 

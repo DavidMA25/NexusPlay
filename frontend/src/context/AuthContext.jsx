@@ -22,11 +22,21 @@ api.interceptors.request.use((config) => {
 });
 
 export const AuthProvider = ({ children }) => {
-    // BYPASS PARA FRONTEND (comentado — descomenta las 3 líneas siguientes y comenta las de debajo para activarlo):
-    // const [user, setUser] = useState({ id: 1, name: 'Shadow', email: 'shadow@nexusplay.com', role: 'player' });
-    // const [token, setToken] = useState('bypass-token-frontend');
-    // const [loading, setLoading] = useState(false);
+    
+    // =========================================================================
+    // BYPASS PARA MAQUETAR FRONTEND (ACTIVADO)
+    // Engañamos a la app diciendo que estamos logueados y verificados
+    // =========================================================================
+    const [user, setUser] = useState({ id: 1, name: 'Shadow', email: 'shadow@nexusplay.com', role: 'player' });
+    const [token, setToken] = useState('bypass-token-frontend');
+    const [emailVerified, setEmailVerified] = useState(true);
+    const [needsVerification, setNeedsVerification] = useState(false);
+    const [loading, setLoading] = useState(false);
 
+    // =========================================================================
+    // CODIGO REAL DEL BACKEND DE DANIEL (COMENTADO PARA NO PERDERLO)
+    // =========================================================================
+    /*
     const [user, setUser] = useState(null);
     const [token, setToken] = useState(() => localStorage.getItem('nexus_token'));
     const [emailVerified, setEmailVerified] = useState(false);
@@ -55,6 +65,8 @@ export const AuthProvider = ({ children }) => {
 
         fetchUser();
     }, [token]);
+    */
+    // =========================================================================
 
     const login = async (email, password) => {
         const response = await api.post('/login', { email, password });
@@ -90,6 +102,9 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logout = async () => {
+        // Bypass: Evitamos que intente llamar a la API al salir
+        console.log("Logout simulado desde el bypass");
+        /*
         if (token) {
             try {
                 await api.post('/logout');
@@ -102,6 +117,7 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
         setEmailVerified(false);
         setNeedsVerification(false);
+        */
     };
 
     const updateUser = (newUserData) => {

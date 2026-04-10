@@ -20,6 +20,7 @@ Route::post('/register', [AuthController::class, 'register']);
 
 Route::get('/players', [PlayerController::class, 'index']);
 Route::get('/player-ads', [PlayerAdController::class, 'index']);
+Route::get('/vacancies', [VacancyController::class, 'index']);
 
 // Requiere token pero NO email verificado (gestión de sesión y verificación)
 Route::middleware('auth:sanctum')->group(function () {
@@ -52,7 +53,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/user/settings', [AuthController::class, 'updateSettings']);
 
     Route::apiResource('teams', TeamController::class);
-    Route::apiResource('vacancies', VacancyController::class);
+    Route::post('/vacancies', [VacancyController::class, 'store']);
+    Route::get('/vacancies/{vacancy}', [VacancyController::class, 'show']);
+    Route::put('/vacancies/{vacancy}', [VacancyController::class, 'update']);
+    Route::delete('/vacancies/{vacancy}', [VacancyController::class, 'destroy']);
 
     Route::get('profile', [PlayerProfileController::class, 'show']);
     Route::post('profile', [PlayerProfileController::class, 'store']);

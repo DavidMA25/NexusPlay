@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { 
-  Eye, 
-  MessageSquare, 
-  Gamepad2, 
-  UserPlus, 
-  Trophy, 
-  Calendar, 
-  TrendingUp, 
+import {
+  Eye,
+  MessageSquare,
+  Gamepad2,
+  UserPlus,
+  Trophy,
+  Calendar,
+  TrendingUp,
   ArrowRight,
   Megaphone,
   X,
@@ -55,7 +55,7 @@ export default function DashboardHome() {
       setPublishing(false);
     }
   };
-  
+
   // 1. Array de Estadísticas
   const stats = [
     { title: "Profile Views", value: "1,247", increase: "+12%", icon: <Eye size={20} className="text-brand-red" /> },
@@ -66,33 +66,33 @@ export default function DashboardHome() {
 
   // 2. Array de Actividad Reciente
   const activities = [
-    { 
-      title: "New match found", 
-      desc: "Shadow matched with your profile", 
-      time: "2 hours ago", 
-      btnText: "View Profile", 
-      icon: <Gamepad2 size={18} className="text-brand-red" /> 
+    {
+      title: "New match found",
+      desc: "Shadow matched with your profile",
+      time: "2 hours ago",
+      btnText: "View Profile",
+      icon: <Gamepad2 size={18} className="text-brand-red" />
     },
-    { 
-      title: "Team Invitation", 
-      desc: "Phoenix Squad invited you to join", 
-      time: "5 hours ago", 
-      btnText: "View Team", 
-      icon: <Trophy size={18} className="text-brand-red" /> 
+    {
+      title: "Team Invitation",
+      desc: "Phoenix Squad invited you to join",
+      time: "5 hours ago",
+      btnText: "View Team",
+      icon: <Trophy size={18} className="text-brand-red" />
     },
-    { 
-      title: "Event Starting Soon", 
-      desc: "Summer Championship starts in 3 days", 
-      time: "1 day ago", 
-      btnText: "Register Now", 
-      icon: <Calendar size={18} className="text-brand-red" /> 
+    {
+      title: "Event Starting Soon",
+      desc: "Summer Championship starts in 3 days",
+      time: "1 day ago",
+      btnText: "Register Now",
+      icon: <Calendar size={18} className="text-brand-red" />
     },
-    { 
-      title: "Rank Update", 
-      desc: "You ranked up to Immortal 2!", 
-      time: "2 days ago", 
-      btnText: "View Stats", 
-      icon: <TrendingUp size={18} className="text-brand-red" /> 
+    {
+      title: "Rank Update",
+      desc: "You ranked up to Immortal 2!",
+      time: "2 days ago",
+      btnText: "View Stats",
+      icon: <TrendingUp size={18} className="text-brand-red" />
     }
   ];
 
@@ -112,7 +112,7 @@ export default function DashboardHome() {
 
   return (
     <div className="space-y-8">
-      
+
       {/* Cabecera de bienvenida + Botón Publish Ad */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -123,7 +123,7 @@ export default function DashboardHome() {
             Here's what's happening with your eSports career.
           </p>
         </div>
-        <button 
+        <button
           onClick={() => setShowAdModal(true)}
           className="flex items-center gap-2 bg-brand-red hover:bg-[#FF4D4D] text-white px-6 py-3 rounded-lg text-sm font-medium transition-all shadow-[0_0_10px_rgba(255,51,51,0.2)] hover:shadow-[0_0_20px_rgba(255,51,51,0.4)] whitespace-nowrap"
         >
@@ -135,8 +135,8 @@ export default function DashboardHome() {
       {/* Grid de Tarjetas Superiores */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => (
-          <div 
-            key={index} 
+          <div
+            key={index}
             className="bg-[#121212] border border-gray-800 rounded-xl p-6 transition-all hover:border-gray-700 hover:shadow-lg hover:shadow-brand-red/5"
           >
             <div className="flex justify-between items-start mb-4">
@@ -155,85 +155,85 @@ export default function DashboardHome() {
 
       {/* Layout Inferior: Actividad y Sidebars */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-         
-         {/* COLUMNA IZQUIERDA: Recent Activity */}
-         <div className="lg:col-span-2">
-            <h2 className="text-lg font-bold text-white mb-4">Recent Activity</h2>
-            <div className="space-y-4">
-              {activities.map((item, index) => (
-                <div 
-                  key={index} 
-                  className="bg-[#121212] border border-gray-800 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:border-gray-700"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-lg bg-brand-red/10 flex items-center justify-center shrink-0">
-                      {item.icon}
-                    </div>
-                    <div>
-                      <h4 className="text-white font-medium text-sm">{item.title}</h4>
-                      <p className="text-gray-400 text-xs mt-0.5">{item.desc}</p>
-                      <p className="text-gray-500 text-[10px] mt-1.5">{item.time}</p>
-                    </div>
+
+        {/* COLUMNA IZQUIERDA: Recent Activity */}
+        <div className="lg:col-span-2">
+          <h2 className="text-lg font-bold text-white mb-4">Recent Activity</h2>
+          <div className="space-y-4">
+            {activities.map((item, index) => (
+              <div
+                key={index}
+                className="bg-[#121212] border border-gray-800 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:border-gray-700"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-lg bg-brand-red/10 flex items-center justify-center shrink-0">
+                    {item.icon}
                   </div>
-                  
-                  <button 
-                    className="flex items-center justify-center gap-2 bg-brand-red/10 text-brand-red hover:bg-brand-red hover:text-white px-4 py-2 rounded-lg text-xs font-medium transition-all shadow-[0_0_10px_rgba(255,51,51,0.1)] hover:shadow-[0_0_15px_rgba(255,51,51,0.4)] whitespace-nowrap"
-                  >
-                    {item.btnText} <ArrowRight size={14} />
-                  </button>
+                  <div>
+                    <h4 className="text-white font-medium text-sm">{item.title}</h4>
+                    <p className="text-gray-400 text-xs mt-0.5">{item.desc}</p>
+                    <p className="text-gray-500 text-[10px] mt-1.5">{item.time}</p>
+                  </div>
+                </div>
+
+                <button
+                  className="flex items-center justify-center gap-2 bg-brand-red/10 text-brand-red hover:bg-brand-red hover:text-white px-4 py-2 rounded-lg text-xs font-medium transition-all shadow-[0_0_10px_rgba(255,51,51,0.1)] hover:shadow-[0_0_15px_rgba(255,51,51,0.4)] whitespace-nowrap"
+                >
+                  {item.btnText} <ArrowRight size={14} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* COLUMNA DERECHA: Recommended & Events */}
+        <div className="space-y-6">
+
+          {/* Tarjeta: Recommended For You */}
+          <div className="bg-[#121212] border border-gray-800 rounded-xl p-6">
+            <h2 className="text-white font-bold text-sm mb-4">Recommended For You</h2>
+            <div className="space-y-5">
+              {recommended.map((user, index) => (
+                <div key={index} className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-brand-red/20 border border-brand-red flex items-center justify-center text-brand-red font-bold text-xs shrink-0">
+                    {user.initial}
+                  </div>
+                  <div>
+                    <p className="text-white text-sm font-medium">{user.name}</p>
+                    <p className="text-gray-400 text-xs">{user.game}</p>
+                  </div>
                 </div>
               ))}
             </div>
-         </div>
+          </div>
 
-         {/* COLUMNA DERECHA: Recommended & Events */}
-         <div className="space-y-6">
-            
-            {/* Tarjeta: Recommended For You */}
-            <div className="bg-[#121212] border border-gray-800 rounded-xl p-6">
-              <h2 className="text-white font-bold text-sm mb-4">Recommended For You</h2>
-              <div className="space-y-5">
-                {recommended.map((user, index) => (
-                  <div key={index} className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-brand-red/20 border border-brand-red flex items-center justify-center text-brand-red font-bold text-xs shrink-0">
-                      {user.initial}
-                    </div>
-                    <div>
-                      <p className="text-white text-sm font-medium">{user.name}</p>
-                      <p className="text-gray-400 text-xs">{user.game}</p>
-                    </div>
+          {/* Tarjeta: Upcoming Events */}
+          <div className="bg-[#121212] border border-gray-800 rounded-xl p-6">
+            <h2 className="text-white font-bold text-sm mb-4">Upcoming Events</h2>
+            <div className="space-y-5">
+              {events.map((event, index) => (
+                <div key={index} className="flex items-start gap-3">
+                  <Calendar size={16} className="text-brand-red shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-white text-sm font-medium leading-tight">{event.name}</p>
+                    <p className="text-gray-500 text-xs mt-1">{event.date}</p>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
+          </div>
 
-            {/* Tarjeta: Upcoming Events */}
-            <div className="bg-[#121212] border border-gray-800 rounded-xl p-6">
-              <h2 className="text-white font-bold text-sm mb-4">Upcoming Events</h2>
-              <div className="space-y-5">
-                {events.map((event, index) => (
-                  <div key={index} className="flex items-start gap-3">
-                    <Calendar size={16} className="text-brand-red shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-white text-sm font-medium leading-tight">{event.name}</p>
-                      <p className="text-gray-500 text-xs mt-1">{event.date}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-         </div>
+        </div>
       </div>
 
       {/* ===== MODAL: Publish Ad ===== */}
       {showAdModal && (
-        <div 
+        <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4 animate-[fadeIn_0.2s_ease-out]"
           onClick={(e) => { if (e.target === e.currentTarget) setShowAdModal(false); }}
         >
           <div className="w-full max-w-md bg-[#121212] border border-gray-800 rounded-xl shadow-2xl animate-[slideUp_0.3s_ease-out] overflow-hidden">
-            
+
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-800">
               <div className="flex items-center gap-3">
@@ -252,15 +252,15 @@ export default function DashboardHome() {
 
             {/* Body */}
             <div className="p-6 space-y-5">
-              
+
               {/* Game Select */}
               <div>
                 <label className="text-xs text-gray-400 mb-2 block font-medium uppercase tracking-wider">Select Game</label>
                 {myStats.length === 0 ? (
                   <p className="text-gray-500 text-sm">You have no games added yet. Go to Profile Settings to add games.</p>
                 ) : (
-                  <select 
-                    value={selectedStatId} 
+                  <select
+                    value={selectedStatId}
                     onChange={(e) => setSelectedStatId(e.target.value)}
                     className="w-full bg-[#0a0a0a] border border-gray-800 text-white text-sm rounded-lg p-3 focus:border-brand-red outline-none transition-colors"
                   >
@@ -301,7 +301,7 @@ export default function DashboardHome() {
 
             {/* Footer */}
             <div className="p-6 border-t border-gray-800">
-              <button 
+              <button
                 onClick={handlePublishAd}
                 disabled={!selectedStatId || !adMessage.trim() || publishing || publishSuccess}
                 className="w-full flex items-center justify-center gap-2 bg-brand-red hover:bg-[#FF4D4D] disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-lg text-sm font-medium transition-all shadow-[0_0_10px_rgba(255,51,51,0.2)] hover:shadow-[0_0_15px_rgba(255,51,51,0.4)]"

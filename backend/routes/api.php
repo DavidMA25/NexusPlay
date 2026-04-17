@@ -21,6 +21,7 @@ Route::post('/register', [AuthController::class, 'register']);
 
 Route::get('/players',    [PlayerController::class, 'index']);
 Route::get('/player-ads', [PlayerAdController::class, 'index']);
+Route::get('/vacancies', [VacancyController::class, 'index']);
 
 // Vacancies are public so unauthenticated visitors can browse team ads (FindTeams page)
 Route::get('/vacancies', [VacancyController::class, 'index']);
@@ -57,6 +58,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Teams
     Route::apiResource('teams', TeamController::class);
+    Route::post('/vacancies', [VacancyController::class, 'store']);
+    Route::get('/vacancies/{vacancy}', [VacancyController::class, 'show']);
+    Route::put('/vacancies/{vacancy}', [VacancyController::class, 'update']);
+    Route::delete('/vacancies/{vacancy}', [VacancyController::class, 'destroy']);
 
     // Vacancies (write operations require auth)
     Route::post('/vacancies',            [VacancyController::class, 'store']);

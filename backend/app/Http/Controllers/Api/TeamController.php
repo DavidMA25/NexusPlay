@@ -13,7 +13,7 @@ class TeamController extends Controller
     public function index()
     {
         return TeamResource::collection(
-            Team::with(['owner','members'])->paginate()
+            Team::with(['owner', 'members'])->paginate()
         );
     }
 
@@ -30,7 +30,7 @@ class TeamController extends Controller
     public function show(Team $team)
     {
         return new TeamResource(
-            $team->load('members','owner')
+            $team->load('members', 'owner')
         );
     }
 

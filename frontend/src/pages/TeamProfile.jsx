@@ -1,13 +1,13 @@
 import { useState } from 'react';
-import { 
-    Edit, 
-    Gamepad2, 
-    Target, 
-    Trophy, 
-    Star, 
-    Calendar, 
-    MapPin, 
-    Globe, 
+import {
+    Edit,
+    Gamepad2,
+    Target,
+    Trophy,
+    Star,
+    Calendar,
+    MapPin,
+    Globe,
     Users
 } from 'lucide-react';
 
@@ -20,16 +20,16 @@ export default function TeamProfile() {
 
     return (
         <div className="max-w-5xl mx-auto space-y-6 pb-12">
-            
+
             {/* CABECERA: EL BANNER ROJO, AVATAR Y LA BIO */}
             <div className="bg-[#121212] border border-gray-800 rounded-2xl overflow-hidden shadow-xl relative">
-                
+
                 {/* El difuminado rojo del fondo de la tarjeta */}
                 <div className="h-48 bg-gradient-to-b from-[#FF3333]/20 to-[#121212] w-full absolute top-0 left-0 z-0"></div>
 
                 {/* Contenido centrado (z-10 para que se quede por encima del fondo) */}
                 <div className="relative z-10 flex flex-col items-center pt-12 pb-8 px-6 text-center">
-                    
+
                     {/* El avatar amarillo de Phoenix Squad */}
                     <div className="w-24 h-24 bg-[#FFB800] rounded-full border-4 border-[#121212] shadow-lg flex items-center justify-center mb-4">
                         <div className="w-12 h-4 bg-gray-900 rounded-full relative">
@@ -39,14 +39,14 @@ export default function TeamProfile() {
                     </div>
 
                     <h1 className="text-3xl font-bold text-white mb-3">Phoenix Squad</h1>
-                    
+
                     <div className="flex items-center gap-2 mb-4">
                         <span className="text-xs font-bold text-brand-red bg-brand-red/10 px-2 py-1 rounded">Valorant</span>
                         <span className="text-xs font-bold text-gray-400 bg-gray-800 px-2 py-1 rounded">Semi-Pro</span>
                     </div>
 
                     <p className="text-sm text-gray-400 max-w-xl mx-auto mb-6">
-                        Competitive Valorant team looking for dedicated players to complete our roster. 
+                        Competitive Valorant team looking for dedicated players to complete our roster.
                         We practice 5 days a week and compete in weekly tournaments.
                     </p>
 
@@ -63,9 +63,8 @@ export default function TeamProfile() {
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab)}
-                        className={`pb-3 text-sm font-medium transition-colors relative ${
-                            activeTab === tab ? 'text-white' : 'text-gray-500 hover:text-gray-300'
-                        }`}
+                        className={`pb-3 text-sm font-medium transition-colors relative ${activeTab === tab ? 'text-white' : 'text-gray-500 hover:text-gray-300'
+                            }`}
                     >
                         {tab}
                         {/* La rayita roja de abajo que indica cual esta activa */}
@@ -78,7 +77,7 @@ export default function TeamProfile() {
 
             {/* ZONA DINAMICA: AQUI RENDERIZO LO QUE TOQUE SEGUN LA PESTAÑA */}
             <div className="animate-fade-in">
-                
+
                 {/* PESTAÑA: OVERVIEW */}
                 {activeTab === 'Overview' && (
                     <div className="space-y-6">
@@ -138,7 +137,7 @@ export default function TeamProfile() {
                 {/* PESTAÑA: ROSTER */}
                 {activeTab === 'Roster' && (
                     <div className="space-y-6">
-                        
+
                         {/* Miembros actuales */}
                         <div className="bg-[#121212] border border-gray-800 rounded-xl p-6">
                             <h2 className="text-lg font-bold text-white mb-4">Current Roster</h2>

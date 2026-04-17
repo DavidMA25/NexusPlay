@@ -29,7 +29,7 @@ function App() {
         }}>
 
         <Routes>
-          {/* Rutas publicas: Aqui SI meto el Navbar y el Footer de la landing page */}
+          {/* Public routes */}
           <Route path="/" element={
             <>
               <Navbar />
@@ -41,25 +41,23 @@ function App() {
             </>
           } />
 
-          <Route path="/login" element={<><Navbar /><Login /><Footer /></>} />
+          <Route path="/login"    element={<><Navbar /><Login /><Footer /></>} />
           <Route path="/register" element={<><Navbar /><Register /><Footer /></>} />
 
-          {/* Rutas de verificacion de email que monto Daniel */}
-          <Route path="/verify-email" element={<><Navbar /><VerifyEmailNotice /><Footer /></>} />
+          {/* Email verification */}
+          <Route path="/verify-email"          element={<><Navbar /><VerifyEmailNotice /><Footer /></>} />
           <Route path="/verify-email-callback" element={<><Navbar /><VerifyEmailCallback /><Footer /></>} />
 
-          {/* Rutas del Dashboard protegidas para que no entre cualquiera sin loguearse */}
+          {/* Protected dashboard routes */}
           <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-            <Route index element={<DashboardHome />} />
-            <Route path="players" element={<FindPlayers />} />
-            <Route path="teams" element={<FindTeams />} />
-            <Route path="events" element={<Events />} />
-            <Route path="profile-settings" element={<ProfileSettings />} />
-            <Route path="profile" element={<ViewProfile />} />
-            {/* Panel de control interno para gestionar mis equipos */}
-            <Route path="my-teams" element={<MyTeams />} />
-            {/* Vista publica de un equipo (como el Phoenix Squad de mis capturas) */}
-            <Route path="team-profile" element={<TeamProfile />} />
+            <Route index                    element={<DashboardHome />} />
+            <Route path="players"           element={<FindPlayers />} />
+            <Route path="teams"             element={<FindTeams />} />
+            <Route path="events"            element={<Events />} />
+            <Route path="profile-settings"  element={<ProfileSettings />} />
+            <Route path="profile"           element={<ViewProfile />} />
+            <Route path="my-teams"          element={<MyTeams />} />
+            <Route path="team-profile"      element={<TeamProfile />} />
           </Route>
         </Routes>
 

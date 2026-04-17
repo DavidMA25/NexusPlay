@@ -6,7 +6,7 @@ const AuthContext = createContext();
 export const useAuth = () => useContext(AuthContext);
 
 const api = axios.create({
-    baseURL: 'http://localhost:8000/api',
+    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
@@ -22,21 +22,20 @@ api.interceptors.request.use((config) => {
 });
 
 export const AuthProvider = ({ children }) => {
-    
-    // =========================================================================
-    // BYPASS PARA MAQUETAR FRONTEND (ACTIVADO)
-    // Engañamos a la app diciendo que estamos logueados y verificados
-    // =========================================================================
-    const [user, setUser] = useState({ id: 1, name: 'Shadow', email: 'shadow@nexusplay.com', role: 'player' });
-    const [token, setToken] = useState('bypass-token-frontend');
-    const [emailVerified, setEmailVerified] = useState(true);
-    const [needsVerification, setNeedsVerification] = useState(false);
-    const [loading, setLoading] = useState(false);
 
     // =========================================================================
-    // CODIGO REAL DEL BACKEND DE DANIEL (COMENTADO PARA NO PERDERLO)
+    // FRONTEND BYPASS — uncomment the 5 lines below and comment out the real
+    // state block to mock an authenticated session during UI development.
     // =========================================================================
-    /*
+    // const [user, setUser] = useState({ id: 1, name: 'Shadow', email: 'shadow@nexusplay.com', role: 'player' });
+    // const [token, setToken] = useState('bypass-token-frontend');
+    // const [emailVerified, setEmailVerified] = useState(true);
+    // const [needsVerification, setNeedsVerification] = useState(false);
+    // const [loading, setLoading] = useState(false);
+
+    // =========================================================================
+    // REAL AUTH STATE
+    // =========================================================================
     const [user, setUser] = useState(null);
     const [token, setToken] = useState(() => localStorage.getItem('nexus_token'));
     const [emailVerified, setEmailVerified] = useState(false);
@@ -65,8 +64,6 @@ export const AuthProvider = ({ children }) => {
 
         fetchUser();
     }, [token]);
-    */
-    // =========================================================================
 
     const login = async (email, password) => {
         const response = await api.post('/login', { email, password });
@@ -85,8 +82,8 @@ export const AuthProvider = ({ children }) => {
         const payload = { name, email, password, role };
         if (role === 'team') {
             payload.team_name = teamName;
-            payload.region = region;
-            payload.website = website;
+            payload.region    = region;
+            payload.website   = website;
             payload.description = description;
         }
 
@@ -102,41 +99,37 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logout = async () => {
-        // Bypass: Evitamos que intente llamar a la API al salir
-        console.log("Logout simulado desde el bypass");
-        /*
         if (token) {
-            try {
-                await api.post('/logout');
-            } catch (e) {
-                console.error(e);
-            }
+            try { await api.post('/logout'); } catch (e) { console.error(e); }
         }
         localStorage.removeItem('nexus_token');
         setToken(null);
         setUser(null);
         setEmailVerified(false);
         setNeedsVerification(false);
-        */
     };
 
-    const updateUser = (newUserData) => {
-        setUser(newUserData);
-    };
+    const updateUser = (newUserData) => setUser(newUserData);
 
     const resendVerificationEmail = async () => {
         await api.post('/email/resend');
     };
 
     const verifyEmail = async (verifyUrl) => {
-        const response = await api.get(verifyUrl.replace('http://localhost:8000/api', ''));
+        const response = await api.get(verifyUrl.replace(
+            (import.meta.env.VITE_API_URL || 'http://localhost:8000/api'), ''
+        ));
         setEmailVerified(true);
         setNeedsVerification(false);
         return response.data;
     };
 
     return (
-        <AuthContext.Provider value={{ user, token, emailVerified, needsVerification, login, register, logout, loading, api, updateUser, resendVerificationEmail, verifyEmail }}>
+        <AuthContext.Provider value={{
+            user, token, emailVerified, needsVerification,
+            login, register, logout, loading,
+            api, updateUser, resendVerificationEmail, verifyEmail
+        }}>
             {children}
         </AuthContext.Provider>
     );

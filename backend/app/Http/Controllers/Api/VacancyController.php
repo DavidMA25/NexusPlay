@@ -13,7 +13,7 @@ class VacancyController extends Controller
     public function index()
     {
         return VacancyResource::collection(
-            Vacancy::with('team')->latest()->paginate()
+            Vacancy::with('team')->latest()->paginate(5)
         );
     }
 

@@ -61,9 +61,19 @@
    cd frontend
    npm install
    ```
+   - El archivo `.env` contiene las variables de configuración de tu entorno local (como la conexión a la base de datos).
 
 2. **Lanzar el servidor Frontend:**
    ```bash
    npm run dev
    ```
    Una vez iniciado, podrás acceder a la interfaz de la aplicación web abriendo en tu navegador la siguiente dirección: `http://localhost:5173` (el puerto puede variar, revisa lo que indique tu terminal).
+
+### WordPress
+
+1. **Configuración**
+   La base de datos de WordPress **DEBE** ser la misma que la de Laravel.
+   En frontend y backend, modifica el archivo `.env` en base al `.env.example`, añadiendo el enlace a wordpress **base**, en frontend la variable es `VITE_WP_URL` y en backend `WORDPRESS_URL`.
+
+2. **Backup**
+   En tu WordPress, descarga el plugin `UpdraftPlus`, lo activas y vas a la sección de backup (el panel de UpdraftPlus en el nav izquierdo de WordPress), arrastras los archivos .zip de la carpeta backup **sin descomprimirlos** y lo restauráis (no suele hacer falta modificar nada, con darle todo a siguiente es suficiente).

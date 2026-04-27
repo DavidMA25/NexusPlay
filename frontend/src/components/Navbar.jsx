@@ -24,10 +24,10 @@ export default function Navbar() {
 
                 {/* Enlaces centrales */}
                 <div className="hidden md:flex items-center gap-12 text-sm text-gray-300">
-                    <a href="#" className="hover:text-white transition-colors">Find Players</a>
-                    <Link to="/find-teams" className="hover:text-white transition-colors">Find Teams</Link>
-                    <a href="#" className="hover:text-white transition-colors">Events</a>
-                    <a href="#" className="hover:text-white transition-colors">News</a>
+                    <Link to="/dashboard/players" className="hover:text-white transition-colors">Find Players</Link>
+                    <Link to="/dashboard/teams" className="hover:text-white transition-colors">Find Teams</Link>
+                    <Link to="/dashboard/events" className="hover:text-white transition-colors">Events</Link>
+                    <a href={import.meta.env.VITE_WP_URL || 'http://localhost/wordpress'} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">News</a>
                 </div>
 
                 {/* Botones de Auth — cambian según estado de sesión */}
@@ -69,4 +69,4 @@ export default function Navbar() {
             </div>
         </nav>
     );
-}
+}

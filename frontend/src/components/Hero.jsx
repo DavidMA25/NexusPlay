@@ -1,7 +1,9 @@
 import { User, Trophy } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import Stats from './Stats';
 
 export default function Hero() {
+    const navigate = useNavigate();
     return (
         <div className="flex flex-col items-center justify-center pt-32 pb-20 px-4 text-center">
 
@@ -24,12 +26,12 @@ export default function Hero() {
 
             {/* Botones de Acción */}
             <div className="flex flex-col sm:flex-row gap-4">
-                <button className="flex items-center justify-center gap-2 bg-brand-red hover:bg-[#FF4D4D] text-white px-8 py-3 rounded-md font-medium transition-all shadow-[0_0_20px_rgba(255,51,51,0.3)] hover:shadow-[0_0_25px_rgba(255,51,51,0.5)]">
+                <button onClick={() => navigate('/register')} className="flex items-center justify-center gap-2 bg-brand-red hover:bg-[#FF4D4D] text-white px-8 py-3 rounded-md font-medium transition-all shadow-[0_0_20px_rgba(255,51,51,0.3)] hover:shadow-[0_0_25px_rgba(255,51,51,0.5)]">
                     <User size={20} />
                     I'm a Player
                 </button>
 
-                <button className="flex items-center justify-center gap-2 border border-gray-700 hover:border-gray-500 hover:bg-gray-900 text-white px-8 py-3 rounded-md font-medium transition-all">
+                <button onClick={() => navigate('/register')} className="flex items-center justify-center gap-2 border border-gray-700 hover:border-gray-500 hover:bg-gray-900 text-white px-8 py-3 rounded-md font-medium transition-all">
                     <Trophy size={20} />
                     I'm a Team
                 </button>

@@ -13,7 +13,7 @@ import DashboardHome from './pages/DashboardHome';
 import FindPlayers from './pages/FindPlayers';
 import ProtectedRoute from './components/ProtectedRoute';
 import Events from './pages/Events';
-import ProfileSettings from './pages/ProfileSettings';
+import Settings from './pages/Settings';
 import ViewProfile from './pages/ViewProfile';
 import VerifyEmailNotice from './pages/VerifyEmailNotice';
 import VerifyEmailCallback from './pages/VerifyEmailCallback';
@@ -42,24 +42,24 @@ function App() {
             </>
           } />
 
-          <Route path="/login"    element={<><Navbar /><Login /><Footer /></>} />
+          <Route path="/login" element={<><Navbar /><Login /><Footer /></>} />
           <Route path="/register" element={<><Navbar /><Register /><Footer /></>} />
 
           {/* Email verification */}
-          <Route path="/verify-email"          element={<><Navbar /><VerifyEmailNotice /><Footer /></>} />
+          <Route path="/verify-email" element={<><Navbar /><VerifyEmailNotice /><Footer /></>} />
           <Route path="/verify-email-callback" element={<><Navbar /><VerifyEmailCallback /><Footer /></>} />
 
           {/* Protected dashboard routes */}
           <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-            <Route index                    element={<DashboardHome />} />
-            <Route path="players"           element={<FindPlayers />} />
-            <Route path="teams"             element={<FindTeams />} />
-            <Route path="events"            element={<Events />} />
-            <Route path="profile-settings"  element={<ProfileSettings />} />
-            <Route path="profile"           element={<ViewProfile />} />
-            <Route path="my-teams"          element={<MyTeams />} />
-            <Route path="team-profile"      element={<TeamProfile />} />
-            <Route path="notifications"     element={<Notifications />} />
+            <Route index element={<DashboardHome />} />
+            <Route path="players" element={<FindPlayers />} />
+            <Route path="teams" element={<FindTeams />} />
+            <Route path="events" element={<Events />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="profile" element={<ViewProfile />} />
+            <Route path="my-teams" element={<MyTeams />} />
+            <Route path="team-profile" element={<TeamProfile />} />
+            <Route path="notifications" element={<Notifications />} />
           </Route>
         </Routes>
 

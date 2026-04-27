@@ -6,6 +6,7 @@ import xboxIcon from '../assets/xbox.svg';
 import playstationIcon from '../assets/playstation.svg';
 import mobileIcon from '../assets/mobile.svg';
 import ProfileCard from '../components/ProfileCard';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const platformIcons = {
@@ -35,13 +36,14 @@ const platformStyles = {
 export default function FindPlayers() {
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const { api } = useAuth();
-  
+  const navigate = useNavigate();
+
   const [ads, setAds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
-  
+
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
     region: '',
@@ -59,7 +61,7 @@ export default function FindPlayers() {
         ...(filters.rank && { rank: filters.rank }),
         ...(filters.game && { game: filters.game }),
       };
-      
+
       const response = await api.get('/player-ads', { params });
       setAds(response.data.data);
       setTotalPages(response.data.last_page);
@@ -81,7 +83,7 @@ export default function FindPlayers() {
     setSearchQuery(e.target.value);
     setPage(1);
   };
-  
+
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters(prev => ({ ...prev, [name]: value }));
@@ -118,13 +120,13 @@ export default function FindPlayers() {
       gameRole: stat?.role_main || "Flex",
       // Full data for profile modal
       bio: user?.bio || "No biography provided.",
-      games: user?.stats?.length > 0 
+      games: user?.stats?.length > 0
         ? user.stats.map(s => ({
-            name: s.game_name || `Game #${s.game_igdb_id}`,
-            rank: s.rank_tier || "Unranked",
-            platform: (s.platform || 'pc').toLowerCase(),
-            role: s.role_main || 'Flex'
-          }))
+          name: s.game_name || `Game #${s.game_igdb_id}`,
+          rank: s.rank_tier || "Unranked",
+          platform: (s.platform || 'pc').toLowerCase(),
+          role: s.role_main || 'Flex'
+        }))
         : [],
     };
   };
@@ -147,7 +149,7 @@ export default function FindPlayers() {
 
   return (
     <div className="space-y-8 pb-10">
-      
+
       {/* 1. Cabecera */}
       <div>
         <h1 className="text-3xl font-bold text-white mb-2">Find Players</h1>
@@ -160,17 +162,17 @@ export default function FindPlayers() {
       <div className="flex flex-col md:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-          <input 
-            type="text" 
+          <input
+            type="text"
             value={searchQuery}
             onChange={handleSearchChange}
-            placeholder="Search by player name..." 
+            placeholder="Search by player name..."
             className="w-full bg-[#121212] border border-gray-800 rounded-lg pl-12 pr-4 py-3 text-sm text-white focus:outline-none focus:border-brand-red transition-colors placeholder-gray-500"
           />
         </div>
-        
+
         <div className="relative">
-          <button 
+          <button
             onClick={() => setShowFilters(!showFilters)}
             className="flex items-center justify-center gap-2 bg-[#121212] border border-gray-800 hover:border-gray-700 text-white px-6 py-3 rounded-lg text-sm font-medium transition-colors h-full w-full md:w-auto"
           >
@@ -184,7 +186,7 @@ export default function FindPlayers() {
                 <h3 className="text-white font-medium">Filters</h3>
                 <button onClick={clearFilters} className="text-xs text-brand-red hover:text-white transition-colors">Clear All</button>
               </div>
-              
+
               <div className="space-y-4">
                 <div>
                   <label className="text-xs text-gray-400 mb-1 block">Region</label>
@@ -232,11 +234,11 @@ export default function FindPlayers() {
           {ads.map((ad) => {
             const player = mapAdData(ad);
             return (
-              <div 
-                key={player.id} 
+              <div
+                key={player.id}
                 className="bg-[#121212] border border-gray-800 rounded-xl p-6 flex flex-col items-center text-center transition-all duration-300 hover:border-brand-red hover:shadow-[0_0_15px_rgba(255,51,51,0.15)] hover:-translate-y-1"
               >
-                
+
                 {/* Avatar con indicador de estado */}
                 <div className="relative mb-4">
                   {player.avatarUrl ? (
@@ -264,10 +266,10 @@ export default function FindPlayers() {
                     </span>
                     {player.gamePlatform && platformIcons[player.gamePlatform] && (
                       <span className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded ${platformStyles[player.gamePlatform] || 'bg-gray-800 text-gray-300'}`}>
-                        <img 
-                          src={platformIcons[player.gamePlatform]} 
-                          alt={player.gamePlatform} 
-                          className={`${player.gamePlatform === 'mobile' ? 'w-4 h-4' : 'w-3 h-3'} brightness-0 invert`} 
+                        <img
+                          src={platformIcons[player.gamePlatform]}
+                          alt={player.gamePlatform}
+                          className={`${player.gamePlatform === 'mobile' ? 'w-4 h-4' : 'w-3 h-3'} brightness-0 invert`}
                         />
                         {platformNames[player.gamePlatform] || player.gamePlatform}
                       </span>
@@ -300,13 +302,13 @@ export default function FindPlayers() {
 
                 {/* Botones de acción */}
                 <div className="w-full flex gap-3 mt-6">
-                  <button 
+                  <button
                     onClick={() => setSelectedPlayer(buildProfileData(ad))}
                     className="flex-1 bg-transparent border border-gray-700 hover:border-gray-500 text-white text-xs font-medium py-2 rounded-lg transition-colors"
                   >
                     View Profile
                   </button>
-                  <button className="flex-1 bg-brand-red hover:bg-[#FF4D4D] text-white text-xs font-medium py-2 rounded-lg flex items-center justify-center gap-1.5 transition-all shadow-[0_0_10px_rgba(255,51,51,0.2)] hover:shadow-[0_0_15px_rgba(255,51,51,0.4)]">
+                  <button onClick={() => navigate('/dashboard')} className="flex-1 bg-brand-red hover:bg-[#FF4D4D] text-white text-xs font-medium py-2 rounded-lg flex items-center justify-center gap-1.5 transition-all shadow-[0_0_10px_rgba(255,51,51,0.2)] hover:shadow-[0_0_15px_rgba(255,51,51,0.4)]">
                     <MessageSquare size={14} />
                     Message
                   </button>
@@ -321,7 +323,7 @@ export default function FindPlayers() {
       {/* Pagination Controls */}
       {!loading && totalPages > 1 && (
         <div className="flex justify-center items-center gap-4 mt-8">
-          <button 
+          <button
             onClick={() => setPage(p => Math.max(1, p - 1))}
             disabled={page === 1}
             className="p-2 rounded-lg bg-[#121212] border border-gray-800 text-white disabled:opacity-50 hover:bg-gray-800 transition-colors"
@@ -331,7 +333,7 @@ export default function FindPlayers() {
           <span className="text-gray-400 text-sm">
             Page <span className="text-white font-medium">{page}</span> of <span className="text-white font-medium">{totalPages}</span>
           </span>
-          <button 
+          <button
             onClick={() => setPage(p => Math.min(totalPages, p + 1))}
             disabled={page >= totalPages}
             className="p-2 rounded-lg bg-[#121212] border border-gray-800 text-white disabled:opacity-50 hover:bg-gray-800 transition-colors"
@@ -343,17 +345,17 @@ export default function FindPlayers() {
 
       {/* ===== MODAL / OVERLAY DE PERFIL ===== */}
       {selectedPlayer && (
-        <div 
+        <div
           className="fixed inset-0 z-50 flex items-start justify-center bg-black/70 backdrop-blur-sm overflow-y-auto py-10 px-4 animate-[fadeIn_0.2s_ease-out]"
           onClick={(e) => {
             if (e.target === e.currentTarget) setSelectedPlayer(null);
           }}
         >
           <div className="w-full max-w-2xl animate-[slideUp_0.3s_ease-out]">
-            <ProfileCard 
-              playerData={selectedPlayer} 
-              isOwnProfile={false} 
-              onClose={() => setSelectedPlayer(null)} 
+            <ProfileCard
+              playerData={selectedPlayer}
+              isOwnProfile={false}
+              onClose={() => setSelectedPlayer(null)}
             />
           </div>
         </div>

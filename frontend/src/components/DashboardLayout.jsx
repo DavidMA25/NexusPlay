@@ -21,10 +21,10 @@ import logo from '../assets/logo.png';
 export default function DashboardLayout() {
     // Extraemos los datos del usuario logueado y la funcion de cerrar sesion desde AuthContext
     const { user, logout } = useAuth();
-    
+
     // Estado para controlar si el desplegable del perfil esta visible o no
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-    
+
     // Guardo la ruta actual en una variable. 
     // Lo uso luego para saber en que pagina estoy y pintar ese boton de rojo.
     const location = useLocation();
@@ -50,7 +50,7 @@ export default function DashboardLayout() {
 
             {/* ================= BARRA LATERAL (SIDEBAR) ================= */}
             {/* Le pongo w-64 para dejarla fija y hidden md:flex para que se oculte en moviles */}
-            <aside className="w-64 bg-[#121212] border-r border-gray-800 flex flex-col hidden md:flex">
+            <aside className="w-64 bg-[#121212] border-r border-gray-800 flex-col hidden md:flex">
 
                 {/* Cabecera del Sidebar con el Logo */}
                 <div className="h-20 flex items-center px-6 border-b border-gray-800">
@@ -71,8 +71,8 @@ export default function DashboardLayout() {
                                 to={item.path}
                                 // Si esta activo, le pongo fondo rojizo y texto rojo. Si no, gris.
                                 className={`flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${isActive
-                                        ? 'bg-brand-red/10 text-brand-red font-medium'
-                                        : 'text-gray-400 hover:text-white hover:bg-[#1a1a1a]'
+                                    ? 'bg-brand-red/10 text-brand-red font-medium'
+                                    : 'text-gray-400 hover:text-white hover:bg-[#1a1a1a]'
                                     }`}
                             >
                                 <div className="flex items-center gap-3">
@@ -149,9 +149,9 @@ export default function DashboardLayout() {
 
                         {/* Contenedor relativo para poder posicionar el menu desplegable justo debajo */}
                         <div className="relative">
-                            
+
                             {/* Boton del perfil que al hacer click cambia el estado abierto/cerrado */}
-                            <div 
+                            <div
                                 onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
                                 className="flex items-center gap-2 cursor-pointer border-l border-gray-800 pl-6 hover:opacity-80 transition-opacity"
                             >
@@ -164,42 +164,34 @@ export default function DashboardLayout() {
                                         user?.name?.charAt(0) || 'U'
                                     )}
                                 </div>
-                                <ChevronDown 
-                                    size={16} 
-                                    className={`text-gray-500 transition-transform duration-200 ${isProfileMenuOpen ? 'rotate-180' : ''}`} 
+                                <ChevronDown
+                                    size={16}
+                                    className={`text-gray-500 transition-transform duration-200 ${isProfileMenuOpen ? 'rotate-180' : ''}`}
                                 />
                             </div>
 
                             {/* El menu desplegable. Solo se renderiza si isProfileMenuOpen es true */}
                             {isProfileMenuOpen && (
                                 <div className="absolute right-0 mt-6 w-56 bg-[#121212] border border-gray-800 rounded-xl shadow-2xl overflow-hidden z-50">
-                                    
+
                                     {/* Cabecera del desplegable con el correo */}
                                     <div className="p-4 border-b border-gray-800 bg-[#1a1a1a]">
                                         <p className="text-sm font-bold text-white truncate">{user?.name || 'User'}</p>
                                         <p className="text-xs text-gray-400 truncate mt-0.5">{user?.email || 'user@nexusplay.com'}</p>
                                     </div>
-                                    
+
                                     {/* Opciones del menu */}
                                     <div className="p-2 space-y-1">
-                                        <Link 
-                                            to="/dashboard/profile" 
+                                        <Link
+                                            to="/dashboard/profile"
                                             onClick={() => setIsProfileMenuOpen(false)}
                                             className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
                                         >
                                             <UserCircle size={16} />
                                             Ver perfil
                                         </Link>
-                                        <Link 
-                                            to="/dashboard/profile-settings" 
-                                            onClick={() => setIsProfileMenuOpen(false)}
-                                            className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
-                                        >
-                                            <UserCog size={16} />
-                                            Ajustes de perfil
-                                        </Link>
-                                        <Link 
-                                            to="/dashboard/settings" 
+                                        <Link
+                                            to="/dashboard/settings"
                                             onClick={() => setIsProfileMenuOpen(false)}
                                             className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
                                         >
@@ -207,10 +199,10 @@ export default function DashboardLayout() {
                                             Ajustes
                                         </Link>
                                     </div>
-                                    
+
                                     {/* Boton de Logout en rojo para destacar */}
                                     <div className="p-2 border-t border-gray-800">
-                                        <button 
+                                        <button
                                             onClick={() => {
                                                 setIsProfileMenuOpen(false);
                                                 logout();

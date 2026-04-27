@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { Search, Filter, Bot, Users, ChevronLeft, ChevronRight, Star } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function FindTeams() {
   const { api } = useAuth();
+  const navigate = useNavigate();
 
   const [ads, setAds] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -154,7 +156,7 @@ export default function FindTeams() {
                   </div>
                 </div>
                 <div>
-                  <button className="bg-brand-red hover:bg-[#FF4D4D] text-black font-bold px-6 py-2 text-sm rounded-lg transition-all shadow-[0_0_10px_rgba(255,51,51,0.2)] hover:shadow-[0_0_15px_rgba(255,51,51,0.4)]">
+                  <button onClick={() => navigate('/dashboard/team-profile')} className="bg-brand-red hover:bg-[#FF4D4D] text-black font-bold px-6 py-2 text-sm rounded-lg transition-all shadow-[0_0_10px_rgba(255,51,51,0.2)] hover:shadow-[0_0_15px_rgba(255,51,51,0.4)]">
                     Apply to Join
                   </button>
                 </div>

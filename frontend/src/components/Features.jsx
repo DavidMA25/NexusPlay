@@ -1,6 +1,8 @@
 import { Gamepad2, Users, Target, Zap } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function Features() {
+    const navigate = useNavigate();
     // Datos de las 4 tarjetas para la sección de ventajas 
     const features = [
         {
@@ -45,6 +47,7 @@ export default function Features() {
                 {features.map((f, index) => (
                     <div
                         key={index}
+                        onClick={() => navigate('/dashboard')}
                         className="group p-8 rounded-2xl bg-[#121212] border border-gray-800 transition-all duration-300 hover:border-brand-red cursor-pointer"
                     >
                         {/* Icono con el color  y efecto de escala al pasar el ratón */}

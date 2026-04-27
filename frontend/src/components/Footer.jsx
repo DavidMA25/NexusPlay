@@ -1,4 +1,5 @@
 import { Twitter, Youtube, Twitch, MessageSquare } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function Footer() {
     return (
@@ -30,10 +31,10 @@ export default function Footer() {
                     <div>
                         <h4 className="text-white font-bold mb-6">Platform</h4>
                         <ul className="space-y-4 text-sm text-gray-400">
-                            <li><a href="#" className="hover:text-brand-red transition-colors">Find Players</a></li>
-                            <li><a href="#" className="hover:text-brand-red transition-colors">Find Teams</a></li>
-                            <li><a href="#" className="hover:text-brand-red transition-colors">Events</a></li>
-                            <li><a href="#" className="hover:text-brand-red transition-colors">News</a></li>
+                            <li><Link to="/dashboard/players" className="hover:text-brand-red transition-colors">Find Players</Link></li>
+                            <li><Link to="/dashboard/teams" className="hover:text-brand-red transition-colors">Find Teams</Link></li>
+                            <li><Link to="/dashboard/events" className="hover:text-brand-red transition-colors">Events</Link></li>
+                            <li><a href={import.meta.env.VITE_WP_URL || 'http://localhost/wordpress'} target="_blank" rel="noopener noreferrer" className="hover:text-brand-red transition-colors">News</a></li>
                         </ul>
                     </div>
 
@@ -41,10 +42,10 @@ export default function Footer() {
                     <div>
                         <h4 className="text-white font-bold mb-6">Company</h4>
                         <ul className="space-y-4 text-sm text-gray-400">
-                            <li><a href="#" className="hover:text-brand-red transition-colors">About Us</a></li>
-                            <li><a href="#" className="hover:text-brand-red transition-colors">Careers</a></li>
-                            <li><a href="#" className="hover:text-brand-red transition-colors">Blog</a></li>
-                            <li><a href="#" className="hover:text-brand-red transition-colors">Press Kit</a></li>
+                            <li><Link to="/" className="hover:text-brand-red transition-colors">About Us</Link></li>
+                            <li><Link to="/" className="hover:text-brand-red transition-colors">Careers</Link></li>
+                            <li><a href={import.meta.env.VITE_WP_URL || 'http://localhost/wordpress'} target="_blank" rel="noopener noreferrer" className="hover:text-brand-red transition-colors">Blog</a></li>
+                            <li><Link to="/" className="hover:text-brand-red transition-colors">Press Kit</Link></li>
                         </ul>
                     </div>
 
@@ -52,10 +53,10 @@ export default function Footer() {
                     <div>
                         <h4 className="text-white font-bold mb-6">Resources</h4>
                         <ul className="space-y-4 text-sm text-gray-400">
-                            <li><a href="#" className="hover:text-brand-red transition-colors">Help Center</a></li>
-                            <li><a href="#" className="hover:text-brand-red transition-colors">Community</a></li>
-                            <li><a href="#" className="hover:text-brand-red transition-colors">Guidelines</a></li>
-                            <li><a href="#" className="hover:text-brand-red transition-colors">API</a></li>
+                            <li><Link to="/" className="hover:text-brand-red transition-colors">Help Center</Link></li>
+                            <li><Link to="/" className="hover:text-brand-red transition-colors">Community</Link></li>
+                            <li><Link to="/" className="hover:text-brand-red transition-colors">Guidelines</Link></li>
+                            <li><Link to="/" className="hover:text-brand-red transition-colors">API</Link></li>
                         </ul>
                     </div>
 
@@ -63,9 +64,9 @@ export default function Footer() {
                     <div>
                         <h4 className="text-white font-bold mb-6">Legal</h4>
                         <ul className="space-y-4 text-sm text-gray-400">
-                            <li><a href="#" className="hover:text-brand-red transition-colors">Terms of Service</a></li>
-                            <li><a href="#" className="hover:text-brand-red transition-colors">Privacy Policy</a></li>
-                            <li><a href="#" className="hover:text-brand-red transition-colors">Cookie Policy</a></li>
+                            <li><Link to="/" className="hover:text-brand-red transition-colors">Terms of Service</Link></li>
+                            <li><Link to="/" className="hover:text-brand-red transition-colors">Privacy Policy</Link></li>
+                            <li><Link to="/" className="hover:text-brand-red transition-colors">Cookie Policy</Link></li>
                         </ul>
                     </div>
                 </div>

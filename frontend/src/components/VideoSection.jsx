@@ -34,7 +34,7 @@ export default function VideoSection() {
                     />
 
                     {/* Botón de Play central */}
-                    <button className="relative w-20 h-20 bg-brand-red rounded-full flex items-center justify-center text-white shadow-xl shadow-brand-red/40 hover:scale-110 transition-transform duration-300">
+                    <button onClick={() => window.open('https://www.youtube.com/watch?v=e_E9W2vsRbQ', '_blank', 'noopener,noreferrer')} className="relative w-20 h-20 bg-brand-red rounded-full flex items-center justify-center text-white shadow-xl shadow-brand-red/40 hover:scale-110 transition-transform duration-300">
                         <Play size={32} fill="currentColor" className="ml-1" />
                     </button>
 

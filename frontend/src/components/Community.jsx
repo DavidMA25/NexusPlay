@@ -1,6 +1,8 @@
 import { Star, TrendingUp, Send, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function Community() {
+    const navigate = useNavigate();
     // Aquí guardo mensajes de palo para que el chat no se vea vacío.
     // Cuando Mario termine su parte, esto vendrá de la base de datos de Laravel.
     const dummyMessages = [
@@ -46,7 +48,7 @@ export default function Community() {
                     </div>
                 </div>
 
-                <button className="bg-brand-red hover:bg-[#FF4D4D] text-white text-sm font-medium py-2 px-6 rounded-md transition duration-300 shadow-lg shadow-brand-red/20 flex items-center gap-2">
+                <button onClick={() => navigate('/register')} className="bg-brand-red hover:bg-[#FF4D4D] text-white text-sm font-medium py-2 px-6 rounded-md transition duration-300 shadow-lg shadow-brand-red/20 flex items-center gap-2">
                     Join Now <ArrowRight size={16} />
                 </button>
             </div>

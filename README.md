@@ -33,6 +33,11 @@
      DB_USERNAME=root
      DB_PASSWORD=
      ```
+   - Añade las siguientes variables al `.env` para que la integración con la API de IGDB funcione correctamente (credenciales compartidas):
+     ```env
+     IGDB_CLIENT_ID="yqrgkl6ezshd2mdhh8iixjgb9d7u8j"
+     IGDB_CLIENT_SECRET="4bq2kfqmrdfdxbclbgxjp7oquyvwiu"
+     ```
    - *Nota: Asegúrate de crear una base de datos llamada `nexusplay` en tu gestor de base de datos de XAMPP (phpMyAdmin) antes de continuar.*
    - Genera la clave única de la aplicación:
      ```bash

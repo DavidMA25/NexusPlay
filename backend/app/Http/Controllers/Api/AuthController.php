@@ -133,13 +133,15 @@ class AuthController extends Controller
             if (is_array($games)) {
                 $user->stats()->delete();
                 foreach ($games as $gameData) {
+                    $gameName = $gameData['title'] ?? $gameData['game'] ?? 'Unknown';
                     $user->stats()->create([
-                        'game_igdb_id' => crc32($gameData['game'] ?? 'Unknown'),
-                        'game_name' => $gameData['game'] ?? 'Unknown',
+                        'game_igdb_id' => $gameData['gameId'] ?? crc32($gameName),
+                        'game_name' => $gameName,
                         'rank_tier' => $gameData['rank'] ?? 'Unranked',
                         'platform' => $gameData['platform'] ?? 'PC',
                         'region' => $request->region ?? 'Global',
-                        'role_main' => 'Flex',
+                        'role_main' => $gameData['role'] ?? 'Flex',
+                        'cover_url' => $gameData['cover_url'] ?? null,
                     ]);
                 }
             }

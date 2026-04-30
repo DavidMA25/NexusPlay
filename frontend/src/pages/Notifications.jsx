@@ -17,7 +17,7 @@ export default function Notifications() {
             id: 2, type: 'Events', read: false, hasActions: true,
             icon: Trophy, iconColor: 'text-brand-red', iconBg: 'bg-brand-red/10',
             hasAvatar: true, avatarBg: 'bg-[#FFB800]',
-            text: 'Shadow wants to play a ranked match with you',
+            text: 'Alex wants to play a ranked match with you',
             time: '3 hours ago'
         },
         {

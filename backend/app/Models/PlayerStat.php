@@ -16,7 +16,8 @@ class PlayerStat extends Model
         'region',
         'role_main',
         'platform',
-        'game_name'
+        'game_name',
+        'cover_url'
     ];
 
     protected $casts = [

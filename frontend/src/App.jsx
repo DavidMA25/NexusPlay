@@ -20,6 +20,7 @@ import VerifyEmailCallback from './pages/VerifyEmailCallback';
 import MyTeams from './pages/MyTeams';
 import TeamProfile from './pages/TeamProfile';
 import Notifications from './pages/Notifications';
+import Messages from './pages/Messages';
 
 function App() {
   return (
@@ -55,6 +56,7 @@ function App() {
             <Route path="players" element={<FindPlayers />} />
             <Route path="teams" element={<FindTeams />} />
             <Route path="events" element={<Events />} />
+            <Route path="messages" element={<Messages />} />
             <Route path="settings" element={<Settings />} />
             <Route path="profile" element={<ViewProfile />} />
             <Route path="my-teams" element={<MyTeams />} />

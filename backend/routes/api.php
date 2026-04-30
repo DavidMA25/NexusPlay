@@ -13,7 +13,8 @@ use App\Http\Controllers\Api\{
     PlayerController,
     PlayerAdController,
     VacancyApplicationController,
-    TryoutController
+    TryoutController,
+    IGDBController
 };
 
 Route::post('/login',    [AuthController::class, 'login']);
@@ -55,6 +56,9 @@ Route::middleware('auth:sanctum')->group(function () {
     })->name('verification.verify');
 
     Route::post('/email/resend', [AuthController::class, 'resendVerification']);
+
+    // IGDB Search
+    Route::get('/igdb/search', [IGDBController::class, 'search']);
 
     // Teams
     Route::apiResource('teams', TeamController::class);

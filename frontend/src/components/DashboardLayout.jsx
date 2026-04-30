@@ -10,20 +10,65 @@ import {
     ChevronDown,
     UserCircle,
     UserCog,
-    LogOut
+    LogOut,
+    Megaphone,
+    X,
+    Send
 } from 'lucide-react';
 
-import { useState } from 'react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import logo from '../assets/logo.png';
 
 export default function DashboardLayout() {
     // Extraemos los datos del usuario logueado y la funcion de cerrar sesion desde AuthContext
-    const { user, logout } = useAuth();
+    const { user, logout, api } = useAuth();
+    const navigate = useNavigate();
 
     // Estado para controlar si el desplegable del perfil esta visible o no
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+
+    // Estados para el modal de publicar anuncio
+    const [showAdModal, setShowAdModal] = useState(false);
+    const [myStats, setMyStats] = useState([]);
+    const [selectedStatId, setSelectedStatId] = useState('');
+    const [adMessage, setAdMessage] = useState('');
+    const [publishing, setPublishing] = useState(false);
+    const [publishSuccess, setPublishSuccess] = useState(false);
+    const [publishError, setPublishError] = useState('');
+
+    // Fetch user's player stats when modal opens
+    useEffect(() => {
+        if (showAdModal) {
+            api.get('/player-stats').then(res => {
+                setMyStats(res.data.data || res.data);
+            }).catch(err => console.error('Error fetching stats:', err));
+        }
+    }, [showAdModal]);
+
+    const handlePublishAd = async () => {
+        if (!selectedStatId || !adMessage.trim()) return;
+        setPublishing(true);
+        setPublishError('');
+        try {
+            await api.post('/player-ads', {
+                player_stat_id: parseInt(selectedStatId),
+                message: adMessage.trim()
+            });
+            setPublishSuccess(true);
+            setTimeout(() => {
+                setShowAdModal(false);
+                setSelectedStatId('');
+                setAdMessage('');
+                setPublishSuccess(false);
+            }, 1500);
+        } catch (err) {
+            setPublishError(err.response?.data?.message || 'Error publishing ad.');
+        } finally {
+            setPublishing(false);
+        }
+    };
 
     // Guardo la ruta actual en una variable. 
     // Lo uso luego para saber en que pagina estoy y pintar ese boton de rojo.
@@ -45,8 +90,8 @@ export default function DashboardLayout() {
     ];
 
     return (
-        // Contenedor principal que ocupa toda la pantalla (min-h-screen)
-        <div className="min-h-screen bg-[#0a0a0a] flex text-white font-sans">
+        // Contenedor principal que ocupa toda la pantalla (h-screen) sin crecer más allá
+        <div className="h-screen overflow-hidden bg-[#0a0a0a] flex text-white font-sans">
 
             {/* ================= BARRA LATERAL (SIDEBAR) ================= */}
             {/* Le pongo w-64 para dejarla fija y hidden md:flex para que se oculte en moviles */}
@@ -93,30 +138,21 @@ export default function DashboardLayout() {
                     })}
                 </nav>
 
-                {/* Zona inferior del menu: Tarjeta de perfil del usuario logueado */}
+                {/* Zona inferior del menu: Botón Publish Ad */}
                 <div className="p-4 border-t border-gray-800">
-                    <div className="flex items-center gap-3 px-2">
-                        {/* Avatar dinámico generado a partir de la primera letra del nombre */}
-                        <div
-                            className="w-10 h-10 rounded-full bg-brand-red/20 border border-brand-red flex items-center justify-center text-brand-red font-bold shrink-0 uppercase overflow-hidden"
-                        >
-                            {user?.avatar_url ? (
-                                <img src={`http://localhost:8000${user.avatar_url}`} alt="Avatar" className="w-full h-full object-cover" />
-                            ) : (
-                                user?.name?.charAt(0) || 'U'
-                            )}
-                        </div>
-                        <div>
-                            <p className="text-sm font-bold text-white line-clamp-1">{user?.name || 'User'}</p>
-                            <p className="text-xs text-green-500">Online</p>
-                        </div>
-                    </div>
+                    <button
+                        onClick={() => setShowAdModal(true)}
+                        className="w-full flex items-center justify-center gap-2 bg-brand-red hover:bg-[#FF4D4D] text-white px-4 py-3 rounded-lg text-sm font-medium transition-all shadow-[0_0_10px_rgba(255,51,51,0.2)] hover:shadow-[0_0_20px_rgba(255,51,51,0.4)] whitespace-nowrap"
+                    >
+                        <Megaphone size={18} />
+                        Publish Ad
+                    </button>
                 </div>
             </aside>
 
             {/* ================= AREA PRINCIPAL DERECHA ================= */}
             {/* Uso flex-1 para que ocupe todo el ancho restante de la pantalla */}
-            <main className="flex-1 flex flex-col min-h-screen overflow-hidden">
+            <main className="flex-1 flex flex-col h-full overflow-hidden">
 
                 {/* Barra superior de busqueda y utilidades */}
                 <header
@@ -203,11 +239,12 @@ export default function DashboardLayout() {
                                     {/* Boton de Logout en rojo para destacar */}
                                     <div className="p-2 border-t border-gray-800">
                                         <button
-                                            onClick={() => {
+                                            onClick={async () => {
                                                 setIsProfileMenuOpen(false);
-                                                logout();
+                                                await logout();
+                                                navigate('/');
                                             }}
-                                            className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-brand-red hover:bg-brand-red/10 rounded-lg transition-colors font-medium"
+                                            className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-brand-red hover:bg-brand-red/10 rounded-lg transition-colors font-medium cursor-pointer"
                                         >
                                             <LogOut size={16} />
                                             Logout
@@ -229,6 +266,95 @@ export default function DashboardLayout() {
                 </div>
 
             </main>
+
+            {/* ===== MODAL: Publish Ad ===== */}
+            {showAdModal && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4 animate-[fadeIn_0.2s_ease-out]"
+                    onClick={(e) => { if (e.target === e.currentTarget) setShowAdModal(false); }}
+                >
+                    <div className="w-full max-w-md bg-[#121212] border border-gray-800 rounded-xl shadow-2xl animate-[slideUp_0.3s_ease-out] overflow-hidden">
+
+                        {/* Header */}
+                        <div className="flex items-center justify-between p-6 border-b border-gray-800">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-lg bg-brand-red/10 flex items-center justify-center">
+                                    <Megaphone size={20} className="text-brand-red" />
+                                </div>
+                                <div>
+                                    <h3 className="text-white font-bold text-lg">Publish Ad</h3>
+                                    <p className="text-gray-500 text-xs">Find players for your game</p>
+                                </div>
+                            </div>
+                            <button onClick={() => setShowAdModal(false)} className="text-gray-500 hover:text-white transition-colors">
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        {/* Body */}
+                        <div className="p-6 space-y-5">
+
+                            {/* Game Select */}
+                            <div>
+                                <label className="text-xs text-gray-400 mb-2 block font-medium uppercase tracking-wider">Select Game</label>
+                                {myStats.length === 0 ? (
+                                    <p className="text-gray-500 text-sm">You have no games added yet. Go to Profile Settings to add games.</p>
+                                ) : (
+                                    <select
+                                        value={selectedStatId}
+                                        onChange={(e) => setSelectedStatId(e.target.value)}
+                                        className="w-full bg-[#0a0a0a] border border-gray-800 text-white text-sm rounded-lg p-3 focus:border-brand-red outline-none transition-colors"
+                                    >
+                                        <option value="">Choose a game...</option>
+                                        {myStats.map((stat) => (
+                                            <option key={stat.id} value={stat.id}>
+                                                {stat.game_name || `Game #${stat.game_igdb_id}`} — {stat.rank_tier} ({stat.platform || 'PC'})
+                                            </option>
+                                        ))}
+                                    </select>
+                                )}
+                            </div>
+
+                            {/* Message */}
+                            <div>
+                                <label className="text-xs text-gray-400 mb-2 block font-medium uppercase tracking-wider">Short Message</label>
+                                <textarea
+                                    value={adMessage}
+                                    onChange={(e) => setAdMessage(e.target.value)}
+                                    maxLength={255}
+                                    rows={3}
+                                    placeholder="Looking for teammates for ranked grind tonight..."
+                                    className="w-full bg-[#0a0a0a] border border-gray-800 text-white text-sm rounded-lg p-3 focus:border-brand-red outline-none transition-colors resize-none placeholder-gray-600"
+                                />
+                                <p className="text-right text-gray-600 text-[10px] mt-1">{adMessage.length}/255</p>
+                            </div>
+
+                            {/* Error */}
+                            {publishError && (
+                                <p className="text-red-500 text-xs bg-red-500/10 rounded-lg px-3 py-2">{publishError}</p>
+                            )}
+
+                            {/* Success */}
+                            {publishSuccess && (
+                                <p className="text-green-500 text-xs bg-green-500/10 rounded-lg px-3 py-2">✓ Ad published successfully!</p>
+                            )}
+                        </div>
+
+                        {/* Footer */}
+                        <div className="p-6 border-t border-gray-800">
+                            <button
+                                onClick={handlePublishAd}
+                                disabled={!selectedStatId || !adMessage.trim() || publishing || publishSuccess}
+                                className="w-full flex items-center justify-center gap-2 bg-brand-red hover:bg-[#FF4D4D] disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-lg text-sm font-medium transition-all shadow-[0_0_10px_rgba(255,51,51,0.2)] hover:shadow-[0_0_15px_rgba(255,51,51,0.4)]"
+                            >
+                                <Send size={16} />
+                                {publishing ? 'Publishing...' : 'Publish Ad'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 }

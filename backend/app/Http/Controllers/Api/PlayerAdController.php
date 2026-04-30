@@ -13,7 +13,7 @@ class PlayerAdController extends Controller
      */
     public function index(Request $request)
     {
-        $query = PlayerAd::with(['user.profile', 'stat']);
+        $query = PlayerAd::with(['user.profile', 'user.stats', 'stat']);
 
         // Search by username or nickname
         if ($request->filled('search')) {

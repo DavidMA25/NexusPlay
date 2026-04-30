@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { Camera, Plus, Trash2, Save, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import GameSearchInput from '../components/GameSearchInput';
 
 export default function ProfileSettings() {
     // Me traigo al usuario del contexto para precargar su nombre
@@ -32,16 +33,18 @@ export default function ProfileSettings() {
         user?.stats?.length > 0 
         ? user.stats.map(stat => ({
             id: stat.id,
+            gameId: stat.game_igdb_id,
             game: stat.game_name || `Game #${stat.game_igdb_id}`,
+            cover_url: stat.cover_url || null,
             rank: stat.rank_tier,
             platform: stat.platform || 'PC'
           }))
-        : [{ id: Date.now(), game: 'Valorant', rank: 'Diamond', platform: 'PC' }]
+        : [{ id: Date.now(), game: 'Valorant', gameId: null, cover_url: null, rank: 'Diamond', platform: 'PC' }]
     );
 
     // Funcion para anadir una nueva fila de juego al pulsar el boton "+"
     const addGameRow = () => {
-        setUserGames([...userGames, { id: Date.now(), game: '', rank: '', platform: 'PC' }]);
+        setUserGames([...userGames, { id: Date.now(), game: '', gameId: null, cover_url: null, rank: '', platform: 'PC' }]);
     };
 
     // Funcion para borrar una fila concreta al pulsar la papelera
@@ -214,13 +217,29 @@ export default function ProfileSettings() {
                                 
                                 <div className="flex-1 space-y-1">
                                     <label className="text-xs text-gray-500 uppercase font-bold tracking-wider">Game</label>
-                                    <input 
-                                        type="text" 
-                                        value={gameObj.game}
-                                        onChange={(e) => handleGameChange(gameObj.id, 'game', e.target.value)}
-                                        placeholder="e.g. League of Legends"
-                                        className="w-full bg-transparent text-sm text-white focus:outline-none"
-                                    />
+                                    <div className="flex items-center gap-3">
+                                        {gameObj.cover_url && (
+                                            <img 
+                                                src={gameObj.cover_url.startsWith('//') ? `https:${gameObj.cover_url}` : gameObj.cover_url} 
+                                                alt={gameObj.game} 
+                                                className="w-8 h-10 object-cover rounded bg-gray-900 flex-shrink-0 border border-gray-800"
+                                            />
+                                        )}
+                                        <GameSearchInput 
+                                            value={gameObj.game}
+                                            onChange={(val) => handleGameChange(gameObj.id, 'game', val)}
+                                            onSelect={(selectedGame) => {
+                                                setUserGames(userGames.map(g => 
+                                                    g.id === gameObj.id ? { 
+                                                        ...g, 
+                                                        game: selectedGame.title, 
+                                                        gameId: selectedGame.gameId, 
+                                                        cover_url: selectedGame.cover_url 
+                                                    } : g
+                                                ));
+                                            }}
+                                        />
+                                    </div>
                                 </div>
                                 
                                 <div className="w-px h-10 bg-gray-800 mx-2 hidden sm:block"></div>

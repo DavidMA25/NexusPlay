@@ -1,4 +1,4 @@
-import { MapPin, Globe, Calendar, Shield, Gamepad2, MessageSquare, Settings, Clock, Trophy, Star } from 'lucide-react';
+import { MapPin, Globe, Calendar, Shield, Gamepad2, MessageSquare, Settings, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import pcIcon from '../assets/pc.svg';
 import nintendoIcon from '../assets/nintendo.svg';
@@ -61,18 +61,25 @@ export default function ProfileCard({ playerData, isOwnProfile = false, onClose 
     : 'Member';
 
   // Juegos (del mock de FindPlayers o de los stats reales)
-  const games = playerData?.games || (playerData?.game ? [{
-    game: playerData.game,
-    rank: playerData.rank,
-    platform: playerData.platform,
-    roles: playerData.roles || [],
-    winRate: playerData.winRate || null,
-    hours: playerData.hours || null
-  }] : []);
-
-  // Stats globales
-  const totalHours = playerData?.hours || games.reduce((acc, g) => acc + (parseInt(g.hours) || 0), 0) || '—';
-  const avgWinRate = playerData?.winRate || (games.length > 0 && games[0].winRate) || '—';
+  let games = [];
+  if (playerData?.stats?.length > 0) {
+      games = playerData.stats.map(stat => ({
+          game: stat.game_name || `Game #${stat.game_igdb_id}`,
+          cover_url: stat.cover_url || null,
+          rank: stat.rank_tier,
+          platform: stat.platform || 'PC',
+          roles: stat.role_main ? [stat.role_main] : []
+      }));
+  } else if (playerData?.games) {
+      games = playerData.games;
+  } else if (playerData?.game) {
+      games = [{
+        game: playerData.game,
+        rank: playerData.rank,
+        platform: playerData.platform,
+        roles: playerData.roles || []
+      }];
+  }
 
   const avatarLetter = username.charAt(0).toUpperCase();
 
@@ -145,7 +152,7 @@ export default function ProfileCard({ playerData, isOwnProfile = false, onClose 
             <div className="flex gap-3 sm:pb-1">
               {isOwnProfile ? (
                 <Link
-                  to="/dashboard/profile-settings"
+                  to="/dashboard/settings"
                   className="flex items-center gap-2 bg-brand-red hover:bg-[#FF4D4D] text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-all shadow-[0_0_10px_rgba(255,51,51,0.2)] hover:shadow-[0_0_15px_rgba(255,51,51,0.4)]"
                 >
                   <Settings size={16} />
@@ -172,7 +179,7 @@ export default function ProfileCard({ playerData, isOwnProfile = false, onClose 
       </div>
 
       {/* ===== INFO GRID ===== */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
         <div className="bg-[#121212] border border-gray-800 rounded-xl p-4 text-center">
           <MapPin size={18} className="text-brand-red mx-auto mb-2" />
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Region</p>
@@ -182,16 +189,6 @@ export default function ProfileCard({ playerData, isOwnProfile = false, onClose 
           <Globe size={18} className="text-brand-red mx-auto mb-2" />
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Language</p>
           <p className="text-sm text-white font-medium">{language}</p>
-        </div>
-        <div className="bg-[#121212] border border-gray-800 rounded-xl p-4 text-center">
-          <Clock size={18} className="text-brand-red mx-auto mb-2" />
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Hours</p>
-          <p className="text-sm text-white font-medium">{totalHours}</p>
-        </div>
-        <div className="bg-[#121212] border border-gray-800 rounded-xl p-4 text-center">
-          <Trophy size={18} className="text-brand-red mx-auto mb-2" />
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Win Rate</p>
-          <p className="text-sm text-white font-medium">{avgWinRate}</p>
         </div>
       </div>
 
@@ -206,14 +203,16 @@ export default function ProfileCard({ playerData, isOwnProfile = false, onClose 
             {games.map((g, i) => (
               <div key={i} className="flex items-center justify-between bg-[#0a0a0a] border border-gray-800 rounded-lg p-4 transition-all hover:border-gray-700">
                 <div className="flex items-center gap-4">
-                  {/* Icono de plataforma */}
-                  {g.platform && platformIcons[g.platform] && (
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${platformStyles[g.platform] || 'bg-gray-800'}`}>
-                      <img 
-                        src={platformIcons[g.platform]} 
-                        alt={g.platform} 
-                        className={`${g.platform.toLowerCase() === 'mobile' ? 'w-6 h-6' : 'w-5 h-5'} brightness-0 invert`} 
-                      />
+                  {/* Caratula del juego */}
+                  {g.cover_url ? (
+                    <img 
+                      src={g.cover_url.startsWith('//') ? `https:${g.cover_url}` : g.cover_url} 
+                      alt={g.game || g.name} 
+                      className="w-8 h-10 object-cover rounded border border-gray-800"
+                    />
+                  ) : (
+                    <div className="w-8 h-10 bg-gray-800 rounded border border-gray-700 flex items-center justify-center">
+                       <Gamepad2 size={16} className="text-gray-500"/>
                     </div>
                   )}
                   <div>
@@ -224,23 +223,36 @@ export default function ProfileCard({ playerData, isOwnProfile = false, onClose 
                       </span>
                       {g.platform && (
                         <span className="text-[10px] text-gray-500">
-                          {platformNames[g.platform] || g.platform}
+                          {platformNames[g.platform.toLowerCase()] || g.platform}
                         </span>
                       )}
                     </div>
                   </div>
                 </div>
                 
-                {/* Roles si existen */}
-                {g.roles && g.roles.length > 0 && (
-                  <div className="hidden sm:flex items-center gap-2">
-                    {g.roles.map((role, ri) => (
-                      <span key={ri} className="text-[10px] text-gray-400 bg-gray-800 px-2 py-1 rounded">
-                        {role}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                <div className="flex items-center gap-4">
+                  {/* Roles si existen */}
+                  {g.roles && g.roles.length > 0 && (
+                    <div className="hidden sm:flex items-center gap-2">
+                      {g.roles.map((role, ri) => (
+                        <span key={ri} className="text-[10px] text-gray-400 bg-gray-800 px-2 py-1 rounded">
+                          {role}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Icono de plataforma */}
+                  {g.platform && platformIcons[g.platform.toLowerCase()] && (
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${platformStyles[g.platform.toLowerCase()] || 'bg-gray-800'}`}>
+                      <img 
+                        src={platformIcons[g.platform.toLowerCase()]} 
+                        alt={g.platform} 
+                        className={`${g.platform.toLowerCase() === 'mobile' ? 'w-6 h-6' : 'w-5 h-5'} brightness-0 invert`} 
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>

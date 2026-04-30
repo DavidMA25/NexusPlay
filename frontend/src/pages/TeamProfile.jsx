@@ -147,8 +147,8 @@ export default function TeamProfile() {
                                     <div className="flex items-center gap-4">
                                         <div className="w-10 h-10 bg-[#FFB800] rounded-full border-2 border-gray-800"></div>
                                         <div>
-                                            <p className="text-sm font-bold text-white">Shadow</p>
-                                            <p className="text-xs text-gray-500">Duelist</p>
+                                            <p className="text-sm font-bold text-white">Alex</p>
+                                            <p className="text-xs text-brand-red">IGL / Entry</p>
                                         </div>
                                     </div>
                                     <button className="text-xs text-gray-400 bg-gray-800 hover:text-white px-3 py-1.5 rounded transition-colors">View Profile</button>

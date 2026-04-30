@@ -1,25 +1,46 @@
 import { useState, useRef } from 'react';
-import { Camera, Save } from 'lucide-react';
+import { Camera, Save, Plus, Trash2, Search, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+
+import GameSearchInput from '../GameSearchInput';
+
+const PLATFORMS = ['PC', 'PlayStation', 'Xbox', 'Nintendo', 'Mobile'];
+const LANGUAGES = ['English', 'Spanish', 'French', 'German', 'Portuguese', 'Italian', 'Russian'];
+const REGIONS = ['North America', 'Europe', 'Asia', 'South America', 'Oceania'];
 
 export default function ProfileSettingsTab() {
     const { user, api, updateUser } = useAuth();
 
-    const [username, setUsername] = useState(user?.name || 'Shadow');
-    const [realName, setRealName] = useState('Alex Chen');
-    const [bio, setBio] = useState('Professional Valorant player with 3+ years of competitive experience.');
-    const [region, setRegion] = useState('North America');
+    // Basic Info
+    const [username, setUsername] = useState(user?.name || '');
+    const [bio, setBio] = useState(user?.bio || '');
+    const [region, setRegion] = useState(user?.profile?.region || 'Europe');
+    
+    // Languages
+    const initialLanguages = user?.profile?.languages ? user.profile.languages.split(',').map(l => l.trim()) : ['Spanish'];
+    const [primaryLanguage, setPrimaryLanguage] = useState(initialLanguages[0] || 'Spanish');
+    const [secondaryLanguages, setSecondaryLanguages] = useState(initialLanguages.slice(1));
 
-    const [socials, setSocials] = useState({
-        discord: 'Shadow#1234',
-        twitter: '@shadow_val',
-        twitch: 'shadow_plays',
-        youtube: ''
-    });
-
+    // Avatar
     const [avatarFile, setAvatarFile] = useState(null);
     const [avatarPreview, setAvatarPreview] = useState(user?.avatar_url || null);
     const fileInputRef = useRef(null);
+
+    // Games
+    const initialGames = user?.stats?.length > 0 
+        ? user.stats.map(stat => ({
+            id: stat.id,
+            gameId: stat.game_igdb_id,
+            title: stat.game_name,
+            cover: stat.cover_url || '',
+            platform: stat.platform || 'PC',
+            rank: stat.rank_tier,
+            role: stat.role_main,
+            searchResults: []
+          }))
+        : [{ id: Date.now(), gameId: null, title: '', cover: '', platform: 'PC', rank: '', role: '', searchResults: [] }];
+        
+    const [userGames, setUserGames] = useState(initialGames);
 
     const handleAvatarClick = () => fileInputRef.current.click();
 
@@ -31,19 +52,112 @@ export default function ProfileSettingsTab() {
         }
     };
 
-    const handleSocialChange = (e) => {
-        const { name, value } = e.target;
-        setSocials(prev => ({ ...prev, [name]: value }));
+    const addGameRow = () => {
+        setUserGames([...userGames, { id: Date.now(), gameId: null, title: '', cover: '', platform: 'PC', rank: '', role: '', searchResults: [] }]);
     };
+
+    const removeGameRow = (idToRemove) => {
+        setUserGames(userGames.filter(game => game.id !== idToRemove));
+    };
+
+    const handleGameChange = (id, field, value) => {
+        setUserGames(userGames.map(game => 
+            game.id === id ? { ...game, [field]: value } : game
+        ));
+    };
+
+    const handleGameSearch = (id, query) => {
+        setUserGames(userGames.map(game => 
+            game.id === id ? { ...game, title: query } : game
+        ));
+    };
+
+    const selectGame = (id, gameData) => {
+        setUserGames(userGames.map(game => 
+            game.id === id ? { 
+                ...game, 
+                gameId: gameData.gameId, 
+                title: gameData.title, 
+                cover: gameData.cover_url, 
+                searchResults: []
+            } : game
+        ));
+    };
+
+    const resetGameSelection = (id) => {
+        setUserGames(userGames.map(game => 
+            game.id === id ? { 
+                ...game, 
+                gameId: null, 
+                title: '', 
+                cover: '', 
+                searchResults: []
+            } : game
+        ));
+    };
+
+    const removeSecondaryLanguage = (lang) => {
+        setSecondaryLanguages(secondaryLanguages.filter(l => l !== lang));
+    };
+
+    const addSecondaryLanguage = (e) => {
+        const lang = e.target.value;
+        if (lang && !secondaryLanguages.includes(lang) && lang !== primaryLanguage) {
+            setSecondaryLanguages([...secondaryLanguages, lang]);
+        }
+        e.target.value = ''; // reset select
+    };
+
+    const [statusMessage, setStatusMessage] = useState(null);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        // Implement save logic via api.post('/user/settings') or similar
+        setStatusMessage(null);
+        try {
+            const formData = new FormData();
+            formData.append('name', username);
+            if (bio) formData.append('bio', bio);
+            if (region) formData.append('region', region);
+            
+            // Combine primary and secondary languages
+            const allLanguages = [primaryLanguage, ...secondaryLanguages].join(', ');
+            formData.append('language', allLanguages);
+            
+            if (avatarFile) formData.append('avatar', avatarFile);
+            
+            // Filter valid games and map cover to cover_url for backend
+            const validGames = userGames.filter(g => g.gameId).map(g => ({
+                ...g,
+                cover_url: g.cover
+            }));
+            formData.append('games', JSON.stringify(validGames));
+
+            const response = await api.post('/user/settings', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            
+            if (updateUser && response.data.user) {
+                updateUser(response.data.user);
+            }
+            setStatusMessage({ type: 'success', text: 'Profile updated successfully!' });
+        } catch (error) {
+            console.error("Error updating profile:", error);
+            setStatusMessage({ type: 'error', text: 'Error updating profile. Please try again.' });
+        }
     };
+
+    // Original Input Styles
+    const inputStyles = "w-full bg-[#1a1a1a] border border-transparent hover:border-gray-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-red transition-colors";
 
     return (
         <div className="bg-[#121212] border border-gray-800 rounded-xl p-8">
             <h2 className="text-lg font-bold text-white mb-6">Profile Settings</h2>
+
+            {statusMessage && (
+                <div className={`mb-6 p-4 rounded-lg text-sm font-medium ${statusMessage.type === 'success' ? 'bg-green-500/20 border border-green-500 text-green-400' : 'bg-red-500/20 border border-red-500 text-red-500'}`}>
+                    {statusMessage.text}
+                </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
 
@@ -83,19 +197,65 @@ export default function ProfileSettingsTab() {
                             type="text"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
-                            className="w-full bg-[#1a1a1a] border border-transparent hover:border-gray-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-red transition-colors"
+                            className={inputStyles}
                         />
                     </div>
 
-                    {/* Real Name */}
+                    {/* Region */}
                     <div className="space-y-2">
-                        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Real Name</label>
-                        <input
-                            type="text"
-                            value={realName}
-                            onChange={(e) => setRealName(e.target.value)}
-                            className="w-full bg-[#1a1a1a] border border-transparent hover:border-gray-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-red transition-colors"
-                        />
+                        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Region</label>
+                        <select
+                            value={region}
+                            onChange={(e) => setRegion(e.target.value)}
+                            className={`${inputStyles} appearance-none`}
+                        >
+                            {REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
+                        </select>
+                    </div>
+                </div>
+
+                {/* Languages (Kept the new style you liked) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Primary Language</label>
+                        <select
+                            value={primaryLanguage}
+                            onChange={(e) => setPrimaryLanguage(e.target.value)}
+                            className={`${inputStyles} appearance-none`}
+                        >
+                            {LANGUAGES.map(l => <option key={l} value={l}>{l}</option>)}
+                        </select>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Secondary Languages</label>
+                        <select
+                            onChange={addSecondaryLanguage}
+                            className={`${inputStyles} appearance-none mb-3`}
+                            defaultValue=""
+                        >
+                            <option value="" disabled>Add secondary language...</option>
+                            {LANGUAGES.filter(l => l !== primaryLanguage && !secondaryLanguages.includes(l)).map(l => (
+                                <option key={l} value={l}>{l}</option>
+                            ))}
+                        </select>
+                        
+                        {secondaryLanguages.length > 0 && (
+                            <div className="flex flex-wrap gap-2">
+                                {secondaryLanguages.map(lang => (
+                                    <div key={lang} className="flex items-center gap-1.5 bg-brand-red/10 border border-brand-red/20 text-brand-red px-3 py-1.5 rounded-full text-xs font-medium shadow-sm transition-transform hover:scale-105">
+                                        {lang}
+                                        <button 
+                                            type="button" 
+                                            onClick={() => removeSecondaryLanguage(lang)} 
+                                            className="hover:text-white transition-colors bg-brand-red/20 rounded-full p-0.5"
+                                        >
+                                            <X size={12} />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -106,72 +266,105 @@ export default function ProfileSettingsTab() {
                         value={bio}
                         onChange={(e) => setBio(e.target.value)}
                         rows="3"
-                        className="w-full bg-[#1a1a1a] border border-transparent hover:border-gray-800 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-red transition-colors resize-none"
+                        className={`${inputStyles} resize-none`}
                     ></textarea>
                 </div>
 
-                {/* Region */}
-                <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Region</label>
-                    <select
-                        value={region}
-                        onChange={(e) => setRegion(e.target.value)}
-                        className="w-full bg-[#1a1a1a] border border-transparent hover:border-gray-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-red transition-colors appearance-none"
-                    >
-                        <option value="North America">North America</option>
-                        <option value="Europe">Europe</option>
-                        <option value="Asia">Asia</option>
-                        <option value="South America">South America</option>
-                        <option value="Oceania">Oceania</option>
-                    </select>
-                </div>
-
-                {/* Social Links */}
+                {/* Games Section - Redesigned to be highly intuitive */}
                 <div className="space-y-4 pt-4 border-t border-gray-800/60">
-                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block">Social Links</label>
+                    <div className="flex items-center justify-between mb-2">
+                        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">My Games</label>
+                    </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <label className="text-xs font-medium text-gray-500">Discord</label>
-                            <input
-                                type="text"
-                                name="discord"
-                                value={socials.discord}
-                                onChange={handleSocialChange}
-                                className="w-full bg-[#1a1a1a] border border-transparent hover:border-gray-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-red transition-colors"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-xs font-medium text-gray-500">Twitter</label>
-                            <input
-                                type="text"
-                                name="twitter"
-                                value={socials.twitter}
-                                onChange={handleSocialChange}
-                                className="w-full bg-[#1a1a1a] border border-transparent hover:border-gray-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-red transition-colors"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-xs font-medium text-gray-500">Twitch</label>
-                            <input
-                                type="text"
-                                name="twitch"
-                                value={socials.twitch}
-                                onChange={handleSocialChange}
-                                className="w-full bg-[#1a1a1a] border border-transparent hover:border-gray-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-red transition-colors"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-xs font-medium text-gray-500">Youtube</label>
-                            <input
-                                type="text"
-                                name="youtube"
-                                placeholder="youtube URL or handle"
-                                value={socials.youtube}
-                                onChange={handleSocialChange}
-                                className="w-full bg-[#1a1a1a] border border-transparent hover:border-gray-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-red transition-colors placeholder-gray-600"
-                            />
-                        </div>
+                    <div className="space-y-4">
+                        {userGames.map((game) => (
+                            <div key={game.id} className="bg-[#1a1a1a] border border-gray-800 rounded-lg p-5 relative">
+                                
+                                {userGames.length > 1 && (
+                                    <button 
+                                        type="button" 
+                                        onClick={() => removeGameRow(game.id)}
+                                        className="absolute top-4 right-4 text-gray-500 hover:text-red-500 transition-colors"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                )}
+
+                                {!game.gameId ? (
+                                    // State 1: Game not selected (Search Mode)
+                                    <div className="space-y-2 pr-8">
+                                        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Search for a Game</label>
+                                        <GameSearchInput 
+                                            value={game.title}
+                                            onChange={(val) => handleGameSearch(game.id, val)}
+                                            onSelect={(selectedGame) => selectGame(game.id, selectedGame)}
+                                        />
+                                    </div>
+                                ) : (
+                                    // State 2: Game Selected (Details Mode)
+                                    <div className="space-y-6">
+                                        <div className="flex items-center gap-4 pr-8">
+                                            <img src={game.cover} alt={game.title} className="w-12 h-16 object-cover rounded shadow-md" />
+                                            <div>
+                                                <h4 className="text-white font-bold">{game.title}</h4>
+                                                <button 
+                                                    type="button" 
+                                                    onClick={() => resetGameSelection(game.id)}
+                                                    className="text-xs text-brand-red hover:underline mt-1"
+                                                >
+                                                    Change Game
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Platform</label>
+                                                <select
+                                                    value={game.platform}
+                                                    onChange={(e) => handleGameChange(game.id, 'platform', e.target.value)}
+                                                    className="w-full bg-[#121212] border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand-red appearance-none"
+                                                >
+                                                    {PLATFORMS.map(p => <option key={p} value={p}>{p}</option>)}
+                                                </select>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Rank / Level</label>
+                                                <input
+                                                    type="text"
+                                                    value={game.rank}
+                                                    onChange={(e) => handleGameChange(game.id, 'rank', e.target.value)}
+                                                    placeholder="e.g. Diamond"
+                                                    className="w-full bg-[#121212] border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand-red"
+                                                />
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                                    Role <span className="lowercase text-gray-500 font-normal">(optional)</span>
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={game.role}
+                                                    onChange={(e) => handleGameChange(game.id, 'role', e.target.value)}
+                                                    placeholder="e.g. Entry, Support"
+                                                    className="w-full bg-[#121212] border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand-red"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+
+                        <button 
+                            type="button"
+                            onClick={addGameRow}
+                            className="flex items-center gap-1 text-sm text-brand-red hover:text-[#ff4d4d] font-medium transition-colors mt-2"
+                        >
+                            <Plus size={16} /> Add Another Game
+                        </button>
                     </div>
                 </div>
 

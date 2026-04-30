@@ -24,18 +24,8 @@ api.interceptors.request.use((config) => {
 export const AuthProvider = ({ children }) => {
 
     // =========================================================================
-    // FRONTEND BYPASS (ACTIVADO PARA MAQUETAR)
+    // REAL AUTH STATE
     // =========================================================================
-    const [user, setUser] = useState({ id: 1, name: 'Shadow', email: 'shadow@nexusplay.com', role: 'player' });
-    const [token, setToken] = useState('bypass-token-frontend');
-    const [emailVerified, setEmailVerified] = useState(true);
-    const [needsVerification, setNeedsVerification] = useState(false);
-    const [loading, setLoading] = useState(false);
-
-    // =========================================================================
-    // REAL AUTH STATE (COMENTADO)
-    // =========================================================================
-    /*
     const [user, setUser] = useState(null);
     const [token, setToken] = useState(() => localStorage.getItem('nexus_token'));
     const [emailVerified, setEmailVerified] = useState(false);
@@ -64,7 +54,6 @@ export const AuthProvider = ({ children }) => {
 
         fetchUser();
     }, [token]);
-    */
 
     const login = async (email, password) => {
         const response = await api.post('/login', { email, password });
@@ -100,8 +89,6 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logout = async () => {
-        console.log("Logout simulado desde el bypass");
-        /*
         if (token) {
             try { await api.post('/logout'); } catch (e) { console.error(e); }
         }
@@ -110,7 +97,6 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
         setEmailVerified(false);
         setNeedsVerification(false);
-        */
     };
 
     const updateUser = (newUserData) => setUser(newUserData);

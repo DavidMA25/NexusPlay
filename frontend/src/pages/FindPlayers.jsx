@@ -125,9 +125,11 @@ export default function FindPlayers() {
           name: s.game_name || `Game #${s.game_igdb_id}`,
           rank: s.rank_tier || "Unranked",
           platform: (s.platform || 'pc').toLowerCase(),
-          role: s.role_main || 'Flex'
+          role: s.role_main || 'Flex',
+          cover_url: s.cover_url || null
         }))
         : [],
+      stats: user?.stats || [],
     };
   };
 
@@ -143,6 +145,7 @@ export default function FindPlayers() {
       language: data.language,
       availability: data.availability,
       games: data.games,
+      stats: data.stats,
       roles: data.games.length > 0 ? [...new Set(data.games.map(g => g.role))] : ["Flex"],
     };
   };

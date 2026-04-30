@@ -1,319 +1,365 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import {
-  Eye,
-  MessageSquare,
-  Gamepad2,
-  UserPlus,
-  Trophy,
-  Calendar,
-  TrendingUp,
-  ArrowRight,
-  Megaphone,
-  X,
-  Send
-} from 'lucide-react';
+import { Bot, MapPin, Globe, MessageSquare, Bell, Users, Gamepad2, Shield, Heart, Trophy, Info } from 'lucide-react';
+import pcIcon from '../assets/pc.svg';
+import nintendoIcon from '../assets/nintendo.svg';
+import xboxIcon from '../assets/xbox.svg';
+import playstationIcon from '../assets/playstation.svg';
+import mobileIcon from '../assets/mobile.svg';
+import { useNavigate } from 'react-router-dom';
+
+const platformIcons = {
+  pc: pcIcon,
+  nintendo: nintendoIcon,
+  xbox: xboxIcon,
+  playstation: playstationIcon,
+  mobile: mobileIcon
+};
+
+const platformNames = {
+  pc: "PC",
+  playstation: "PlayStation",
+  xbox: "Xbox",
+  nintendo: "Nintendo",
+  mobile: "Mobile"
+};
+
+const platformStyles = {
+  pc: "bg-gray-700 text-white",
+  playstation: "bg-[#003791] text-white",
+  xbox: "bg-[#107C10] text-white",
+  nintendo: "bg-[#E60012] text-white",
+  mobile: "bg-[#007AFF] text-white"
+};
 
 export default function DashboardHome() {
   const { user, api } = useAuth();
-  const [showAdModal, setShowAdModal] = useState(false);
-  const [myStats, setMyStats] = useState([]);
-  const [selectedStatId, setSelectedStatId] = useState('');
-  const [adMessage, setAdMessage] = useState('');
-  const [publishing, setPublishing] = useState(false);
-  const [publishSuccess, setPublishSuccess] = useState(false);
-  const [publishError, setPublishError] = useState('');
+  const navigate = useNavigate();
+  const [ads, setAds] = useState([]);
+  const [loadingAds, setLoadingAds] = useState(true);
 
-  // Fetch user's player stats when modal opens
+  // === MOCK DATA FOR DEMONSTRATION ===
+  const mockNotifications = [
+    { id: 1, type: "like", text: "Alex liked your profile", time: "2 hours ago", read: false, icon: <Heart size={18} className="text-brand-red" /> },
+    { id: 2, type: "tournament", text: "Weekly Showdown starting soon", time: "5 hours ago", read: false, icon: <Trophy size={18} className="text-yellow-500" /> },
+    { id: 3, type: "system", text: "Welcome to NexusPlay Beta!", time: "1 day ago", read: true, icon: <Info size={18} className="text-blue-500" /> },
+  ];
+
+  const mockTeams = [
+    {
+      id: 1,
+      name: "Phoenix Squad",
+      gameName: "Valorant",
+      gameRank: "Diamond",
+      gamePlatform: "pc",
+      roleNeeded: "Sentinel",
+      members: 4,
+      maxMembers: 5,
+      message: "Looking for a serious Sentinel player for upcoming tournaments.",
+      avatarBg: "bg-brand-red",
+      location: "Europe",
+      language: "English"
+    },
+    {
+      id: 2,
+      name: "Liquid Dragons",
+      gameName: "League of Legends",
+      gameRank: "Platinum",
+      gamePlatform: "pc",
+      roleNeeded: "Jungler",
+      members: 3,
+      maxMembers: 5,
+      message: "Chill team playing evening ranked flex. Need a reliable Jungler.",
+      avatarBg: "bg-[#003791]",
+      location: "North America",
+      language: "English"
+    }
+  ];
+
+  const mockMessages = [
+    { id: 1, sender: "Viper", avatarBg: "bg-purple-500", text: "Hey! Want to play some duo?", time: "10:30 AM", unread: 2 },
+    { id: 2, sender: "Thunder", avatarBg: "bg-blue-500", text: "Sure, let's do it tonight.", time: "Yesterday", unread: 0 },
+  ];
+  // ===================================
+
   useEffect(() => {
-    if (showAdModal) {
-      api.get('/player-stats').then(res => {
-        setMyStats(res.data.data || res.data);
-      }).catch(err => console.error('Error fetching stats:', err));
-    }
-  }, [showAdModal]);
+    const fetchAds = async () => {
+      if (!user) return;
+      try {
+        setLoadingAds(true);
+        const userGameIds = user.stats?.map(s => String(s.game_igdb_id)) || [];
+        
+        const response = await api.get('/player-ads');
+        const allAds = response.data.data || [];
+        
+        const userRegion = user.profile?.region;
+        const userLanguage = user.profile?.languages;
 
-  const handlePublishAd = async () => {
-    if (!selectedStatId || !adMessage.trim()) return;
-    setPublishing(true);
-    setPublishError('');
-    try {
-      await api.post('/player-ads', {
-        player_stat_id: parseInt(selectedStatId),
-        message: adMessage.trim()
-      });
-      setPublishSuccess(true);
-      setTimeout(() => {
-        setShowAdModal(false);
-        setSelectedStatId('');
-        setAdMessage('');
-        setPublishSuccess(false);
-      }, 1500);
-    } catch (err) {
-      setPublishError(err.response?.data?.message || 'Error publishing ad.');
-    } finally {
-      setPublishing(false);
-    }
+        const matchingAds = allAds.filter(ad => {
+          const adGameId = String(ad.stat?.game_igdb_id);
+          const adRegion = ad.user?.profile?.region;
+          
+          const isNotCurrentUser = ad.user_id !== user.id;
+          const hasMatchingGame = userGameIds.includes(adGameId);
+          const isMatchingRegion = userRegion ? adRegion === userRegion : true;
+
+          return isNotCurrentUser && hasMatchingGame && isMatchingRegion;
+        });
+
+        // Prioritize ads that match the user's spoken language
+        matchingAds.sort((a, b) => {
+          const aLangMatch = (userLanguage && a.user?.profile?.languages === userLanguage) ? 1 : 0;
+          const bLangMatch = (userLanguage && b.user?.profile?.languages === userLanguage) ? 1 : 0;
+          return bLangMatch - aLangMatch;
+        });
+
+        setAds(matchingAds.slice(0, 3));
+      } catch (error) {
+        console.error('Error fetching ads:', error);
+      } finally {
+        setLoadingAds(false);
+      }
+    };
+    
+    fetchAds();
+  }, [user, api]);
+
+  const mapAdData = (ad) => {
+    const adUser = ad.user;
+    const profile = adUser?.profile;
+    const stat = ad.stat;
+    const platform = (stat?.platform || 'pc').toLowerCase();
+
+    return {
+      id: ad.id,
+      userId: adUser?.id,
+      username: adUser?.nickname || adUser?.name || 'Unknown',
+      avatarUrl: adUser?.avatar_url,
+      avatarBg: "bg-brand-red",
+      location: profile?.region || "Global",
+      language: profile?.languages || "Not specified",
+      availability: profile?.availability_status || "Available",
+      message: ad.message,
+      gameName: stat?.game_name || `Game #${stat?.game_igdb_id}`,
+      gameRank: stat?.rank_tier || "Unranked",
+      gamePlatform: platform,
+      gameRole: stat?.role_main || "Flex",
+    };
   };
 
-  // 1. Array de Estadísticas
-  const stats = [
-    { title: "Profile Views", value: "1,247", increase: "+12%", icon: <Eye size={20} className="text-brand-red" /> },
-    { title: "New Messages", value: "8", increase: "+3", icon: <MessageSquare size={20} className="text-brand-red" /> },
-    { title: "Match Invites", value: "5", increase: "+2", icon: <Gamepad2 size={20} className="text-brand-red" /> },
-    { title: "Team Requests", value: "3", increase: "+1", icon: <UserPlus size={20} className="text-brand-red" /> }
-  ];
-
-  // 2. Array de Actividad Reciente
-  const activities = [
-    {
-      title: "New match found",
-      desc: "Shadow matched with your profile",
-      time: "2 hours ago",
-      btnText: "View Profile",
-      icon: <Gamepad2 size={18} className="text-brand-red" />
-    },
-    {
-      title: "Team Invitation",
-      desc: "Phoenix Squad invited you to join",
-      time: "5 hours ago",
-      btnText: "View Team",
-      icon: <Trophy size={18} className="text-brand-red" />
-    },
-    {
-      title: "Event Starting Soon",
-      desc: "Summer Championship starts in 3 days",
-      time: "1 day ago",
-      btnText: "Register Now",
-      icon: <Calendar size={18} className="text-brand-red" />
-    },
-    {
-      title: "Rank Update",
-      desc: "You ranked up to Immortal 2!",
-      time: "2 days ago",
-      btnText: "View Stats",
-      icon: <TrendingUp size={18} className="text-brand-red" />
-    }
-  ];
-
-  // 3. Array de Usuarios Recomendados
-  const recommended = [
-    { name: "Shadow", game: "Valorant · Immortal", initial: "S" },
-    { name: "Viper", game: "Valorant · Radiant", initial: "V" },
-    { name: "Thunder", game: "CS2 · Global Elite", initial: "T" }
-  ];
-
-  // 4. Array de Eventos Próximos
-  const events = [
-    { name: "NexusPlay Summer Championship", date: "15/3/2026" },
-    { name: "Weekly Showdown #42", date: "14/2/2026" },
-    { name: "LoL Draft Kings Cup", date: "1/3/2026" }
-  ];
-
   return (
-    <div className="space-y-8">
-
-      {/* Cabecera de bienvenida + Botón Publish Ad */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-white mb-2">
-            Welcome back, <span className="text-brand-red">{user?.name || 'User'}</span>!
-          </h1>
-          <p className="text-gray-400 text-sm">
-            Here's what's happening with your eSports career.
-          </p>
-        </div>
-        <button
-          onClick={() => setShowAdModal(true)}
-          className="flex items-center gap-2 bg-brand-red hover:bg-[#FF4D4D] text-white px-6 py-3 rounded-lg text-sm font-medium transition-all shadow-[0_0_10px_rgba(255,51,51,0.2)] hover:shadow-[0_0_20px_rgba(255,51,51,0.4)] whitespace-nowrap"
-        >
-          <Megaphone size={18} />
-          Publish Ad
-        </button>
+    <div className="flex flex-col h-[calc(95vh-120px)] min-h-[500px]">
+      {/* Welcome Header */}
+      <div className="shrink-0 mb-4">
+        <h1 className="text-3xl font-bold text-white mb-2">
+          Welcome back, <span className="text-brand-red">{user?.name || 'User'}</span>!
+        </h1>
+        <p className="text-gray-400 text-sm">
+          Here's a quick overview of what's happening.
+        </p>
       </div>
 
-      {/* Grid de Tarjetas Superiores */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => (
-          <div
-            key={index}
-            className="bg-[#121212] border border-gray-800 rounded-xl p-6 transition-all hover:border-gray-700 hover:shadow-lg hover:shadow-brand-red/5"
-          >
-            <div className="flex justify-between items-start mb-4">
-              <div className="w-10 h-10 rounded-lg bg-brand-red/10 flex items-center justify-center">
-                {stat.icon}
-              </div>
-              <span className="text-xs font-medium text-green-500 bg-green-500/10 px-2 py-1 rounded-full">
-                {stat.increase}
-              </span>
+      {/* Bento Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1 min-h-0 grid-rows-2">
+        
+        {/* Ads Section (Spans 2 columns, Row 1) */}
+        <div className="md:col-span-2 bg-[#121212] border border-gray-800 rounded-xl p-4 flex flex-col transition-all hover:border-gray-700 min-h-0">
+          <div className="flex items-center gap-3 mb-4 shrink-0">
+            <div className="p-2 bg-brand-red/10 rounded-lg">
+              <Gamepad2 size={20} className="text-brand-red" />
             </div>
-            <h3 className="text-3xl font-bold text-white mb-1">{stat.value}</h3>
-            <p className="text-sm text-gray-400 font-medium">{stat.title}</p>
+            <h2 className="text-lg font-bold text-white">Ads You Might Like</h2>
           </div>
-        ))}
-      </div>
 
-      {/* Layout Inferior: Actividad y Sidebars */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
+            {loadingAds ? (
+              <div className="flex-1 h-full flex justify-center items-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-brand-red"></div>
+              </div>
+            ) : ads.length === 0 ? (
+              <div className="flex-1 h-full flex flex-col justify-center items-center text-center">
+                <Bot size={32} className="text-gray-600 mb-2" />
+                <h3 className="text-gray-400 font-medium text-sm">No matching ads found</h3>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 h-full">
+                {ads.map((ad) => {
+                  const player = mapAdData(ad);
+                  return (
+                    <div
+                      key={player.id}
+                      className="bg-[#1a1a1a] border border-gray-800 rounded-xl p-4 flex flex-col items-center text-center transition-all hover:border-brand-red/50 hover:shadow-[0_0_10px_rgba(255,51,51,0.1)] h-max"
+                    >
+                      <div className="flex items-center gap-3 w-full shrink-0">
+                        <div className="relative shrink-0">
+                          {player.avatarUrl ? (
+                            <img src={player.avatarUrl.startsWith('http') ? player.avatarUrl : `http://localhost:8000${player.avatarUrl}`} alt={player.username} className="w-12 h-12 rounded-full object-cover" />
+                          ) : (
+                            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${player.avatarBg}`}>
+                              <Bot size={24} className="text-[#121212]" />
+                            </div>
+                          )}
+                          <div className={`absolute bottom-0 right-0 w-3 h-3 border-[1.5px] border-[#1a1a1a] rounded-full ${player.availability === 'Available' ? 'bg-green-500' : 'bg-gray-500'}`}></div>
+                        </div>
+                        <div className="flex-1 text-left overflow-hidden">
+                          <h3 className="text-sm font-bold text-white truncate">{player.username}</h3>
+                          <p className="text-xs text-gray-400 truncate">{player.gameRole}</p>
+                        </div>
+                      </div>
 
-        {/* COLUMNA IZQUIERDA: Recent Activity */}
-        <div className="lg:col-span-2">
-          <h2 className="text-lg font-bold text-white mb-4">Recent Activity</h2>
-          <div className="space-y-4">
-            {activities.map((item, index) => (
-              <div
-                key={index}
-                className="bg-[#121212] border border-gray-800 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:border-gray-700"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-lg bg-brand-red/10 flex items-center justify-center shrink-0">
-                    {item.icon}
-                  </div>
-                  <div>
-                    <h4 className="text-white font-medium text-sm">{item.title}</h4>
-                    <p className="text-gray-400 text-xs mt-0.5">{item.desc}</p>
-                    <p className="text-gray-500 text-[10px] mt-1.5">{item.time}</p>
-                  </div>
+                      <div className="flex flex-wrap justify-center items-center gap-1.5 mt-3 shrink-0">
+                        <span className="text-[10px] font-bold text-brand-red bg-brand-red/10 px-2 py-1 rounded">
+                          {player.gameName}
+                        </span>
+                        <span className="text-[10px] font-bold text-gray-300 bg-gray-800 px-2 py-1 rounded">
+                          {player.gameRank}
+                        </span>
+                      </div>
+
+                      <div className="w-full mt-3 pt-3 border-t border-gray-800 flex-1 flex items-center justify-center min-h-0">
+                        <p className="text-xs text-gray-300 italic line-clamp-2">"{player.message}"</p>
+                      </div>
+
+                      <div className="w-full mt-3 shrink-0">
+                        <button onClick={() => navigate('/find-players')} className="w-full bg-brand-red/10 text-brand-red hover:bg-brand-red hover:text-white text-xs font-medium py-1.5 rounded transition-all">
+                          View Details
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Notifications Section (Col 3, Row 1) */}
+        <div className="bg-[#121212] border border-gray-800 rounded-xl p-4 flex flex-col transition-all hover:border-gray-700 min-h-0">
+          <div className="flex items-center justify-between mb-3 shrink-0">
+            <div className="flex items-center gap-2">
+              <div className="p-2 bg-brand-red/10 rounded-lg">
+                <Bell size={20} className="text-brand-red" />
+              </div>
+              <h2 className="text-lg font-bold text-white">Notifications</h2>
+            </div>
+            <button className="text-xs text-brand-red hover:text-white transition-colors">Mark read</button>
+          </div>
+          
+          <div className="flex-1 min-h-0 overflow-y-auto pr-1 custom-scrollbar space-y-2">
+            {mockNotifications.map(notification => (
+              <div key={notification.id} className={`flex items-start gap-3 p-2 rounded-lg border ${notification.read ? 'bg-[#1a1a1a] border-transparent' : 'bg-[#1e1a1a] border-brand-red/20'}`}>
+                <div className="mt-0.5 shrink-0">
+                  {notification.icon}
                 </div>
-
-                <button
-                  className="flex items-center justify-center gap-2 bg-brand-red/10 text-brand-red hover:bg-brand-red hover:text-white px-4 py-2 rounded-lg text-xs font-medium transition-all shadow-[0_0_10px_rgba(255,51,51,0.1)] hover:shadow-[0_0_15px_rgba(255,51,51,0.4)] whitespace-nowrap"
-                >
-                  {item.btnText} <ArrowRight size={14} />
-                </button>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-sm ${notification.read ? 'text-gray-300' : 'text-white font-medium'} truncate`}>{notification.text}</p>
+                  <p className="text-xs text-gray-500 mt-1">{notification.time}</p>
+                </div>
+                {!notification.read && <div className="w-2 h-2 rounded-full bg-brand-red shrink-0 mt-1"></div>}
               </div>
             ))}
           </div>
         </div>
 
-        {/* COLUMNA DERECHA: Recommended & Events */}
-        <div className="space-y-6">
-
-          {/* Tarjeta: Recommended For You */}
-          <div className="bg-[#121212] border border-gray-800 rounded-xl p-6">
-            <h2 className="text-white font-bold text-sm mb-4">Recommended For You</h2>
-            <div className="space-y-5">
-              {recommended.map((user, index) => (
-                <div key={index} className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-brand-red/20 border border-brand-red flex items-center justify-center text-brand-red font-bold text-xs shrink-0">
-                    {user.initial}
-                  </div>
-                  <div>
-                    <p className="text-white text-sm font-medium">{user.name}</p>
-                    <p className="text-gray-400 text-xs">{user.game}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Tarjeta: Upcoming Events */}
-          <div className="bg-[#121212] border border-gray-800 rounded-xl p-6">
-            <h2 className="text-white font-bold text-sm mb-4">Upcoming Events</h2>
-            <div className="space-y-5">
-              {events.map((event, index) => (
-                <div key={index} className="flex items-start gap-3">
-                  <Calendar size={16} className="text-brand-red shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-white text-sm font-medium leading-tight">{event.name}</p>
-                    <p className="text-gray-500 text-xs mt-1">{event.date}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      {/* ===== MODAL: Publish Ad ===== */}
-      {showAdModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4 animate-[fadeIn_0.2s_ease-out]"
-          onClick={(e) => { if (e.target === e.currentTarget) setShowAdModal(false); }}
-        >
-          <div className="w-full max-w-md bg-[#121212] border border-gray-800 rounded-xl shadow-2xl animate-[slideUp_0.3s_ease-out] overflow-hidden">
-
-            {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-800">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-brand-red/10 flex items-center justify-center">
-                  <Megaphone size={20} className="text-brand-red" />
-                </div>
-                <div>
-                  <h3 className="text-white font-bold text-lg">Publish Ad</h3>
-                  <p className="text-gray-500 text-xs">Find players for your game</p>
-                </div>
+        {/* Teams Section (Spans 2 columns, Row 2) */}
+        <div className="md:col-span-2 bg-[#121212] border border-gray-800 rounded-xl p-4 flex flex-col transition-all hover:border-gray-700 min-h-0">
+          <div className="flex items-center justify-between mb-3 shrink-0">
+            <div className="flex items-center gap-2">
+              <div className="p-2 bg-brand-red/10 rounded-lg">
+                <Users size={20} className="text-brand-red" />
               </div>
-              <button onClick={() => setShowAdModal(false)} className="text-gray-500 hover:text-white transition-colors">
-                <X size={20} />
-              </button>
+              <h2 className="text-lg font-bold text-white">Teams You Might Like</h2>
             </div>
+            <button onClick={() => navigate('/find-teams')} className="text-xs text-gray-400 hover:text-white transition-colors">View All</button>
+          </div>
+          
+          <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 h-full">
+              {mockTeams.map((team) => (
+                <div
+                  key={team.id}
+                  className="bg-[#1a1a1a] border border-gray-800 rounded-xl p-6 flex flex-col items-center text-center transition-all hover:border-brand-red/50 hover:shadow-[0_0_10px_rgba(255,51,51,0.1)] h-full"
+                >
+                  <div className="flex items-center gap-3 w-full shrink-0">
+                    <div className="relative shrink-0">
+                      <div className={`w-14 h-14 rounded-lg flex items-center justify-center ${team.avatarBg}`}>
+                        <Shield size={28} className="text-white" />
+                      </div>
+                    </div>
+                    <div className="flex-1 text-left overflow-hidden">
+                      <h3 className="text-base font-bold text-white truncate">{team.name}</h3>
+                      <p className="text-sm text-gray-400 truncate">Members: {team.members}/{team.maxMembers}</p>
+                    </div>
+                  </div>
 
-            {/* Body */}
-            <div className="p-6 space-y-5">
+                  <div className="flex flex-wrap justify-center items-center gap-2 mt-4 shrink-0">
+                    <span className="text-xs font-bold text-brand-red bg-brand-red/10 px-2.5 py-1 rounded">
+                      {team.gameName}
+                    </span>
+                    <span className="text-xs font-bold text-gray-300 bg-gray-800 px-2.5 py-1 rounded">
+                      {team.gameRank}
+                    </span>
+                  </div>
 
-              {/* Game Select */}
-              <div>
-                <label className="text-xs text-gray-400 mb-2 block font-medium uppercase tracking-wider">Select Game</label>
-                {myStats.length === 0 ? (
-                  <p className="text-gray-500 text-sm">You have no games added yet. Go to Profile Settings to add games.</p>
-                ) : (
-                  <select
-                    value={selectedStatId}
-                    onChange={(e) => setSelectedStatId(e.target.value)}
-                    className="w-full bg-[#0a0a0a] border border-gray-800 text-white text-sm rounded-lg p-3 focus:border-brand-red outline-none transition-colors"
-                  >
-                    <option value="">Choose a game...</option>
-                    {myStats.map((stat) => (
-                      <option key={stat.id} value={stat.id}>
-                        {stat.game_name || `Game #${stat.game_igdb_id}`} — {stat.rank_tier} ({stat.platform || 'PC'})
-                      </option>
-                    ))}
-                  </select>
+                  <div className="w-full mt-4 pt-4 border-t border-gray-800 flex-1 flex items-center justify-center min-h-0">
+                    <p className="text-xs text-gray-300 italic line-clamp-2">"{team.message}"</p>
+                  </div>
+
+                  <div className="w-full mt-3 shrink-0">
+                    <button onClick={() => navigate('/find-teams')} className="w-full bg-transparent border border-gray-700 hover:border-gray-500 text-white text-xs font-medium py-1.5 rounded transition-colors">
+                      View Team
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Messages Section (Col 3, Row 2) */}
+        <div className="bg-[#121212] border border-gray-800 rounded-xl p-4 flex flex-col transition-all hover:border-gray-700 min-h-0">
+          <div className="flex items-center justify-between mb-3 shrink-0">
+            <div className="flex items-center gap-2">
+              <div className="p-2 bg-brand-red/10 rounded-lg">
+                <MessageSquare size={20} className="text-brand-red" />
+              </div>
+              <h2 className="text-lg font-bold text-white">New Messages</h2>
+            </div>
+            <button className="text-xs text-gray-400 hover:text-white transition-colors">Inbox</button>
+          </div>
+          
+          <div className="flex-1 min-h-0 overflow-y-auto pr-1 custom-scrollbar space-y-2">
+            {mockMessages.map(msg => (
+              <div key={msg.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-[#1a1a1a] transition-colors cursor-pointer group">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${msg.avatarBg}`}>
+                  <span className="text-white font-bold text-sm">{msg.sender.charAt(0)}</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-medium text-white truncate">{msg.sender}</h4>
+                    <span className="text-[10px] text-gray-500">{msg.time}</span>
+                  </div>
+                  <p className={`text-xs truncate ${msg.unread > 0 ? 'text-gray-300 font-medium' : 'text-gray-500'}`}>
+                    {msg.text}
+                  </p>
+                </div>
+                {msg.unread > 0 && (
+                  <div className="w-5 h-5 rounded-full bg-brand-red flex items-center justify-center shrink-0">
+                    <span className="text-[10px] font-bold text-white">{msg.unread}</span>
+                  </div>
                 )}
               </div>
-
-              {/* Message */}
-              <div>
-                <label className="text-xs text-gray-400 mb-2 block font-medium uppercase tracking-wider">Short Message</label>
-                <textarea
-                  value={adMessage}
-                  onChange={(e) => setAdMessage(e.target.value)}
-                  maxLength={255}
-                  rows={3}
-                  placeholder="Looking for teammates for ranked grind tonight..."
-                  className="w-full bg-[#0a0a0a] border border-gray-800 text-white text-sm rounded-lg p-3 focus:border-brand-red outline-none transition-colors resize-none placeholder-gray-600"
-                />
-                <p className="text-right text-gray-600 text-[10px] mt-1">{adMessage.length}/255</p>
-              </div>
-
-              {/* Error */}
-              {publishError && (
-                <p className="text-red-500 text-xs bg-red-500/10 rounded-lg px-3 py-2">{publishError}</p>
-              )}
-
-              {/* Success */}
-              {publishSuccess && (
-                <p className="text-green-500 text-xs bg-green-500/10 rounded-lg px-3 py-2">✓ Ad published successfully!</p>
-              )}
-            </div>
-
-            {/* Footer */}
-            <div className="p-6 border-t border-gray-800">
-              <button
-                onClick={handlePublishAd}
-                disabled={!selectedStatId || !adMessage.trim() || publishing || publishSuccess}
-                className="w-full flex items-center justify-center gap-2 bg-brand-red hover:bg-[#FF4D4D] disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-lg text-sm font-medium transition-all shadow-[0_0_10px_rgba(255,51,51,0.2)] hover:shadow-[0_0_15px_rgba(255,51,51,0.4)]"
-              >
-                <Send size={16} />
-                {publishing ? 'Publishing...' : 'Publish Ad'}
-              </button>
-            </div>
+            ))}
+          </div>
+          
+          <div className="shrink-0 pt-3">
+            <button className="w-full bg-[#1a1a1a] hover:bg-gray-800 text-white text-xs font-medium py-2 rounded transition-colors border border-gray-800">
+              Open Chat
+            </button>
           </div>
         </div>
-      )}
 
+      </div>
     </div>
   );
 }

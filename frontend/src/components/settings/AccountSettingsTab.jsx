@@ -17,7 +17,7 @@ export default function AccountSettingsTab() {
                             <input
                                 type="text"
                                 disabled
-                                value={user?.email || 'shadow@nexusplay.com'}
+                                value={user?.email || ''}
                                 className="w-full bg-[#1a1a1a] border border-transparent rounded-lg pl-4 pr-20 py-2.5 text-sm text-gray-400 cursor-not-allowed"
                             />
                             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-green-500 bg-green-500/10 px-2 py-1 rounded">

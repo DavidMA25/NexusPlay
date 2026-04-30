@@ -34,19 +34,19 @@ export default function Navbar() {
                 <div className="flex items-center gap-6">
                     {user ? (
                         <>
-                            <Link
-                                to="/dashboard"
-                                className="text-sm text-gray-300 hover:text-white transition-colors"
-                            >
-                                Dashboard
-                            </Link>
-                            <span className="text-sm text-gray-400">{user.name}</span>
+                            <span className="text-sm text-gray-400 hidden md:block">{user.name}</span>
                             <button
                                 onClick={handleLogout}
-                                className="bg-brand-red hover:bg-[#FF4D4D] text-white text-sm font-medium py-2 px-6 rounded-md transition-colors shadow-[0_0_15px_rgba(255,51,51,0.5)]"
+                                className="text-sm text-gray-300 hover:text-white transition-colors cursor-pointer"
                             >
                                 Logout
                             </button>
+                            <Link
+                                to="/dashboard"
+                                className="bg-brand-red hover:bg-[#FF4D4D] text-white text-sm font-medium py-2 px-6 rounded-md transition-colors shadow-[0_0_15px_rgba(255,51,51,0.5)] cursor-pointer"
+                            >
+                                Dashboard
+                            </Link>
                         </>
                     ) : (
                         <>

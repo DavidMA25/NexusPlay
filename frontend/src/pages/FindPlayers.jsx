@@ -8,6 +8,7 @@ import mobileIcon from '../assets/mobile.svg';
 import ProfileCard from '../components/ProfileCard';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useChat } from '../context/ChatContext';
 
 const platformIcons = {
   pc: pcIcon,
@@ -35,8 +36,20 @@ const platformStyles = {
 
 export default function FindPlayers() {
   const [selectedPlayer, setSelectedPlayer] = useState(null);
-  const { api } = useAuth();
+  const { api, user } = useAuth();
+  const { addOrUpdateConversation, openConversation } = useChat();
   const navigate = useNavigate();
+
+  const handleMessage = async (userId) => {
+    try {
+      const res = await api.post('/conversations/direct', { user_id: userId });
+      addOrUpdateConversation(res.data);
+      openConversation(res.data.id);
+      navigate('/dashboard/messages');
+    } catch (e) {
+      console.error('Error abriendo conversación:', e);
+    }
+  };
 
   const [ads, setAds] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -137,6 +150,7 @@ export default function FindPlayers() {
   const buildProfileData = (ad) => {
     const data = mapAdData(ad);
     return {
+      id: data.userId,
       username: data.username,
       fullName: data.fullName,
       avatarUrl: data.avatarUrl,
@@ -311,10 +325,15 @@ export default function FindPlayers() {
                   >
                     View Profile
                   </button>
-                  <button onClick={() => navigate('/dashboard')} className="flex-1 bg-brand-red hover:bg-[#FF4D4D] text-white text-xs font-medium py-2 rounded-lg flex items-center justify-center gap-1.5 transition-all shadow-[0_0_10px_rgba(255,51,51,0.2)] hover:shadow-[0_0_15px_rgba(255,51,51,0.4)]">
-                    <MessageSquare size={14} />
-                    Message
-                  </button>
+                  {player.userId !== user?.id && (
+                    <button
+                      onClick={() => handleMessage(player.userId)}
+                      className="flex-1 bg-brand-red hover:bg-[#FF4D4D] text-white text-xs font-medium py-2 rounded-lg flex items-center justify-center gap-1.5 transition-all shadow-[0_0_10px_rgba(255,51,51,0.2)] hover:shadow-[0_0_15px_rgba(255,51,51,0.4)]"
+                    >
+                      <MessageSquare size={14} />
+                      Message
+                    </button>
+                  )}
                 </div>
 
               </div>

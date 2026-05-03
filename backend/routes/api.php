@@ -14,29 +14,40 @@ use App\Http\Controllers\Api\{
     PlayerAdController,
     VacancyApplicationController,
     TryoutController,
-    IGDBController
+    IGDBController,
+    ConversationController
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RUTAS PÚBLICAS
+// ─────────────────────────────────────────────────────────────────────────────
 
 Route::post('/login',    [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 
 Route::get('/players',    [PlayerController::class, 'index']);
 Route::get('/player-ads', [PlayerAdController::class, 'index']);
-Route::get('/vacancies', [VacancyController::class, 'index']);
+Route::get('/vacancies',  [VacancyController::class, 'index']);
 
-// Vacancies are public so unauthenticated visitors can browse team ads (FindTeams page)
-Route::get('/vacancies', [VacancyController::class, 'index']);
-
-// Tryout participants — public so WordPress can read them for the single-tryout template
+// Participantes del tryout — público para que WordPress los pueda leer
 Route::get('/tryouts/{wpPostId}/participants', [TryoutController::class, 'participants'])
     ->where('wpPostId', '[0-9]+');
 
+// ─────────────────────────────────────────────────────────────────────────────
+// RUTAS PROTEGIDAS
+// ─────────────────────────────────────────────────────────────────────────────
+
 Route::middleware('auth:sanctum')->group(function () {
 
-    // Session & verification
-    Route::get('/user',          [AuthController::class, 'user']);
-    Route::post('/logout',       [AuthController::class, 'logout']);
-    Route::post('/user/settings',[AuthController::class, 'updateSettings']);
+    // Autenticación de canales privados de Reverb (debe ir dentro del grupo auth)
+    Route::post('/broadcasting/auth', function (\Illuminate\Http\Request $request) {
+        return \Illuminate\Support\Facades\Broadcast::auth($request);
+    });
+
+    // Sesión y verificación
+    Route::get('/user',           [AuthController::class, 'user']);
+    Route::post('/logout',        [AuthController::class, 'logout']);
+    Route::post('/user/settings', [AuthController::class, 'updateSettings']);
 
     Route::get('/email/verify/{id}/{hash}', function (Request $request, $id, $hash) {
         $user = \App\Models\User::findOrFail($id);
@@ -57,43 +68,51 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/email/resend', [AuthController::class, 'resendVerification']);
 
-    // IGDB Search
+    // IGDB
     Route::get('/igdb/search', [IGDBController::class, 'search']);
 
-    // Teams
+    // Equipos
     Route::apiResource('teams', TeamController::class);
-    Route::post('/vacancies', [VacancyController::class, 'store']);
-    Route::get('/vacancies/{vacancy}', [VacancyController::class, 'show']);
-    Route::put('/vacancies/{vacancy}', [VacancyController::class, 'update']);
+
+    // Vacantes
+    Route::post('/vacancies',             [VacancyController::class, 'store']);
+    Route::get('/vacancies/{vacancy}',    [VacancyController::class, 'show']);
+    Route::put('/vacancies/{vacancy}',    [VacancyController::class, 'update']);
     Route::delete('/vacancies/{vacancy}', [VacancyController::class, 'destroy']);
 
-    // Vacancies (write operations require auth)
-    Route::post('/vacancies',            [VacancyController::class, 'store']);
-    Route::get('/vacancies/{vacancy}',   [VacancyController::class, 'show']);
-    Route::put('/vacancies/{vacancy}',   [VacancyController::class, 'update']);
-    Route::delete('/vacancies/{vacancy}',[VacancyController::class, 'destroy']);
-
-    // Player profile & stats
+    // Perfil y estadísticas del jugador
     Route::get('profile',  [PlayerProfileController::class, 'show']);
     Route::post('profile', [PlayerProfileController::class, 'store']);
     Route::apiResource('player-stats', PlayerStatController::class);
 
-    // Player ads
-    Route::post('/player-ads',             [PlayerAdController::class, 'store']);
-    Route::delete('/player-ads/{playerAd}',[PlayerAdController::class, 'destroy']);
+    // Anuncios de jugador
+    Route::post('/player-ads',              [PlayerAdController::class, 'store']);
+    Route::delete('/player-ads/{playerAd}', [PlayerAdController::class, 'destroy']);
 
-    // Vacancy applications
-    Route::post('applications',                    [VacancyApplicationController::class, 'store']);
-    Route::patch('applications/{application}',     [VacancyApplicationController::class, 'updateStatus']);
+    // Aplicaciones a vacantes
+    Route::post('applications',                 [VacancyApplicationController::class, 'store']);
+    Route::patch('applications/{application}',  [VacancyApplicationController::class, 'updateStatus']);
 
-    // Tryouts — join, leave, my status, manage participants
-    Route::get('/tryouts/my-participations',  [TryoutController::class, 'myParticipations']);
-    Route::post('/tryouts/{wpPostId}/join',   [TryoutController::class, 'join'])
+    // Tryouts
+    Route::get('/tryouts/my-participations',   [TryoutController::class, 'myParticipations']);
+    Route::post('/tryouts/{wpPostId}/join',    [TryoutController::class, 'join'])
         ->where('wpPostId', '[0-9]+');
-    Route::delete('/tryouts/{wpPostId}/leave',[TryoutController::class, 'leave'])
+    Route::delete('/tryouts/{wpPostId}/leave', [TryoutController::class, 'leave'])
         ->where('wpPostId', '[0-9]+');
-    Route::get('/tryouts/{wpPostId}/my-status',[TryoutController::class, 'myStatus'])
+    Route::get('/tryouts/{wpPostId}/my-status', [TryoutController::class, 'myStatus'])
         ->where('wpPostId', '[0-9]+');
     Route::patch('/tryouts/{wpPostId}/participants/{participantId}', [TryoutController::class, 'updateStatus'])
         ->where(['wpPostId' => '[0-9]+', 'participantId' => '[0-9]+']);
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // CHAT
+    // ─────────────────────────────────────────────────────────────────────────
+
+    Route::get('/conversations',                                                    [ConversationController::class, 'index']);
+    Route::post('/conversations/direct',                                            [ConversationController::class, 'findOrCreateDirect']);
+    Route::post('/conversations/group',                                             [ConversationController::class, 'createGroup']);
+    Route::get('/conversations/{conversation}/messages',                            [ConversationController::class, 'messages']);
+    Route::post('/conversations/{conversation}/messages',                           [ConversationController::class, 'sendMessage']);
+    Route::delete('/conversations/{conversation}/messages/{message}',               [ConversationController::class, 'deleteMessage']);
+    Route::post('/conversations/{conversation}/read',                               [ConversationController::class, 'markRead']);
 });

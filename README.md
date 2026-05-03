@@ -52,7 +52,20 @@
      php artisan migrate
      ```
 
-3. **Lanzar el servidor Backend:**
+3. **Configurar reverb:**
+   - Genera las claves de reverb:
+   ```bash
+   php artisan reverb:install
+   ```
+
+   - En el `.env` den frontend, añade las variables de reverb (si no las tienes) y coloca en `VITE_REVERB_APP_KEY` la `REVERB_APP_KEY` generada en el backend.
+
+   - Hay que mantener reverb activo, para hacerlo, hay que ejecutarlo:
+   ```bash
+   php artisan reverb:start
+   ```
+
+4. **Lanzar el servidor Backend:**
    ```bash
    php artisan serve
    ```

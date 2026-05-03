@@ -19,11 +19,13 @@ import {
 import { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useChat } from '../context/ChatContext';
 import logo from '../assets/logo.png';
 
 export default function DashboardLayout() {
     // Extraemos los datos del usuario logueado y la funcion de cerrar sesion desde AuthContext
     const { user, logout, api } = useAuth();
+    const { totalUnread } = useChat();
     const navigate = useNavigate();
 
     // Estado para controlar si el desplegable del perfil esta visible o no
@@ -83,7 +85,7 @@ export default function DashboardLayout() {
         { path: '/dashboard/teams', icon: <Shield size={20} />, label: 'Find Teams' },
         { path: '/dashboard/events', icon: <Calendar size={20} />, label: 'Events' },
         // A algunos items les paso la propiedad 'badge' para mostrar el circulito rojo de notificaciones
-        { path: '/dashboard/messages', icon: <MessageSquare size={20} />, label: 'Messages', badge: 8 },
+        { path: '/dashboard/messages', icon: <MessageSquare size={20} />, label: 'Messages', badge: totalUnread || null },
         { path: '/dashboard/notifications', icon: <Bell size={20} />, label: 'Notifications', badge: 3 },
         { path: '/dashboard/profile', icon: <UserCircle size={20} />, label: 'My Profile' },
         { path: '/dashboard/settings', icon: <Settings size={20} />, label: 'Settings' },

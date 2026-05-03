@@ -1,0 +1,292 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Events\MessageDeleted;
+use App\Events\MessageSent;
+use App\Http\Controllers\Controller;
+use App\Models\Conversation;
+use App\Models\Message;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
+class ConversationController extends Controller
+{
+    // =========================================================================
+    // LISTAR CONVERSACIONES DEL USUARIO AUTENTICADO
+    // =========================================================================
+
+    public function index(Request $request)
+    {
+        $userId = auth()->id();
+
+        $conversations = Conversation::whereHas('participants', fn($q) => $q->where('user_id', $userId))
+            ->with([
+                'participants:id,name,nickname,avatar_url',
+                'lastMessage.sender:id,name,nickname',
+            ])
+            ->withCount(['messages as unread_count' => function ($q) use ($userId) {
+                $q->whereNull('deleted_at')
+                  ->where('sender_id', '!=', $userId)
+                  ->whereRaw('messages.created_at > COALESCE((
+                      SELECT last_read_at FROM conversation_participants
+                      WHERE conversation_participants.conversation_id = messages.conversation_id
+                      AND conversation_participants.user_id = ?
+                  ), "1970-01-01")', [$userId]);
+            }])
+            ->orderByDesc(function ($query) {
+                $query->select('created_at')
+                    ->from('messages')
+                    ->whereColumn('conversation_id', 'conversations.id')
+                    ->orderByDesc('created_at')
+                    ->limit(1);
+            })
+            ->get();
+
+        return response()->json($conversations->map(fn($c) => $this->formatConversation($c, $userId)));
+    }
+
+    // =========================================================================
+    // INICIAR O RECUPERAR CONVERSACIÓN 1-1
+    // =========================================================================
+
+    public function findOrCreateDirect(Request $request)
+    {
+        $request->validate(['user_id' => 'required|exists:users,id|different:' . auth()->id()]);
+
+        $userId  = auth()->id();
+        $otherId = $request->user_id;
+
+        // Buscar una conversación directa (no grupo) donde estén solo estos dos
+        $existing = Conversation::where('is_group', false)
+            ->whereHas('participants', fn($q) => $q->where('user_id', $userId))
+            ->whereHas('participants', fn($q) => $q->where('user_id', $otherId))
+            ->whereDoesntHave('participants', fn($q) => $q->whereNotIn('user_id', [$userId, $otherId]))
+            ->first();
+
+        if ($existing) {
+            $existing->load(['participants:id,name,nickname,avatar_url', 'lastMessage']);
+            return response()->json($this->formatConversation($existing, $userId));
+        }
+
+        $conversation = DB::transaction(function () use ($userId, $otherId) {
+            $conv = Conversation::create(['is_group' => false]);
+            $conv->participants()->attach([$userId, $otherId]);
+            return $conv;
+        });
+
+        $conversation->load(['participants:id,name,nickname,avatar_url', 'lastMessage']);
+        return response()->json($this->formatConversation($conversation, $userId), 201);
+    }
+
+    // =========================================================================
+    // CREAR GRUPO
+    // =========================================================================
+
+    public function createGroup(Request $request)
+    {
+        $request->validate([
+            'group_name'  => 'required|string|max:100',
+            'user_ids'    => 'required|array|min:2',
+            'user_ids.*'  => 'exists:users,id',
+        ]);
+
+        $userId  = auth()->id();
+        $members = array_unique($request->user_ids);
+
+        // Prevent adding yourself to the group
+        if (in_array($userId, $members)) {
+            return response()->json(['message' => 'You cannot add yourself to the group.'], 422);
+        }
+
+        // Verificar que el creador ha hablado antes con cada miembro
+        foreach ($members as $memberId) {
+            $hasTalked = Conversation::where('is_group', false)
+                ->whereHas('participants', fn($q) => $q->where('user_id', $userId))
+                ->whereHas('participants', fn($q) => $q->where('user_id', $memberId))
+                ->exists();
+
+            if (!$hasTalked) {
+                $user = User::find($memberId);
+                return response()->json([
+                    'message' => 'Solo puedes añadir usuarios con los que hayas hablado antes.',
+                    'user'    => $user?->nickname ?? $user?->name,
+                ], 422);
+            }
+        }
+
+        $conversation = DB::transaction(function () use ($userId, $members, $request) {
+            $conv = Conversation::create([
+                'is_group'   => true,
+                'group_name' => $request->group_name,
+                'owner_id'   => $userId,
+            ]);
+            $conv->participants()->attach(array_merge([$userId], $members));
+            return $conv;
+        });
+
+        $conversation->load(['participants:id,name,nickname,avatar_url']);
+        return response()->json($this->formatConversation($conversation, $userId), 201);
+    }
+
+    // =========================================================================
+    // MENSAJES DE UNA CONVERSACIÓN
+    // =========================================================================
+
+    public function messages(Request $request, Conversation $conversation)
+    {
+        $this->authorizeParticipant($conversation);
+
+        $messages = $conversation->messages()
+            ->with('sender:id,name,nickname,avatar_url')
+            ->orderBy('created_at')
+            ->paginate(50);
+
+        // Marcar como leídos al abrir la conversación
+        $conversation->participants()->updateExistingPivot(auth()->id(), [
+            'last_read_at' => now(),
+        ]);
+
+        return response()->json([
+            'data' => $messages->items(),
+            'meta' => [
+                'current_page' => $messages->currentPage(),
+                'last_page'    => $messages->lastPage(),
+                'total'        => $messages->total(),
+            ],
+        ]);
+    }
+
+    // =========================================================================
+    // ENVIAR MENSAJE
+    // =========================================================================
+
+    public function sendMessage(Request $request, Conversation $conversation)
+    {
+        $this->authorizeParticipant($conversation);
+
+        $request->validate(['content' => 'required|string|max:4000']);
+
+        $message = $conversation->messages()->create([
+            'sender_id' => auth()->id(),
+            'content'   => $request->content,
+        ]);
+
+        $message->load('sender:id,name,nickname,avatar_url');
+
+        // Cargar conversation + participants para que el evento pueda
+        // emitir en los canales personales de cada receptor sin N+1
+        $message->load('conversation.participants:id');
+
+        // Marcar como leído para el propio emisor
+        $conversation->participants()->updateExistingPivot(auth()->id(), [
+            'last_read_at' => now(),
+        ]);
+
+        broadcast(new MessageSent($message));
+
+        return response()->json($message, 201);
+    }
+
+    // =========================================================================
+    // ELIMINAR MENSAJE (soft-delete de contenido)
+    // =========================================================================
+
+    public function deleteMessage(Request $request, Conversation $conversation, Message $message)
+    {
+        $this->authorizeParticipant($conversation);
+
+        $userId = auth()->id();
+
+        // Puede borrar si es suyo, O si es propietario del grupo
+        $isOwner    = $conversation->is_group && $conversation->owner_id === $userId;
+        $isMine     = $message->sender_id === $userId;
+
+        if (!$isMine && !$isOwner) {
+            return response()->json(['message' => 'No tienes permiso para eliminar este mensaje.'], 403);
+        }
+
+        $message->update(['deleted_at' => now(), 'content' => '']);
+
+        broadcast(new MessageDeleted($message));
+
+        return response()->noContent();
+    }
+
+    // =========================================================================
+    // MARCAR CONVERSACIÓN COMO LEÍDA
+    // =========================================================================
+
+    public function markRead(Conversation $conversation)
+    {
+        $this->authorizeParticipant($conversation);
+
+        $conversation->participants()->updateExistingPivot(auth()->id(), [
+            'last_read_at' => now(),
+        ]);
+
+        return response()->noContent();
+    }
+
+    // =========================================================================
+    // AUTORIZACIÓN DE CANAL REVERB (llamado desde routes/channels.php)
+    // =========================================================================
+
+    // (La lógica está en routes/channels.php directamente)
+
+    // =========================================================================
+    // HELPERS PRIVADOS
+    // =========================================================================
+
+    private function authorizeParticipant(Conversation $conversation): void
+    {
+        $isParticipant = $conversation->participants()
+            ->where('user_id', auth()->id())
+            ->exists();
+
+        abort_unless($isParticipant, 403, 'No eres participante de esta conversación.');
+    }
+
+    private function formatConversation(Conversation $conversation, int $userId): array
+    {
+        $lastMsg = $conversation->lastMessage;
+
+        // Para conversaciones directas, el "nombre" es el otro usuario
+        $displayName = $conversation->is_group
+            ? $conversation->group_name
+            : $conversation->participants
+                ->firstWhere('id', '!=', $userId)
+                ?->nickname
+                ?? $conversation->participants->firstWhere('id', '!=', $userId)?->name
+                ?? 'Unknown';
+
+        // Avatar: solo para 1-1 (grupos no tienen imagen)
+        $otherUser = !$conversation->is_group
+            ? $conversation->participants->firstWhere('id', '!=', $userId)
+            : null;
+
+        return [
+            'id'           => $conversation->id,
+            'is_group'     => $conversation->is_group,
+            'name'         => $displayName,
+            'group_name'   => $conversation->group_name,
+            'owner_id'     => $conversation->owner_id,
+            'avatar_url'   => $otherUser?->avatar_url,
+            'other_user_id'=> $otherUser?->id,
+            'participants' => $conversation->participants->map(fn($p) => [
+                'id'         => $p->id,
+                'name'       => $p->name,
+                'nickname'   => $p->nickname,
+                'avatar_url' => $p->avatar_url,
+            ]),
+            'last_message' => $lastMsg ? [
+                'content'    => $lastMsg->deleted_at ? '[Mensaje eliminado]' : $lastMsg->content,
+                'sender_id'  => $lastMsg->sender_id,
+                'created_at' => $lastMsg->created_at?->toISOString(),
+            ] : null,
+            'unread_count' => $conversation->unread_count ?? 0,
+            'updated_at'   => $conversation->updated_at?->toISOString(),
+        ];
+    }
+}

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useChat } from '../context/ChatContext';
 import { Bot, MapPin, Globe, MessageSquare, Bell, Users, Gamepad2, Shield, Heart, Trophy, Info } from 'lucide-react';
 import pcIcon from '../assets/pc.svg';
 import nintendoIcon from '../assets/nintendo.svg';
@@ -34,6 +35,7 @@ const platformStyles = {
 
 export default function DashboardHome() {
   const { user, api } = useAuth();
+  const { conversations, openConversation } = useChat();
   const navigate = useNavigate();
   const [ads, setAds] = useState([]);
   const [loadingAds, setLoadingAds] = useState(true);
@@ -75,12 +77,30 @@ export default function DashboardHome() {
       language: "English"
     }
   ];
-
-  const mockMessages = [
-    { id: 1, sender: "Viper", avatarBg: "bg-purple-500", text: "Hey! Want to play some duo?", time: "10:30 AM", unread: 2 },
-    { id: 2, sender: "Thunder", avatarBg: "bg-blue-500", text: "Sure, let's do it tonight.", time: "Yesterday", unread: 0 },
-  ];
   // ===================================
+
+  // Conversaciones reales: primero no leídas, luego por fecha
+  const recentMessages = [...conversations]
+    .sort((a, b) =>
+      (b.unread_count ?? 0) - (a.unread_count ?? 0) ||
+      new Date(b.last_message?.created_at ?? 0) - new Date(a.last_message?.created_at ?? 0)
+    )
+    .slice(0, 3);
+
+  const handleOpenConversation = (conv) => {
+    openConversation(conv.id);
+    navigate('/dashboard/messages');
+  };
+
+  function formatMsgTime(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    const now = new Date();
+    const diff = Math.floor((now - d) / 86400000);
+    if (diff === 0) return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    if (diff === 1) return 'Yesterday';
+    return d.toLocaleDateString([], { day: '2-digit', month: '2-digit' });
+  }
 
   useEffect(() => {
     const fetchAds = async () => {
@@ -325,35 +345,54 @@ export default function DashboardHome() {
               </div>
               <h2 className="text-lg font-bold text-white">New Messages</h2>
             </div>
-            <button className="text-xs text-gray-400 hover:text-white transition-colors">Inbox</button>
+            <button onClick={() => navigate('/dashboard/messages')} className="text-xs text-gray-400 hover:text-white transition-colors">Inbox</button>
           </div>
-          
+
           <div className="flex-1 min-h-0 overflow-y-auto pr-1 custom-scrollbar space-y-2">
-            {mockMessages.map(msg => (
-              <div key={msg.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-[#1a1a1a] transition-colors cursor-pointer group">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${msg.avatarBg}`}>
-                  <span className="text-white font-bold text-sm">{msg.sender.charAt(0)}</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-medium text-white truncate">{msg.sender}</h4>
-                    <span className="text-[10px] text-gray-500">{msg.time}</span>
-                  </div>
-                  <p className={`text-xs truncate ${msg.unread > 0 ? 'text-gray-300 font-medium' : 'text-gray-500'}`}>
-                    {msg.text}
-                  </p>
-                </div>
-                {msg.unread > 0 && (
-                  <div className="w-5 h-5 rounded-full bg-brand-red flex items-center justify-center shrink-0">
-                    <span className="text-[10px] font-bold text-white">{msg.unread}</span>
-                  </div>
-                )}
+            {recentMessages.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-gray-600 gap-1 py-4">
+                <MessageSquare size={20} className="opacity-30" />
+                <p className="text-xs">Sin mensajes recientes</p>
               </div>
-            ))}
+            ) : recentMessages.map(conv => {
+              const initial = (conv.name ?? '?').charAt(0).toUpperCase();
+              const base = 'http://localhost:8000';
+              return (
+                <div
+                  key={conv.id}
+                  onClick={() => handleOpenConversation(conv)}
+                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-[#1a1a1a] transition-colors cursor-pointer group"
+                >
+                  <div className="w-10 h-10 rounded-full bg-brand-red/20 border border-brand-red/40 flex items-center justify-center shrink-0 overflow-hidden font-bold text-brand-red text-sm">
+                    {conv.avatar_url
+                      ? <img src={`${base}${conv.avatar_url}`} alt={conv.name} className="w-full h-full object-cover" />
+                      : initial
+                    }
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-medium text-white truncate">{conv.name}</h4>
+                      <span className="text-[10px] text-gray-500">{formatMsgTime(conv.last_message?.created_at)}</span>
+                    </div>
+                    <p className={`text-xs truncate ${conv.unread_count > 0 ? 'text-gray-300 font-medium' : 'text-gray-500'}`}>
+                      {conv.last_message?.content || 'Sin mensajes'}
+                    </p>
+                  </div>
+                  {conv.unread_count > 0 && (
+                    <div className="w-5 h-5 rounded-full bg-brand-red flex items-center justify-center shrink-0">
+                      <span className="text-[10px] font-bold text-white">{conv.unread_count > 9 ? '9+' : conv.unread_count}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
-          
+
           <div className="shrink-0 pt-3">
-            <button className="w-full bg-[#1a1a1a] hover:bg-gray-800 text-white text-xs font-medium py-2 rounded transition-colors border border-gray-800">
+            <button
+              onClick={() => navigate('/dashboard/messages')}
+              className="w-full bg-[#1a1a1a] hover:bg-gray-800 text-white text-xs font-medium py-2 rounded transition-colors border border-gray-800"
+            >
               Open Chat
             </button>
           </div>

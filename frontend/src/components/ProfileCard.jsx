@@ -1,5 +1,7 @@
 import { MapPin, Globe, Calendar, Shield, Gamepad2, MessageSquare, Settings, Star } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { useChat } from '../context/ChatContext';
 import pcIcon from '../assets/pc.svg';
 import nintendoIcon from '../assets/nintendo.svg';
 import xboxIcon from '../assets/xbox.svg';
@@ -45,6 +47,24 @@ const roleColors = {
  *   - onClose: funcion para cerrar el modal (solo se usa cuando se invoca desde FindPlayers)
  */
 export default function ProfileCard({ playerData, isOwnProfile = false, onClose = null }) {
+    const navigate = useNavigate();
+    const { api, user: authUser } = useAuth();
+    const { addOrUpdateConversation, openConversation } = useChat();
+
+    // Nunca permitir enviarse mensajes a uno mismo, aunque isOwnProfile llegue mal
+    const isSelf = isOwnProfile || (authUser?.id && playerData?.id && authUser.id === playerData.id);
+
+    const handleMessage = async () => {
+        if (!playerData?.id || isSelf) return;
+        try {
+            const res = await api.post('/conversations/direct', { user_id: playerData.id });
+            addOrUpdateConversation(res.data);
+            openConversation(res.data.id);
+            navigate('/dashboard/messages');
+        } catch (e) {
+            console.error('Error abriendo conversación:', e);
+        }
+    };
 
   // Datos del usuario (se adaptan tanto al formato del AuthContext como al mock de FindPlayers)
   const username = playerData?.name || playerData?.username || 'Unknown';
@@ -143,14 +163,14 @@ export default function ProfileCard({ playerData, isOwnProfile = false, onClose 
               {fullName && (
                 <p className="text-sm text-gray-400 mt-1">{fullName}</p>
               )}
-              {email && isOwnProfile && (
+              {email && isSelf && (
                 <p className="text-xs text-gray-500 mt-0.5">{email}</p>
               )}
             </div>
 
             {/* Botones de accion */}
             <div className="flex gap-3 sm:pb-1">
-              {isOwnProfile ? (
+              {isSelf ? (
                 <Link
                   to="/dashboard/settings"
                   className="flex items-center gap-2 bg-brand-red hover:bg-[#FF4D4D] text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-all shadow-[0_0_10px_rgba(255,51,51,0.2)] hover:shadow-[0_0_15px_rgba(255,51,51,0.4)]"
@@ -159,7 +179,7 @@ export default function ProfileCard({ playerData, isOwnProfile = false, onClose 
                   Edit Profile
                 </Link>
               ) : (
-                <button className="flex items-center gap-2 bg-brand-red hover:bg-[#FF4D4D] text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-all shadow-[0_0_10px_rgba(255,51,51,0.2)] hover:shadow-[0_0_15px_rgba(255,51,51,0.4)]">
+                <button onClick={handleMessage} className="flex items-center gap-2 bg-brand-red hover:bg-[#FF4D4D] text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-all shadow-[0_0_10px_rgba(255,51,51,0.2)] hover:shadow-[0_0_15px_rgba(255,51,51,0.4)]">
                   <MessageSquare size={16} />
                   Message
                 </button>

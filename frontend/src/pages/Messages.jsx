@@ -7,10 +7,6 @@ import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
 import { useEcho } from '../hooks/useEcho';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// HELPERS
-// ─────────────────────────────────────────────────────────────────────────────
-
 function formatTime(iso) {
     if (!iso) return '';
     const d = new Date(iso);
@@ -32,10 +28,6 @@ function Avatar({ name, avatarUrl, size = 'md' }) {
         </div>
     );
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// MODAL NUEVO GRUPO
-// ─────────────────────────────────────────────────────────────────────────────
 
 function NewGroupModal({ onClose, onCreated }) {
     const { api } = useAuth();
@@ -116,10 +108,6 @@ function NewGroupModal({ onClose, onCreated }) {
     );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// PANEL DE CHAT
-// ─────────────────────────────────────────────────────────────────────────────
-
 function ChatPanel({ conversation, onBack }) {
     const { user, api, token } = useAuth();
     const echo = useEcho(token);
@@ -159,7 +147,7 @@ function ChatPanel({ conversation, onBack }) {
         if (!loadingMsgs) bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [loadingMsgs, messages.length]);
 
-    // Reverb
+    // me suscribo al canal de esta conversacion para recibir mensajes en tiempo real
     useEffect(() => {
         if (!echo) return;
         const channelName = `conversation.${conversation.id}`;
@@ -211,6 +199,7 @@ function ChatPanel({ conversation, onBack }) {
         const text = inputText.trim();
         if (!text || sending) return;
         setSending(true); setInputText('');
+        // muestro el mensaje ya en pantalla sin esperar al servidor, si falla lo quito
         const optId = `opt-${Date.now()}`;
         const optimistic = {
             id: optId, conversation_id: conversation.id,
@@ -358,10 +347,6 @@ function ChatPanel({ conversation, onBack }) {
         </div>
     );
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// PÁGINA PRINCIPAL
-// ─────────────────────────────────────────────────────────────────────────────
 
 export default function Messages() {
     const { conversations, loading, activeConversationId, openConversation, addOrUpdateConversation } = useChat();

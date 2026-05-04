@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, Filter, Bot, Users, ChevronLeft, ChevronRight, Star } from 'lucide-react';
+import { Search, Filter, Bot, Users, ChevronLeft, ChevronRight, Star, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -12,6 +12,8 @@ export default function FindTeams() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState({ region: '', game: '', rank: '' });
 
   const fetchAds = async () => {
     setLoading(true);
@@ -19,6 +21,9 @@ export default function FindTeams() {
       const params = {
         page: page,
         ...(searchQuery && { search: searchQuery }),
+        ...(filters.region && { region: filters.region }),
+        ...(filters.game && { game: filters.game }),
+        ...(filters.rank && { rank: filters.rank }),
       };
 
       const response = await api.get('/vacancies', { params });
@@ -36,14 +41,24 @@ export default function FindTeams() {
       fetchAds();
     }, 500);
     return () => clearTimeout(delayDebounceFn);
-  }, [page, searchQuery]);
+  }, [page, searchQuery, filters]);
+
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters(prev => ({ ...prev, [name]: value }));
+    setPage(1);
+  };
+
+  const clearFilters = () => {
+    setFilters({ region: '', game: '', rank: '' });
+    setPage(1);
+  };
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
     setPage(1);
   };
 
-  // Map 1,2,3,4 to games for display placeholder purposes
   const getGameName = (id) => {
     const games = {
       1: 'LEAGUE OF LEGENDS',
@@ -57,7 +72,6 @@ export default function FindTeams() {
   return (
     <div className="space-y-8 pb-10">
 
-      {/* Cabecera */}
       <div>
         <h1 className="text-3xl font-bold text-white mb-2">Find Teams</h1>
         <p className="text-gray-400 text-sm">
@@ -65,7 +79,6 @@ export default function FindTeams() {
         </p>
       </div>
 
-      {/* Barra de Búsqueda y Filtros */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
@@ -77,13 +90,47 @@ export default function FindTeams() {
             className="w-full bg-[#121212] border border-gray-800 rounded-lg pl-12 pr-4 py-3 text-sm text-white focus:outline-none focus:border-brand-red transition-colors placeholder-gray-500"
           />
         </div>
-        <button className="flex items-center justify-center gap-2 bg-[#121212] border border-gray-800 hover:border-gray-700 text-white px-6 py-3 rounded-lg text-sm font-medium transition-colors">
-          <Filter size={18} />
-          Filters
-        </button>
+        <div className="relative">
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="flex items-center justify-center gap-2 bg-[#121212] border border-gray-800 hover:border-gray-700 text-white px-6 py-3 rounded-lg text-sm font-medium transition-colors h-full w-full"
+          >
+            <Filter size={18} />
+            Filters {Object.values(filters).some(x => x) && <span className="w-2 h-2 rounded-full bg-brand-red"></span>}
+          </button>
+
+          {showFilters && (
+            <div className="absolute right-0 top-full mt-2 w-72 bg-[#1a1a1a] border border-gray-800 rounded-lg p-5 z-20 shadow-2xl">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-white font-medium">Filters</h3>
+                <button onClick={clearFilters} className="text-xs text-brand-red hover:text-white transition-colors">Clear All</button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs text-gray-400 mb-1 block">Region</label>
+                  <select name="region" value={filters.region} onChange={handleFilterChange} className="w-full bg-[#121212] border border-gray-800 text-white text-sm rounded-lg p-2 focus:border-brand-red outline-none">
+                    <option value="">Any Region</option>
+                    <option value="North America">North America</option>
+                    <option value="Europe">Europe</option>
+                    <option value="Asia">Asia</option>
+                    <option value="South America">South America</option>
+                    <option value="Oceania">Oceania</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400 mb-1 block">Game</label>
+                  <input type="text" name="game" value={filters.game} onChange={handleFilterChange} placeholder="e.g. Valorant" className="w-full bg-[#121212] border border-gray-800 text-white text-sm rounded-lg p-2 focus:border-brand-red outline-none" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400 mb-1 block">Min Rank</label>
+                  <input type="text" name="rank" value={filters.rank} onChange={handleFilterChange} placeholder="e.g. Diamond" className="w-full bg-[#121212] border border-gray-800 text-white text-sm rounded-lg p-2 focus:border-brand-red outline-none" />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Ads Container */}
       {loading ? (
         <div className="flex justify-center items-center py-20">
           <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-brand-red"></div>
@@ -167,7 +214,6 @@ export default function FindTeams() {
         </div>
       )}
 
-      {/* Pagination Controls */}
       {!loading && totalPages > 1 && (
         <div className="flex justify-center items-center gap-4 mt-8">
           <button

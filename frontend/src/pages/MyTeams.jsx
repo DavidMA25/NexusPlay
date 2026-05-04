@@ -24,7 +24,6 @@ export default function MyTeams() {
     return (
         <div className="space-y-10">
 
-            {/* SECCION 1: LISTADO DE PERFILES */}
             <div className="bg-[#121212] border border-gray-800 rounded-2xl overflow-hidden shadow-xl">
 
                 <div className="p-6 border-b border-gray-800 flex items-center justify-between">
@@ -87,7 +86,6 @@ export default function MyTeams() {
                 </table>
             </div>
 
-            {/* SECCION 2: ESQUELETO FORMULARIO DE EDICION */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-12">
 
                 <div className="lg:col-span-2 space-y-8">
@@ -169,7 +167,6 @@ export default function MyTeams() {
 
             </div>
 
-            {/* SECCION 3: MODAL "ADD NEW PROFILE" */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                     <div className="bg-[#121212] border border-gray-800 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden animate-fade-in-down">

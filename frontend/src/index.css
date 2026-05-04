@@ -4,6 +4,10 @@
     --color-brand-red: #ff3333;
 }
 
+button, [role="button"] {
+    cursor: pointer;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }

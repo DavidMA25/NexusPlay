@@ -10,11 +10,11 @@ export default function GameSearchInput({ value, onChange, onSelect }) {
     const [isOpen, setIsOpen] = useState(false);
     const wrapperRef = useRef(null);
 
+    // evita relanzar la busqueda cuando el usuario elige un juego del desplegable
     const isSelecting = useRef(false);
 
     const [errorMsg, setErrorMsg] = useState(null);
 
-    // Update query if parent value changes externally (e.g. initial load)
     useEffect(() => {
         if (value !== query && !isSelecting.current) {
             setQuery(value || '');
@@ -32,11 +32,8 @@ export default function GameSearchInput({ value, onChange, onSelect }) {
     }, []);
 
     useEffect(() => {
-        console.log("GameSearchInput useEffect triggered with query:", query);
         const fetchGames = async () => {
-            console.log("fetchGames running for query:", query);
             if (!query.trim() || query.length < 2) {
-                console.log("Query too short or empty, returning");
                 setResults([]);
                 setIsOpen(false);
                 setErrorMsg(null);
@@ -44,7 +41,6 @@ export default function GameSearchInput({ value, onChange, onSelect }) {
             }
 
             if (isSelecting.current) {
-                console.log("isSelecting is true, skipping search");
                 isSelecting.current = false;
                 return;
             }
@@ -52,32 +48,26 @@ export default function GameSearchInput({ value, onChange, onSelect }) {
             setIsLoading(true);
             setErrorMsg(null);
             try {
-                console.log("Making API request to /igdb/search?q=", query);
                 const response = await api.get(`/igdb/search?q=${encodeURIComponent(query)}`);
-                console.log("API response:", response.data);
                 setResults(response.data || []);
                 setIsOpen(true);
             } catch (error) {
-                console.error("Error searching games:", error);
                 setErrorMsg(error.message || "Error searching games");
                 setResults([]);
-                setIsOpen(true); // Keep open to show error
+                setIsOpen(true);
             } finally {
                 setIsLoading(false);
             }
         };
 
         const debounceTimer = setTimeout(fetchGames, 500);
-        return () => {
-            console.log("Clearing debounce timer for query:", query);
-            clearTimeout(debounceTimer);
-        };
+        return () => clearTimeout(debounceTimer);
     }, [query, api]);
 
     const handleInputChange = (e) => {
         isSelecting.current = false;
         setQuery(e.target.value);
-        onChange(e.target.value); // Keep parent state in sync with text
+        onChange(e.target.value);
     };
 
     const handleSelect = (game) => {

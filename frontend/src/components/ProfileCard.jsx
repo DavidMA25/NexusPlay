@@ -38,14 +38,6 @@ const roleColors = {
   admin: "text-yellow-400 bg-yellow-400/10"
 };
 
-/**
- * ProfileCard — Componente reutilizable para mostrar el perfil completo de un jugador.
- * 
- * Props:
- *   - playerData: objeto con los datos del jugador
- *   - isOwnProfile: boolean que determina si es tu perfil o el de otro jugador
- *   - onClose: funcion para cerrar el modal (solo se usa cuando se invoca desde FindPlayers)
- */
 export default function ProfileCard({ playerData, isOwnProfile = false, onClose = null }) {
     const navigate = useNavigate();
     const { api, user: authUser } = useAuth();
@@ -66,7 +58,6 @@ export default function ProfileCard({ playerData, isOwnProfile = false, onClose 
         }
     };
 
-  // Datos del usuario (se adaptan tanto al formato del AuthContext como al mock de FindPlayers)
   const username = playerData?.name || playerData?.username || 'Unknown';
   const fullName = playerData?.fullName || playerData?.nickname || null;
   const email = playerData?.email || null;
@@ -80,7 +71,6 @@ export default function ProfileCard({ playerData, isOwnProfile = false, onClose 
     ? new Date(playerData.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long' })
     : 'Member';
 
-  // Juegos (del mock de FindPlayers o de los stats reales)
   let games = [];
   if (playerData?.stats?.length > 0) {
       games = playerData.stats.map(stat => ({
@@ -106,14 +96,11 @@ export default function ProfileCard({ playerData, isOwnProfile = false, onClose 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       
-      {/* ===== HERO / CABECERA DEL PERFIL ===== */}
       <div className="bg-[#121212] border border-gray-800 rounded-xl overflow-hidden">
         
-        {/* Banner decorativo con gradiente */}
         <div className="h-32 bg-gradient-to-br from-brand-red/30 via-brand-red/10 to-transparent relative">
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDE4YzAtMS42NTctMS4zNDMtMy0zLTNzLTMgMS4zNDMtMyAzIDEuMzQzIDMgMyAzIDMtMS4zNDMgMy0zbTEyLTE4YzAtMS42NTctMS4zNDMtMy0zLTNzLTMgMS4zNDMtMyAzIDEuMzQzIDMgMyAzIDMtMS4zNDMgMy0zTTI0IDBjMC0xLjY1Ny0xLjM0My0zLTMtM1MxOC0xLjY1NyAxOCAwczEuMzQzIDMgMyAzIDMtMS4zNDMgMy0zIi8+PC9nPjwvZz48L3N2Zz4=')] opacity-50"></div>
           
-          {/* Boton cerrar si es modal */}
           {onClose && (
             <button 
               onClick={onClose}
@@ -124,11 +111,9 @@ export default function ProfileCard({ playerData, isOwnProfile = false, onClose 
           )}
         </div>
 
-        {/* Info principal del usuario */}
         <div className="px-6 pb-6 -mt-12 relative">
           <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4">
             
-            {/* Avatar grande */}
             <div className="relative">
               <div className="w-24 h-24 rounded-full bg-brand-red/20 border-4 border-[#121212] ring-2 ring-brand-red flex items-center justify-center text-brand-red font-bold text-3xl uppercase overflow-hidden shadow-[0_0_20px_rgba(255,51,51,0.3)]">
                 {avatarUrl ? (
@@ -141,11 +126,9 @@ export default function ProfileCard({ playerData, isOwnProfile = false, onClose 
                   avatarLetter
                 )}
               </div>
-              {/* Indicador de estado online */}
               <div className="absolute bottom-1 right-1 w-5 h-5 bg-green-500 border-[3px] border-[#121212] rounded-full"></div>
             </div>
 
-            {/* Nombre y badges */}
             <div className="flex-1 sm:pb-1">
               <div className="flex items-center gap-3 flex-wrap">
                 <h1 className="text-2xl font-bold text-white">{username}</h1>
@@ -168,7 +151,6 @@ export default function ProfileCard({ playerData, isOwnProfile = false, onClose 
               )}
             </div>
 
-            {/* Botones de accion */}
             <div className="flex gap-3 sm:pb-1">
               {isSelf ? (
                 <Link
@@ -189,7 +171,6 @@ export default function ProfileCard({ playerData, isOwnProfile = false, onClose 
         </div>
       </div>
 
-      {/* ===== BIO ===== */}
       <div className="bg-[#121212] border border-gray-800 rounded-xl p-6">
         <h2 className="text-sm font-bold text-white uppercase tracking-wider mb-3 flex items-center gap-2">
           <Star size={16} className="text-brand-red" />
@@ -198,7 +179,6 @@ export default function ProfileCard({ playerData, isOwnProfile = false, onClose 
         <p className="text-sm text-gray-300 leading-relaxed">{bio}</p>
       </div>
 
-      {/* ===== INFO GRID ===== */}
       <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
         <div className="bg-[#121212] border border-gray-800 rounded-xl p-4 text-center">
           <MapPin size={18} className="text-brand-red mx-auto mb-2" />
@@ -212,7 +192,6 @@ export default function ProfileCard({ playerData, isOwnProfile = false, onClose 
         </div>
       </div>
 
-      {/* ===== GAMES & RANKS ===== */}
       {games.length > 0 && (
         <div className="bg-[#121212] border border-gray-800 rounded-xl p-6">
           <h2 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
@@ -223,7 +202,6 @@ export default function ProfileCard({ playerData, isOwnProfile = false, onClose 
             {games.map((g, i) => (
               <div key={i} className="flex items-center justify-between bg-[#0a0a0a] border border-gray-800 rounded-lg p-4 transition-all hover:border-gray-700">
                 <div className="flex items-center gap-4">
-                  {/* Caratula del juego */}
                   {g.cover_url ? (
                     <img 
                       src={g.cover_url.startsWith('//') ? `https:${g.cover_url}` : g.cover_url} 
@@ -251,7 +229,6 @@ export default function ProfileCard({ playerData, isOwnProfile = false, onClose 
                 </div>
                 
                 <div className="flex items-center gap-4">
-                  {/* Roles si existen */}
                   {g.roles && g.roles.length > 0 && (
                     <div className="hidden sm:flex items-center gap-2">
                       {g.roles.map((role, ri) => (
@@ -262,7 +239,6 @@ export default function ProfileCard({ playerData, isOwnProfile = false, onClose 
                     </div>
                   )}
 
-                  {/* Icono de plataforma */}
                   {g.platform && platformIcons[g.platform.toLowerCase()] && (
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${platformStyles[g.platform.toLowerCase()] || 'bg-gray-800'}`}>
                       <img 
@@ -279,7 +255,6 @@ export default function ProfileCard({ playerData, isOwnProfile = false, onClose 
         </div>
       )}
 
-      {/* ===== MEMBER SINCE ===== */}
       <div className="flex items-center justify-center gap-2 text-gray-500 text-xs pb-4">
         <Calendar size={12} />
         <span>{memberSince}</span>

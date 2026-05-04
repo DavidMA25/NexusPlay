@@ -12,25 +12,18 @@ import {
 } from 'lucide-react';
 
 export default function TeamProfile() {
-    // Guardo en el estado la pestaña que esta activa. Por defecto arranco en Overview.
     const [activeTab, setActiveTab] = useState('Overview');
-
-    // Las pestañas que salen en el menu del medio
     const tabs = ['Overview', 'Roster', 'Achievements', 'Match History', 'Recruitment'];
 
     return (
         <div className="max-w-5xl mx-auto space-y-6 pb-12">
 
-            {/* CABECERA: EL BANNER ROJO, AVATAR Y LA BIO */}
             <div className="bg-[#121212] border border-gray-800 rounded-2xl overflow-hidden shadow-xl relative">
 
-                {/* El difuminado rojo del fondo de la tarjeta */}
                 <div className="h-48 bg-gradient-to-b from-[#FF3333]/20 to-[#121212] w-full absolute top-0 left-0 z-0"></div>
 
-                {/* Contenido centrado (z-10 para que se quede por encima del fondo) */}
                 <div className="relative z-10 flex flex-col items-center pt-12 pb-8 px-6 text-center">
 
-                    {/* El avatar amarillo de Phoenix Squad */}
                     <div className="w-24 h-24 bg-[#FFB800] rounded-full border-4 border-[#121212] shadow-lg flex items-center justify-center mb-4">
                         <div className="w-12 h-4 bg-gray-900 rounded-full relative">
                             <div className="absolute top-1 left-2 w-2 h-2 bg-[#FFB800] rounded-full"></div>
@@ -57,7 +50,6 @@ export default function TeamProfile() {
                 </div>
             </div>
 
-            {/*NAVEGACION DE PESTAÑAS*/}
             <div className="flex items-center gap-6 border-b border-gray-800 px-2">
                 {tabs.map((tab) => (
                     <button
@@ -67,7 +59,6 @@ export default function TeamProfile() {
                             }`}
                     >
                         {tab}
-                        {/* La rayita roja de abajo que indica cual esta activa */}
                         {activeTab === tab && (
                             <span className="absolute bottom-0 left-0 w-full h-0.5 bg-brand-red rounded-t-full"></span>
                         )}
@@ -75,13 +66,10 @@ export default function TeamProfile() {
                 ))}
             </div>
 
-            {/* ZONA DINAMICA: AQUI RENDERIZO LO QUE TOQUE SEGUN LA PESTAÑA */}
             <div className="animate-fade-in">
 
-                {/* PESTAÑA: OVERVIEW */}
                 {activeTab === 'Overview' && (
                     <div className="space-y-6">
-                        {/* Fila de estadisticas */}
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <div className="bg-[#121212] border border-gray-800 rounded-xl p-6 flex flex-col items-center justify-center text-center">
                                 <Gamepad2 className="text-brand-red mb-2" size={24} />
@@ -105,7 +93,6 @@ export default function TeamProfile() {
                             </div>
                         </div>
 
-                        {/* Bloque de About */}
                         <div className="bg-[#121212] border border-gray-800 rounded-xl p-6">
                             <h2 className="text-lg font-bold text-white mb-6">About</h2>
                             <div className="space-y-4 text-sm">
@@ -134,15 +121,12 @@ export default function TeamProfile() {
                     </div>
                 )}
 
-                {/* PESTAÑA: ROSTER */}
                 {activeTab === 'Roster' && (
                     <div className="space-y-6">
 
-                        {/* Miembros actuales */}
                         <div className="bg-[#121212] border border-gray-800 rounded-xl p-6">
                             <h2 className="text-lg font-bold text-white mb-4">Current Roster</h2>
                             <div className="space-y-3">
-                                {/* Jugador 1 */}
                                 <div className="bg-[#0a0a0a] border border-gray-800 rounded-lg p-4 flex items-center justify-between">
                                     <div className="flex items-center gap-4">
                                         <div className="w-10 h-10 bg-[#FFB800] rounded-full border-2 border-gray-800"></div>
@@ -153,7 +137,6 @@ export default function TeamProfile() {
                                     </div>
                                     <button className="text-xs text-gray-400 bg-gray-800 hover:text-white px-3 py-1.5 rounded transition-colors">View Profile</button>
                                 </div>
-                                {/* Jugador 2 */}
                                 <div className="bg-[#0a0a0a] border border-gray-800 rounded-lg p-4 flex items-center justify-between">
                                     <div className="flex items-center gap-4">
                                         <div className="w-10 h-10 bg-[#4D94FF] rounded-full border-2 border-gray-800"></div>
@@ -167,7 +150,6 @@ export default function TeamProfile() {
                             </div>
                         </div>
 
-                        {/* Lo que buscan (Reclutamiento) */}
                         <div className="bg-[#121212] border border-gray-800 rounded-xl p-6">
                             <h2 className="text-lg font-bold text-white mb-4">We're Looking For</h2>
                             <div className="space-y-3">
@@ -195,7 +177,6 @@ export default function TeamProfile() {
                     </div>
                 )}
 
-                {/* PESTAÑAS VACIAS (Achievements, Match History, Recruitment) */}
                 {['Achievements', 'Match History', 'Recruitment'].includes(activeTab) && (
                     <div className="bg-[#121212] border border-gray-800 rounded-xl p-16 flex flex-col items-center justify-center text-center">
                         <Trophy className="text-gray-600 mb-4" size={48} />

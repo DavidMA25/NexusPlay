@@ -13,7 +13,6 @@ const LARAVEL_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api
 const LARAVEL_API  = `${LARAVEL_BASE}/api`;
 const WP_API       = `${WP_URL}/wp-json/wp/v2/tryouts`;
 
-// ── SVG status icons (no emoji) ───────────────────────────────────────────────
 const StatusIcon = {
   approved: () => (
     <svg viewBox="0 0 16 16" width="11" height="11" fill="none" className="inline-block">
@@ -59,7 +58,6 @@ const TAB_FILTERS = {
   // 'participating' and 'my-events' are handled client-side after fetching
 };
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
 function resolveAsset(url) {
   if (!url) return null;
   if (/^https?:\/\//.test(url)) return url;
@@ -95,7 +93,6 @@ function formatDate(d) {
   } catch { return d; }
 }
 
-// ── Hook: enrollment status ───────────────────────────────────────────────────
 function useEnrollment(wpPostId, token) {
   const [data, setData]   = useState({ enrolled: false, status: null, is_owner: false });
   const [busy, setBusy]   = useState(false);
@@ -145,7 +142,6 @@ function useEnrollment(wpPostId, token) {
   return { data, fetchStatus, join, leave, busy, error };
 }
 
-// ── Enroll button ─────────────────────────────────────────────────────────────
 function EnrollButton({ wpPostId, tryoutStatus, token }) {
   const { data, fetchStatus, join, leave, busy, error } = useEnrollment(wpPostId, token);
   useEffect(() => { fetchStatus(); }, [fetchStatus]);
@@ -185,7 +181,6 @@ function EnrollButton({ wpPostId, tryoutStatus, token }) {
   );
 }
 
-// ── Participants panel ────────────────────────────────────────────────────────
 function ParticipantsPanel({ wpPostId, token, userRole }) {
   const [open, setOpen]             = useState(false);
   const [parts, setParts]           = useState([]);
@@ -300,7 +295,6 @@ function ParticipantsPanel({ wpPostId, token, userRole }) {
   );
 }
 
-// ── Event card ────────────────────────────────────────────────────────────────
 function EventCard({ tryout, token, userRole }) {
   const status         = tryoutField(tryout, 'tryout_status') || 'scheduled';
   const eventDate      = tryoutField(tryout, 'event_date');
@@ -398,7 +392,6 @@ function EventCard({ tryout, token, userRole }) {
   );
 }
 
-// ── Main Events page ──────────────────────────────────────────────────────────
 export default function Events() {
   const { user, token } = useAuth();
 
@@ -410,15 +403,13 @@ export default function Events() {
   const [page, setPage]               = useState(1);
   const [totalPages, setTotalPages]   = useState(1);
 
-  // For "Participating" and "My Events" tabs we need extra per-card data fetched client-side.
-  // We store a map of wpPostId → { enrolled, is_owner } fetched lazily per card via useEnrollment.
-  // Instead, for these tabs we fetch all participations from a dedicated endpoint added below.
-  const [myParticipations, setMyParticipations] = useState(null); // Set<wpPostId> | null
-  const [myTeamIds, setMyTeamIds]               = useState(null); // Set<teamId> | null
+  // las pestañas "Participating" y "My Events" no paginan, filtro aqui en el cliente
+  const [myParticipations, setMyParticipations] = useState(null);
+  const [myTeamIds, setMyTeamIds]               = useState(null);
 
   const isSpecialTab = activeTab === 'participating' || activeTab === 'my-events';
 
-  // Fetch user's participations & owned teams once when these tabs are selected
+  // cargo esto solo la primera vez que el usuario entra a la pestaña
   useEffect(() => {
     if (activeTab !== 'participating' || !token) return;
     if (myParticipations !== null) return;
@@ -453,7 +444,7 @@ export default function Events() {
   }, [page, activeTab, searchQuery]);
 
   const fetchTryouts = useCallback(async () => {
-    // Special tabs fetch all pages and filter client-side (reasonable since volumes are small)
+    // en pestañas especiales traigo todo de golpe y filtro aqui, no son muchos eventos
     setLoading(true); setError(null);
     try {
       const url = isSpecialTab
@@ -481,7 +472,7 @@ export default function Events() {
   }, [buildApiUrl, isSpecialTab, activeTab, searchQuery, myParticipations, myTeamIds]);
 
   useEffect(() => {
-    // Wait for participation/team data before rendering special tabs
+    // espero a tener los datos cargados antes de lanzar el fetch de los tryouts
     if (activeTab === 'participating' && myParticipations === null) return;
     if (activeTab === 'my-events' && myTeamIds === null) return;
     const t = setTimeout(fetchTryouts, searchQuery ? 400 : 0);

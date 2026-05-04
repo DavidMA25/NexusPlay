@@ -23,9 +23,6 @@ api.interceptors.request.use((config) => {
 
 export const AuthProvider = ({ children }) => {
 
-    // =========================================================================
-    // REAL AUTH STATE
-    // =========================================================================
     const [user, setUser] = useState(null);
     const [token, setToken] = useState(() => localStorage.getItem('nexus_token'));
     const [emailVerified, setEmailVerified] = useState(false);

@@ -26,8 +26,6 @@ export function ChatProvider({ children }) {
     useEffect(() => { activeConvIdRef.current = activeConversationId; }, [activeConversationId]);
     useEffect(() => { userIdRef.current = user?.id ?? null; },          [user?.id]);
 
-    // ─── Cargar conversaciones al login ───────────────────────────────────────
-
     const fetchConversations = useCallback(async () => {
         if (!user) return;
         try {
@@ -49,9 +47,6 @@ export function ChatProvider({ children }) {
             subscribedChannels.current.clear();
         }
     }, [user?.id]);
-
-    // ─── Handler compartido para un mensaje entrante ──────────────────────────
-    // Se usa tanto desde el canal conversation.{id} como desde user.{id}
 
     const handleIncomingMessage = useCallback((data) => {
         const isActive = activeConvIdRef.current === data.conversation_id;
@@ -103,10 +98,6 @@ export function ChatProvider({ children }) {
         });
     }, []);
 
-    // ─── Canal personal user.{id} — activo desde el login ────────────────────
-    // Recibe mensajes de CUALQUIER conversación, incluyendo nuevas,
-    // sin necesidad de suscribirse a cada canal individual de antemano.
-
     useEffect(() => {
         if (!echo || !user?.id) return;
 
@@ -119,11 +110,6 @@ export function ChatProvider({ children }) {
             echo.leave(channelName);
         };
     }, [echo, user?.id, handleIncomingMessage]);
-
-    // ─── Canal conversation.{id} — para mensajes en tiempo real en el panel ───
-    // Solo necesario cuando el chat está abierto (lo gestiona ChatPanel en Messages.jsx)
-    // Aquí nos suscribimos igualmente para mantener last_message actualizado
-    // en conversaciones que el usuario conoce al cargar.
 
     const subscribeToConversation = useCallback((conv) => {
         if (!echo) return;
@@ -151,8 +137,6 @@ export function ChatProvider({ children }) {
         if (!echo) return;
         conversations.forEach(subscribeToConversation);
     }, [echo, conversations, subscribeToConversation]);
-
-    // ─── Helpers ──────────────────────────────────────────────────────────────
 
     const openConversation = useCallback((id) => {
         setActiveConversationId(id);

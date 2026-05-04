@@ -40,7 +40,6 @@ export default function DashboardHome() {
   const [ads, setAds] = useState([]);
   const [loadingAds, setLoadingAds] = useState(true);
 
-  // === MOCK DATA FOR DEMONSTRATION ===
   const mockNotifications = [
     { id: 1, type: "like", text: "Alex liked your profile", time: "2 hours ago", read: false, icon: <Heart size={18} className="text-brand-red" /> },
     { id: 2, type: "tournament", text: "Weekly Showdown starting soon", time: "5 hours ago", read: false, icon: <Trophy size={18} className="text-yellow-500" /> },
@@ -77,9 +76,7 @@ export default function DashboardHome() {
       language: "English"
     }
   ];
-  // ===================================
 
-  // Conversaciones reales: primero no leídas, luego por fecha
   const recentMessages = [...conversations]
     .sort((a, b) =>
       (b.unread_count ?? 0) - (a.unread_count ?? 0) ||
@@ -115,6 +112,7 @@ export default function DashboardHome() {
         const userRegion = user.profile?.region;
         const userLanguage = user.profile?.languages;
 
+        // solo muestro anuncios del mismo juego y region que el usuario
         const matchingAds = allAds.filter(ad => {
           const adGameId = String(ad.stat?.game_igdb_id);
           const adRegion = ad.user?.profile?.region;
@@ -126,7 +124,6 @@ export default function DashboardHome() {
           return isNotCurrentUser && hasMatchingGame && isMatchingRegion;
         });
 
-        // Prioritize ads that match the user's spoken language
         matchingAds.sort((a, b) => {
           const aLangMatch = (userLanguage && a.user?.profile?.languages === userLanguage) ? 1 : 0;
           const bLangMatch = (userLanguage && b.user?.profile?.languages === userLanguage) ? 1 : 0;
@@ -241,7 +238,7 @@ export default function DashboardHome() {
                       </div>
 
                       <div className="w-full mt-3 shrink-0">
-                        <button onClick={() => navigate('/find-players')} className="w-full bg-brand-red/10 text-brand-red hover:bg-brand-red hover:text-white text-xs font-medium py-1.5 rounded transition-all">
+                        <button onClick={() => navigate('/dashboard/players')} className="w-full bg-brand-red/10 text-brand-red hover:bg-brand-red hover:text-white text-xs font-medium py-1.5 rounded transition-all">
                           View Details
                         </button>
                       </div>

@@ -4,10 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import GameSearchInput from '../components/GameSearchInput';
 
 export default function ProfileSettings() {
-    // Me traigo al usuario del contexto para precargar su nombre
     const { user, api, updateUser } = useAuth();
 
-    // Estados para la informacion basica del perfil
     const [username, setUsername] = useState(user?.name || '');
     const [bio, setBio] = useState(user?.bio || '');
     const [language, setLanguage] = useState(user?.profile?.languages || 'Spanish');
@@ -27,8 +25,7 @@ export default function ProfileSettings() {
         }
     };
 
-    // Estado dinamico para los juegos. Empieza con uno por defecto vacio o de ejemplo.
-    // Usamos Date.now() para generar IDs unicos rapidos para que React no se queje al renderizar listas.
+    // Date.now() como id temporal para que React no se queje con las keys del array
     const [userGames, setUserGames] = useState(
         user?.stats?.length > 0 
         ? user.stats.map(stat => ({
@@ -42,24 +39,20 @@ export default function ProfileSettings() {
         : [{ id: Date.now(), game: 'Valorant', gameId: null, cover_url: null, rank: 'Diamond', platform: 'PC' }]
     );
 
-    // Funcion para anadir una nueva fila de juego al pulsar el boton "+"
     const addGameRow = () => {
         setUserGames([...userGames, { id: Date.now(), game: '', gameId: null, cover_url: null, rank: '', platform: 'PC' }]);
     };
 
-    // Funcion para borrar una fila concreta al pulsar la papelera
     const removeGameRow = (idToRemove) => {
         setUserGames(userGames.filter(game => game.id !== idToRemove));
     };
 
-    // Funcion para actualizar el texto de un input concreto dentro del array de juegos
     const handleGameChange = (id, field, value) => {
         setUserGames(userGames.map(game => 
             game.id === id ? { ...game, [field]: value } : game
         ));
     };
 
-    // Funcion que se ejecuta al darle al boton de guardar
     const handleSubmit = async (e) => {
         e.preventDefault();
         setStatusMessage(null);
@@ -105,14 +98,12 @@ export default function ProfileSettings() {
 
             <form onSubmit={handleSubmit} className="space-y-8">
                 
-                {/* SECCION 1: Avatar y Datos Basicos */}
                 <div className="bg-[#121212] border border-gray-800 rounded-xl p-6">
                     <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
                         <User size={20} className="text-brand-red" />
                         Basic Information
                     </h2>
                     
-                    {/* Zona del Avatar */}
                     <div className="flex items-center gap-6 mb-8">
                         <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
                             <div className="w-24 h-24 rounded-full bg-brand-red/20 border-2 border-brand-red flex items-center justify-center text-brand-red font-bold text-3xl uppercase overflow-hidden">
@@ -121,7 +112,6 @@ export default function ProfileSettings() {
                                 ) : (
                                     username.charAt(0) || 'U'
                                 )}
-                                {/* Overlay oscuro que aparece al pasar el raton para simular que puedes cambiar la foto */}
                                 <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                     <Camera size={24} className="text-white" />
                                 </div>
@@ -154,7 +144,6 @@ export default function ProfileSettings() {
                             />
                         </div>
 
-                        {/* Language */}
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-300">Preferred Language</label>
                             <select 
@@ -168,7 +157,6 @@ export default function ProfileSettings() {
                             </select>
                         </div>
 
-                        {/* Region */}
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-300">Region</label>
                             <select 
@@ -185,7 +173,6 @@ export default function ProfileSettings() {
                         </div>
                     </div>
 
-                    {/* Bio */}
                     <div className="space-y-2 mt-6">
                         <label className="text-sm font-medium text-gray-300">Biography</label>
                         <textarea 
@@ -198,7 +185,6 @@ export default function ProfileSettings() {
                     </div>
                 </div>
 
-                {/* SECCION 2: Juegos y Rangos (La parte dinamica que pidio Mario) */}
                 <div className="bg-[#121212] border border-gray-800 rounded-xl p-6">
                     <div className="flex items-center justify-between mb-6">
                         <h2 className="text-lg font-bold text-white">Games & Ranks</h2>
@@ -272,8 +258,7 @@ export default function ProfileSettings() {
                                     </select>
                                 </div>
 
-                                {/* Boton para borrar esa fila en concreto. Si solo queda 1, lo deshabilitamos para que no se quede vacio */}
-                                <button 
+                                <button
                                     type="button"
                                     onClick={() => removeGameRow(gameObj.id)}
                                     disabled={userGames.length === 1}
@@ -290,7 +275,6 @@ export default function ProfileSettings() {
                     </div>
                 </div>
 
-                {/* Footer con el boton de guardar */}
                 <div className="flex justify-end pt-4">
                     <button 
                         type="submit"

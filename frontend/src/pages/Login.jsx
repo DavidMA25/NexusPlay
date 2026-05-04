@@ -1,6 +1,6 @@
 import { Eye, EyeOff, Chrome } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
@@ -116,7 +116,7 @@ export default function Login() {
 
                 {/* Footer del Login */}
                 <p className="text-center text-gray-400 text-sm mt-8">
-                    Don't have an account? <a href="#" className="text-brand-red hover:text-[#FF4D4D] font-medium transition-colors">Register</a>
+                    Don't have an account? <Link to="/register" className="text-brand-red hover:text-[#FF4D4D] font-medium transition-colors">Register</Link>
                 </p>
 
             </div>

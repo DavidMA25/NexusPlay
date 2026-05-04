@@ -12,12 +12,12 @@ export default function Navbar() {
     };
 
     return (
-        <nav className="bg-black text-white border-b border-gray-900">
+        <nav className="fixed top-0 left-0 right-0 z-50 text-white bg-black/40 backdrop-blur-md border-b border-white/5">
             <div className="container mx-auto px-4 h-20 flex items-center justify-between">
 
                 {/* Logo */}
                 <div className="flex items-center gap-2 cursor-pointer">
-                    <Link to="/" className="flex items-center gap-2">
+                    <Link to="/" className="flex items-center gap-2 cursor-pointer">
                         <img src={logo} alt="NexusPlay Logo" className="h-8 w-auto object-contain" />
                     </Link>
                 </div>
@@ -27,7 +27,6 @@ export default function Navbar() {
                     <Link to="/dashboard/players" className="hover:text-white transition-colors">Find Players</Link>
                     <Link to="/dashboard/teams" className="hover:text-white transition-colors">Find Teams</Link>
                     <Link to="/dashboard/events" className="hover:text-white transition-colors">Events</Link>
-                    <a href={import.meta.env.VITE_WP_URL || 'http://localhost/wordpress'} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">News</a>
                 </div>
 
                 {/* Botones de Auth — cambian según estado de sesión */}

@@ -17,7 +17,7 @@ class VacancyFactory extends Factory
     public function definition(): array
     {
         return [
-            'game_igdb_id' => $this->faker->randomElement([1, 2, 3, 4]),
+            'game_igdb_id' => $this->faker->randomElement([1, 2, 3, 4, 5, 6, 7]),
             'title' => $this->faker->sentence(4),
             'description' => "Looking for a " . $this->faker->randomElement(['Diamond', 'Platinum', 'Gold', 'ascendant']) . "+ " . $this->faker->randomElement(['Support', 'Duelist', 'Smokes', 'Sentinel']) . " main for weekly tournament brackets. We prioritize communication and consistency over raw mechanics.",
             'required_rank_min' => $this->faker->randomElement(['Gold 1', 'Platinum 2', 'Diamond 1']),

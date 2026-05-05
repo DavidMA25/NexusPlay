@@ -105,7 +105,22 @@ class DatabaseSeeder extends Seeder
             }
         });
 
-        // Seed teams and vacancies
-        // $this->call(VacancySeeder::class);
+        // Seed teams and vacancies (anuncios de equipos)
+        \App\Models\Team::factory(10)->create()->each(function ($team) {
+            // Seed 1-2 vacancies for this team
+            \App\Models\Vacancy::factory(rand(1, 2))->create([
+                'team_id' => $team->id,
+                'game_igdb_id' => $team->game_igdb_id, // Match team's game
+            ]);
+
+            // Add some random members to the team (between 1 and 3)
+            $members = User::where('id', '!=', $team->owner_id)->inRandomOrder()->take(rand(1, 3))->get();
+            foreach ($members as $member) {
+                $team->members()->attach($member->id, [
+                    'role_in_team' => fake()->randomElement(['member', 'substitute']),
+                    'joined_at' => now()->subDays(rand(1, 30))
+                ]);
+            }
+        });
     }
 }

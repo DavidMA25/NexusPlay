@@ -29,7 +29,7 @@ class IGDBService
         }
 
         return Cache::remember('igdb_access_token', 5000000, function () {
-            $response = Http::post('https://id.twitch.tv/oauth2/token', [
+            $response = Http::withoutVerifying()->post('https://id.twitch.tv/oauth2/token', [
                 'client_id' => $this->clientId,
                 'client_secret' => $this->clientSecret,
                 'grant_type' => 'client_credentials',
@@ -57,7 +57,7 @@ class IGDBService
 
         $body = "fields id, name, cover.url, summary, follows, total_rating_count; search \"{$query}\"; limit 50; where version_parent = null;";
 
-        $response = Http::withHeaders([
+        $response = Http::withoutVerifying()->withHeaders([
             'Client-ID' => $this->clientId,
             'Authorization' => 'Bearer ' . $token,
             'Content-Type' => 'text/plain',
@@ -98,7 +98,7 @@ class IGDBService
 
             $body = "fields name; where id = {$id};";
 
-            $response = Http::withHeaders([
+            $response = Http::withoutVerifying()->withHeaders([
                 'Client-ID' => $this->clientId,
                 'Authorization' => 'Bearer ' . $token,
                 'Content-Type' => 'text/plain',

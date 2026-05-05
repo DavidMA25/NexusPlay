@@ -25,6 +25,9 @@ class TeamFactory extends Factory
             'description' => $this->faker->paragraph(),
             'region' => $this->faker->randomElement(['Europe West', 'Europe Nordic & East', 'North America', 'South America', 'Korea']),
             'website' => $this->faker->optional()->url(),
+            'language' => $this->faker->randomElement(['Spanish', 'English', 'French', 'German']),
+            'game_igdb_id' => $this->faker->randomElement([1, 2, 3, 4, 5, 6, 7]),
+            'platform' => $this->faker->randomElement(['PC', 'PlayStation', 'Xbox', 'Nintendo Switch']),
         ];
     }
 }

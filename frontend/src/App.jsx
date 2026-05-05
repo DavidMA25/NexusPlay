@@ -4,6 +4,7 @@ import Hero from './components/Hero';
 import Features from './components/Features';
 import Community from './components/Community';
 import VideoSection from './components/VideoSection';
+import UpcomingEvents from './components/UpcomingEvents';
 import Footer from './components/Footer';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -37,6 +38,7 @@ function App() {
               <Navbar />
               <Hero />
               <Features />
+              <UpcomingEvents />
               <Community />
               <VideoSection />
               <Footer />

@@ -52,7 +52,7 @@ export default function ProfileCard({ playerData, isOwnProfile = false, onClose 
             const res = await api.post('/conversations/direct', { user_id: playerData.id });
             addOrUpdateConversation(res.data);
             openConversation(res.data.id);
-            navigate('/dashboard/messages');
+            navigate('/dashboard/messages', { state: { prefillMessage: 'Hi!' } });
         } catch (e) {
             console.error('Error abriendo conversación:', e);
         }

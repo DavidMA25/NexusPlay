@@ -1,102 +1,81 @@
-import { useState } from 'react';
-import { Users, Trophy, Calendar, UserPlus, Star, MessageSquare, Check } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Users, Trophy, Calendar, UserPlus, Star, MessageSquare, Check, Shield, Bell } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { useNotifications } from '../context/NotificationContext';
+import { useNavigate } from 'react-router-dom';
+import ProfileCard from '../components/ProfileCard';
 
 export default function Notifications() {
-    // Estado para el filtro activo
+    const { api } = useAuth();
+    const { notifications, loading, markAsRead, markAllAsRead, unreadCount } = useNotifications();
+    const navigate = useNavigate();
     const [activeFilter, setActiveFilter] = useState('All');
+    const [selectedPlayer, setSelectedPlayer] = useState(null);
 
-    const [notifications, setNotifications] = useState([
-        {
-            id: 1, type: 'Teams', read: false, hasActions: true,
-            icon: Users, iconColor: 'text-blue-400', iconBg: 'bg-blue-400/10',
-            hasAvatar: true, avatarBg: 'bg-[#FFB800]',
-            text: 'Phoenix Squad invited you to join their team as Controller',
-            time: '2 hours ago'
-        },
-        {
-            id: 2, type: 'Events', read: false, hasActions: true,
-            icon: Trophy, iconColor: 'text-brand-red', iconBg: 'bg-brand-red/10',
-            hasAvatar: true, avatarBg: 'bg-[#FFB800]',
-            text: 'Alex wants to play a ranked match with you',
-            time: '3 hours ago'
-        },
-        {
-            id: 3, type: 'Events', read: false, hasActions: false,
-            icon: Calendar, iconColor: 'text-yellow-500', iconBg: 'bg-yellow-500/10',
-            hasAvatar: false,
-            text: 'NexusPlay Summer Championship starts in 3 days',
-            time: '5 hours ago'
-        },
-        {
-            id: 4, type: 'All', read: true, hasActions: false, 
-            icon: UserPlus, iconColor: 'text-green-500', iconBg: 'bg-green-500/10',
-            hasAvatar: true, avatarBg: 'bg-gray-600',
-            text: 'Viper started following your profile',
-            time: '8 hours ago'
-        },
-        {
-            id: 5, type: 'All', read: true, hasActions: false,
-            icon: Star, iconColor: 'text-brand-red', iconBg: 'bg-brand-red/10',
-            hasAvatar: false,
-            text: 'You unlocked "MVP Master" - Get 50 MVP awards',
-            time: '1 day ago'
-        },
-        {
-            id: 6, type: 'Messages', read: true, hasActions: false,
-            icon: MessageSquare, iconColor: 'text-purple-500', iconBg: 'bg-purple-500/10',
-            hasAvatar: true, avatarBg: 'bg-[#FFB800]',
-            text: 'Thunder sent you a message',
-            time: '1 day ago'
-        },
-        {
-            id: 7, type: 'Teams', read: true, hasActions: false,
-            icon: Users, iconColor: 'text-blue-400', iconBg: 'bg-blue-400/10',
-            hasAvatar: true, avatarBg: 'bg-[#FFB800]',
-            text: 'Storm Riders invited you for a tryout',
-            time: '2 days ago'
-        },
-        {
-            id: 8, type: 'Events', read: true, hasActions: false,
-            icon: Calendar, iconColor: 'text-yellow-500', iconBg: 'bg-yellow-500/10',
-            hasAvatar: false,
-            text: 'Weekly Showdown #41 results are in - you placed 3rd!',
-            time: '3 days ago'
-        },
-        {
-            id: 9, type: 'Teams', read: true, hasActions: false,
-            icon: Trophy, iconColor: 'text-brand-red', iconBg: 'bg-brand-red/10',
-            hasAvatar: true, avatarBg: 'bg-[#FFB800]',
-            text: 'Dark Knights wants to scrim against your team',
-            time: '3 days ago'
-        },
-        {
-            id: 10, type: 'All', read: true, hasActions: false,
-            icon: UserPlus, iconColor: 'text-green-500', iconBg: 'bg-green-500/10',
-            hasAvatar: true, avatarBg: 'bg-purple-800',
-            text: 'Ember started following your profile',
-            time: '4 days ago'
-        }
-    ]);
+    const filters = ['All', 'Unread', 'Team Applications', 'Matches'];
 
-    const filters = ['All', 'Unread', 'Teams', 'Events', 'Messages'];
-
-    // Filtramos las notificaciones en base a la pastilla seleccionada
     const filteredNotifications = notifications.filter(notif => {
         if (activeFilter === 'All') return true;
         if (activeFilter === 'Unread') return !notif.read;
-        return notif.type === activeFilter;
+        if (activeFilter === 'Team Applications') return notif.type === 'team_application';
+        if (activeFilter === 'Matches') return ['ad_match', 'vacancy_match'].includes(notif.type);
+        return true;
     });
 
-    const unreadCount = notifications.filter(n => !n.read).length;
+    const handleAction = async (notif, status) => {
+        try {
+            await api.patch(`/applications/${notif.data.application_id}`, { status });
+            markAsRead(notif.id);
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
-    const markAllAsRead = () => {
-        setNotifications(notifications.map(n => ({ ...n, read: true })));
+    const viewProfile = async (userId) => {
+        try {
+            const res = await api.get(`/players/${userId}`);
+            const user = res.data;
+            const mapped = {
+                id: user.id,
+                username: user.nickname || user.name,
+                fullName: user.name,
+                avatarUrl: user.avatar_url,
+                bio: user.bio || "No biography provided.",
+                location: user.profile?.region || 'Global',
+                language: user.profile?.languages || 'Not specified',
+                availability: user.profile?.availability_status || 'Available',
+                stats: user.stats || [],
+                games: user.stats?.map(s => ({
+                    name: s.game_name || `Game #${s.game_igdb_id}`,
+                    rank: s.rank_tier || 'Unranked',
+                    platform: (s.platform || 'pc').toLowerCase(),
+                    role: s.role_main || 'Flex',
+                    cover_url: s.cover_url || null
+                })) || [],
+                roles: user.stats?.length > 0 ? [...new Set(user.stats.map(s => s.role_main || 'Flex'))] : ['Flex'],
+            };
+            setSelectedPlayer(mapped);
+        } catch (err) {
+            console.error('Error fetching player profile:', err);
+        }
+    };
+
+    const getIconInfo = (type) => {
+        switch (type) {
+            case 'team_application': return { icon: Shield, color: 'text-brand-red', bg: 'bg-brand-red/10' };
+            case 'application_accepted': return { icon: Check, color: 'text-green-500', bg: 'bg-green-500/10' };
+            case 'application_rejected': return { icon: Star, color: 'text-gray-500', bg: 'bg-gray-500/10' };
+            case 'new_message': return { icon: MessageSquare, color: 'text-blue-400', bg: 'bg-blue-400/10' };
+            case 'ad_match': return { icon: Users, color: 'text-yellow-500', bg: 'bg-yellow-500/10' };
+            case 'vacancy_match': return { icon: Trophy, color: 'text-brand-red', bg: 'bg-brand-red/10' };
+            default: return { icon: Bell, color: 'text-gray-400', bg: 'bg-gray-400/10' };
+        }
     };
 
     return (
         <div className="max-w-4xl mx-auto space-y-6 pb-12">
             
-            {/* Header: Titulo y boton de marcar leidas */}
+            {/* Header */}
             <div className="flex items-start justify-between">
                 <div>
                     <h1 className="text-3xl font-bold text-white">Notifications</h1>
@@ -112,7 +91,7 @@ export default function Notifications() {
                 </button>
             </div>
 
-            {/* Filtros en forma de pastillas */}
+            {/* Filters */}
             <div className="flex gap-2">
                 {filters.map(filter => (
                     <button
@@ -129,53 +108,73 @@ export default function Notifications() {
                 ))}
             </div>
 
-            {/* Listado de Notificaciones */}
+            {/* List */}
             <div className="space-y-3">
-                {filteredNotifications.map((notif) => {
-                    const Icon = notif.icon;
+                {loading ? (
+                    <div className="flex justify-center py-10">
+                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-brand-red"></div>
+                    </div>
+                ) : filteredNotifications.length === 0 ? (
+                    <div className="text-center py-10 text-gray-500 text-sm">
+                        No notifications found for this filter.
+                    </div>
+                ) : filteredNotifications.map((notif) => {
+                    const { icon: Icon, color, bg } = getIconInfo(notif.type);
+                    
+                    let text = "New notification";
+                    if (notif.type === 'team_application') {
+                        text = `${notif.data.user_name} wants to join ${notif.data.team_name}: "${notif.data.message}"`;
+                    } else if (notif.type === 'application_accepted' || notif.type === 'application_rejected') {
+                        text = notif.data.message;
+                    } else if (notif.type === 'new_message') {
+                        text = `New message from ${notif.data.sender_name}: "${notif.data.message_content}"`;
+                    } else if (notif.type === 'ad_match') {
+                        text = `${notif.data.creator_name} is looking for players in ${notif.data.game_name}: "${notif.data.message}"`;
+                    } else if (notif.type === 'vacancy_match') {
+                        text = `${notif.data.team_name} is looking for players in ${notif.data.game_name}: "${notif.data.description}"`;
+                    }
+
                     return (
                         <div 
                             key={notif.id} 
-                            className={`bg-[#0a0a0a] rounded-lg p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border transition-colors ${
+                            onClick={() => !notif.read && markAsRead(notif.id)}
+                            className={`bg-[#0a0a0a] rounded-lg p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border transition-colors cursor-pointer ${
                                 notif.read 
                                     ? 'border-gray-800 hover:border-gray-700' 
                                     : 'border-gray-800 border-l-4 border-l-brand-red bg-[#120a0a]'
                             }`}
                         >
                             <div className="flex items-center gap-4 flex-1">
-                                {/* Iconito circular del tipo de notificacion */}
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${notif.iconBg}`}>
-                                    <Icon size={14} className={notif.iconColor} />
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${bg}`}>
+                                    <Icon size={14} className={color} />
                                 </div>
 
-                                {/* Avatar (si lo tiene) */}
-                                {notif.hasAvatar && (
-                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 border border-gray-800 ${notif.avatarBg}`}>
-                                        <div className="w-4 h-1.5 bg-gray-900 rounded-full relative">
-                                            <div className="absolute top-[1px] left-[2px] w-1 h-1 bg-current rounded-full text-[#FFB800]"></div>
-                                            <div className="absolute top-[1px] right-[2px] w-1 h-1 bg-current rounded-full text-[#FFB800]"></div>
-                                        </div>
+                                {notif.type === 'team_application' && notif.data.avatar_url && (
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 border border-gray-800 overflow-hidden`}>
+                                        <img src={notif.data.avatar_url} alt="avatar" className="w-full h-full object-cover" />
                                     </div>
                                 )}
 
-                                {/* Texto principal */}
                                 <div>
                                     <p className="text-sm font-medium text-gray-200">
-                                        {notif.text}
+                                        {text}
                                     </p>
                                     <p className="text-xs text-gray-500 mt-0.5">
-                                        {notif.time}
+                                        {notif.created_at}
                                     </p>
                                 </div>
                             </div>
 
-                            {/* Botones de accion (Accept / Decline) */}
-                            {notif.hasActions && !notif.read && (
+                            {/* Actions for Team Applications */}
+                            {notif.type === 'team_application' && !notif.read && (
                                 <div className="flex items-center gap-2 ml-12 sm:ml-0">
-                                    <button className="bg-brand-red hover:bg-[#ff4d4d] text-white text-xs font-semibold px-4 py-1.5 rounded transition-colors">
+                                    <button onClick={(e) => { e.stopPropagation(); viewProfile(notif.data.user_id); }} className="bg-gray-800 hover:bg-gray-700 text-white text-xs font-semibold px-4 py-1.5 rounded transition-colors">
+                                        View Profile
+                                    </button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleAction(notif, 'accepted'); }} className="bg-brand-red hover:bg-[#ff4d4d] text-white text-xs font-semibold px-4 py-1.5 rounded transition-colors">
                                         Accept
                                     </button>
-                                    <button className="bg-transparent border border-gray-700 hover:bg-gray-800 text-white text-xs font-semibold px-4 py-1.5 rounded transition-colors">
+                                    <button onClick={(e) => { e.stopPropagation(); handleAction(notif, 'rejected'); }} className="bg-transparent border border-gray-700 hover:bg-gray-800 text-white text-xs font-semibold px-4 py-1.5 rounded transition-colors">
                                         Decline
                                     </button>
                                 </div>
@@ -183,14 +182,24 @@ export default function Notifications() {
                         </div>
                     );
                 })}
-                
-                {filteredNotifications.length === 0 && (
-                    <div className="text-center py-10 text-gray-500 text-sm">
-                        No notifications found for this filter.
-                    </div>
-                )}
             </div>
             
+            {selectedPlayer && (
+                <div
+                    className="fixed inset-0 z-50 flex items-start justify-center bg-black/70 backdrop-blur-sm overflow-y-auto py-10 px-4 animate-[fadeIn_0.2s_ease-out]"
+                    onClick={(e) => {
+                        if (e.target === e.currentTarget) setSelectedPlayer(null);
+                    }}
+                >
+                    <div className="w-full max-w-2xl animate-[slideUp_0.3s_ease-out]">
+                        <ProfileCard
+                            playerData={selectedPlayer}
+                            isOwnProfile={false}
+                            onClose={() => setSelectedPlayer(null)}
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

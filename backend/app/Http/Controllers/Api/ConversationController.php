@@ -21,7 +21,7 @@ class ConversationController extends Controller
     {
         $userId = auth()->id();
 
-        $conversations = Conversation::whereHas('participants', fn($q) => $q->where('user_id', $userId))
+        $conversations = Conversation::whereHas('participants', fn($q) => $q->where('users.id', $userId))
             ->with([
                 'participants:id,name,nickname,avatar_url',
                 'lastMessage.sender:id,name,nickname',
@@ -60,9 +60,9 @@ class ConversationController extends Controller
 
         // Buscar una conversación directa (no grupo) donde estén solo estos dos
         $existing = Conversation::where('is_group', false)
-            ->whereHas('participants', fn($q) => $q->where('user_id', $userId))
-            ->whereHas('participants', fn($q) => $q->where('user_id', $otherId))
-            ->whereDoesntHave('participants', fn($q) => $q->whereNotIn('user_id', [$userId, $otherId]))
+            ->whereHas('participants', fn($q) => $q->where('users.id', $userId))
+            ->whereHas('participants', fn($q) => $q->where('users.id', $otherId))
+            ->whereDoesntHave('participants', fn($q) => $q->whereNotIn('users.id', [$userId, $otherId]))
             ->first();
 
         if ($existing) {
@@ -103,8 +103,8 @@ class ConversationController extends Controller
         // Verificar que el creador ha hablado antes con cada miembro
         foreach ($members as $memberId) {
             $hasTalked = Conversation::where('is_group', false)
-                ->whereHas('participants', fn($q) => $q->where('user_id', $userId))
-                ->whereHas('participants', fn($q) => $q->where('user_id', $memberId))
+                ->whereHas('participants', fn($q) => $q->where('users.id', $userId))
+                ->whereHas('participants', fn($q) => $q->where('users.id', $memberId))
                 ->exists();
 
             if (!$hasTalked) {
@@ -128,6 +128,58 @@ class ConversationController extends Controller
 
         $conversation->load(['participants:id,name,nickname,avatar_url']);
         return response()->json($this->formatConversation($conversation, $userId), 201);
+    }
+
+    // =========================================================================
+    // SALIR DE UN GRUPO
+    // =========================================================================
+
+    public function leaveGroup(Conversation $conversation)
+    {
+        $this->authorizeParticipant($conversation);
+
+        if (!$conversation->is_group) {
+            return response()->json(['message' => 'No es un grupo.'], 400);
+        }
+
+        $userId = auth()->id();
+        $isOwner = $conversation->owner_id === $userId;
+
+        // Intentar encontrar el Team asociado
+        $team = \App\Models\Team::where('name', $conversation->group_name)->where('owner_id', $conversation->owner_id)->first();
+
+        if ($isOwner) {
+            $otherParticipant = $conversation->participants()
+                ->where('users.id', '!=', $userId)
+                ->orderBy('conversation_participants.created_at', 'asc')
+                ->first();
+
+            if ($otherParticipant) {
+                // Transferir propiedad
+                $conversation->update(['owner_id' => $otherParticipant->id]);
+                if ($team) {
+                    $team->update(['owner_id' => $otherParticipant->id]);
+                    $team->members()->detach($otherParticipant->id);
+                }
+                $conversation->participants()->detach($userId);
+            } else {
+                // Eliminar porque no queda nadie
+                $conversation->participants()->detach();
+                $conversation->delete();
+                if ($team) {
+                    $team->members()->detach();
+                    $team->delete();
+                }
+            }
+        } else {
+            // Usuario normal
+            $conversation->participants()->detach($userId);
+            if ($team) {
+                $team->members()->detach($userId);
+            }
+        }
+
+        return response()->noContent();
     }
 
     // =========================================================================
@@ -185,6 +237,22 @@ class ConversationController extends Controller
         ]);
 
         broadcast(new MessageSent($message));
+
+        // Create notifications for other participants
+        $otherParticipants = $conversation->participants->where('id', '!=', auth()->id());
+        foreach ($otherParticipants as $participant) {
+            \App\Models\Notification::createAndBroadcast([
+                'user_id' => $participant->id,
+                'type' => 'new_message',
+                'data' => [
+                    'conversation_id' => $conversation->id,
+                    'sender_name' => $message->sender->nickname ?? $message->sender->name,
+                    'message_content' => \Illuminate\Support\Str::limit($message->content, 50),
+                    'is_group' => $conversation->is_group,
+                    'group_name' => $conversation->group_name
+                ]
+            ]);
+        }
 
         return response()->json($message, 201);
     }
@@ -253,15 +321,25 @@ class ConversationController extends Controller
         $lastMsg = $conversation->lastMessage;
 
         // Para conversaciones directas, el "nombre" es el otro usuario
-        $displayName = $conversation->is_group
-            ? $conversation->group_name
-            : $conversation->participants
-                ->firstWhere('id', '!=', $userId)
-                ?->nickname
-                ?? $conversation->participants->firstWhere('id', '!=', $userId)?->name
-                ?? 'Unknown';
+        $otherUser = !$conversation->is_group
+            ? $conversation->participants->firstWhere('id', '!=', $userId)
+            : null;
 
-        // Avatar: solo para 1-1 (grupos no tienen imagen)
+        $displayName = $conversation->is_group
+            ? ($conversation->group_name ?? "Group Chat")
+            : ($otherUser?->nickname ?? $otherUser?->name ?? 'Unknown');
+
+        // Avatar:
+        $avatarUrl = null;
+        if ($conversation->is_group) {
+            $team = \App\Models\Team::where('name', $conversation->group_name)
+                ->where('owner_id', $conversation->owner_id)
+                ->first();
+            $avatarUrl = $team?->logo_url;
+        } else {
+            $avatarUrl = $conversation->participants->firstWhere('id', '!=', $userId)?->avatar_url;
+        }
+
         $otherUser = !$conversation->is_group
             ? $conversation->participants->firstWhere('id', '!=', $userId)
             : null;
@@ -272,7 +350,7 @@ class ConversationController extends Controller
             'name'         => $displayName,
             'group_name'   => $conversation->group_name,
             'owner_id'     => $conversation->owner_id,
-            'avatar_url'   => $otherUser?->avatar_url,
+            'avatar_url'   => $avatarUrl,
             'other_user_id'=> $otherUser?->id,
             'participants' => $conversation->participants->map(fn($p) => [
                 'id'         => $p->id,

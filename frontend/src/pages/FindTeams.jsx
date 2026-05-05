@@ -14,6 +14,11 @@ export default function FindTeams() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({ region: '', game: '', rank: '' });
+  
+  const [applyingAdId, setApplyingAdId] = useState(null);
+  const [applyMessage, setApplyMessage] = useState('');
+  const [submittingApply, setSubmittingApply] = useState(false);
+  const [applySuccess, setApplySuccess] = useState(null);
 
   const fetchAds = async () => {
     setLoading(true);
@@ -59,14 +64,39 @@ export default function FindTeams() {
     setPage(1);
   };
 
+  const submitApplication = async (vacancyId) => {
+    setSubmittingApply(true);
+    try {
+      await api.post('/applications', {
+        vacancy_id: vacancyId,
+        message: applyMessage
+      });
+      setApplySuccess(vacancyId);
+      setTimeout(() => {
+        setApplyingAdId(null);
+        setApplyMessage('');
+        setApplySuccess(null);
+      }, 2000);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSubmittingApply(false);
+    }
+  };
+
   const getGameName = (id) => {
     const games = {
       1: 'LEAGUE OF LEGENDS',
       2: 'VALORANT',
       3: 'CS2',
-      4: 'ROCKET LEAGUE'
+      4: 'ROCKET LEAGUE',
+      5: 'OVERWATCH 2',
+      6: 'APEX LEGENDS',
+      7: 'RAINBOW SIX SIEGE',
+      121: 'MINECRAFT',
+      1020: 'GRAND THEFT AUTO V'
     };
-    return games[id] || 'GAME';
+    return games[id] || (id ? `GAME #${id}` : 'TEAM GAME');
   };
 
   return (
@@ -154,30 +184,26 @@ export default function FindTeams() {
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-lg bg-black flex items-center justify-center border border-gray-800 overflow-hidden">
                     {ad.team?.logo_url ? (
-                      <img src={ad.team.logo_url} alt={ad.team?.name} className="w-full h-full object-cover" />
+                      <img src={ad.team.logo_url.startsWith('http') ? ad.team.logo_url : `${import.meta.env.VITE_API_URL?.replace('/api', '') ?? 'http://localhost:8000'}${ad.team.logo_url}`} alt={ad.team?.name} className="w-full h-full object-cover" />
                     ) : (
                       <Bot size={24} className="text-blue-400" />
                     )}
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-white leading-tight">{ad.title || ad.team?.name}</h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                      <span className="text-[10px] font-bold text-gray-400 tracking-wider uppercase">Active Recruitment</span>
-                    </div>
+                    <h3 className="text-lg font-bold text-white leading-tight">{ad.team?.name}</h3>
                   </div>
                 </div>
               </div>
 
               <div className="flex flex-wrap items-center gap-2 mt-3">
                 <span className="text-[10px] font-bold text-teal-400 bg-teal-400/10 border border-teal-400/20 px-3 py-1 rounded-md flex items-center gap-1.5">
-                  🕹️ {getGameName(ad.game_igdb_id)}
+                  🕹️ {ad.team?.game_name || getGameName(ad.game_igdb_id)}
                 </span>
                 <span className="text-[10px] font-bold text-gray-300 bg-[#121212] border border-gray-800 px-3 py-1 rounded-md uppercase">
-                  {ad.team?.region || 'EUROPE WEST'}
+                  {ad.team?.region || 'Europe'}
                 </span>
                 <span className="text-[10px] font-bold text-gray-300 bg-[#121212] border border-gray-800 px-3 py-1 rounded-md uppercase">
-                  {ad.team?.language || 'ENGLISH'}
+                  {ad.team?.language || 'English'}
                 </span>
               </div>
 
@@ -191,21 +217,58 @@ export default function FindTeams() {
                 <div className="flex gap-8">
                   <div>
                     <p className="text-gray-500 text-[10px] uppercase font-bold tracking-wider mb-1">MIN LEVEL</p>
-                    <p className="text-white font-bold text-sm">{ad.rank_min} <span className="font-normal text-gray-400">{ad.rank_max ? `- ${ad.rank_max}` : ''}</span></p>
+                    <p className="text-white font-bold text-sm">{ad.rank_min || ad.required_rank_min || 'Any'} <span className="font-normal text-gray-400">{ad.rank_max ? `- ${ad.rank_max}` : ''}</span></p>
                   </div>
                   <div>
                     <p className="text-gray-500 text-[10px] uppercase font-bold tracking-wider mb-1">MEMBERS</p>
-                    <p className="text-white font-bold text-sm">{ad.team?.member_count || 4} / {ad.team?.max_members || 5}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500 text-[10px] uppercase font-bold tracking-wider mb-1">POSTED</p>
-                    <p className="text-white font-bold text-sm">{ad.created_at || '2h ago'}</p>
+                    <p className="text-white font-bold text-sm">{ad.team?.member_count || 1} members</p>
                   </div>
                 </div>
-                <div>
-                  <button onClick={() => navigate('/dashboard/team-profile')} className="bg-brand-red hover:bg-[#FF4D4D] text-black font-bold px-6 py-2 text-sm rounded-lg transition-all shadow-[0_0_10px_rgba(255,51,51,0.2)] hover:shadow-[0_0_15px_rgba(255,51,51,0.4)]">
-                    Apply to Join
-                  </button>
+                <div className="flex-shrink-0 min-w-[200px]">
+                  {(() => {
+                    const { user } = useAuth();
+                    const isOwnerOrMember = user?.id === ad.team?.owner_id || (ad.team?.members && ad.team.members.some(m => m.user_id === user?.id || m.id === user?.id));
+                    
+                    if (isOwnerOrMember) {
+                       return (
+                           <div className="bg-gray-800/30 text-gray-500 font-bold px-6 py-2 text-sm rounded-lg text-center border border-gray-800/50">
+                               Already a Member
+                           </div>
+                       );
+                    }
+
+                    if (applySuccess === ad.id) {
+                      return (
+                        <div className="bg-green-500/20 text-green-500 font-bold px-6 py-2 text-sm rounded-lg text-center border border-green-500/30">
+                          ✓ Application Sent
+                        </div>
+                      );
+                    }
+                    
+                    if (applyingAdId === ad.id) {
+                      return (
+                        <div className="flex flex-col gap-2 w-full">
+                          <textarea
+                            value={applyMessage}
+                            onChange={(e) => setApplyMessage(e.target.value)}
+                            placeholder="Why should they pick you?"
+                            rows={2}
+                            className="bg-[#0a0a0a] border border-gray-800 rounded-lg p-2 text-sm text-white resize-none focus:border-brand-red outline-none"
+                          />
+                          <div className="flex gap-2">
+                            <button onClick={() => { setApplyingAdId(null); setApplyMessage(''); }} className="flex-1 bg-gray-800 hover:bg-gray-700 text-white font-bold py-1.5 text-xs rounded-lg transition-all">Cancel</button>
+                            <button onClick={() => submitApplication(ad.id)} disabled={submittingApply} className="flex-1 bg-brand-red hover:bg-[#FF4D4D] disabled:opacity-50 text-white font-bold py-1.5 text-xs rounded-lg transition-all">Send</button>
+                          </div>
+                        </div>
+                      );
+                    }
+                    
+                    return (
+                      <button onClick={() => setApplyingAdId(ad.id)} className="w-full bg-brand-red hover:bg-[#FF4D4D] text-white font-bold px-6 py-2 text-sm rounded-lg transition-all shadow-[0_0_10px_rgba(255,51,51,0.2)] hover:shadow-[0_0_15px_rgba(255,51,51,0.4)]">
+                        Apply to Join
+                      </button>
+                    );
+                  })()}
                 </div>
               </div>
 

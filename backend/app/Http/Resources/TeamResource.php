@@ -14,8 +14,15 @@ class TeamResource extends JsonResource
             'name' => $this->name,
             'region' => $this->region,
             'description' => $this->description,
-            'owner' => $this->owner->nickname,
-            'members' => $this->members->count(),
+            'logo_url' => $this->logo_url,
+            'language' => $this->language,
+            'game_igdb_id' => $this->game_igdb_id,
+            'platform' => $this->platform,
+            'owner_id' => $this->owner_id,
+            'owner_name' => $this->owner->nickname ?? $this->owner->name,
+            'is_admin' => auth()->id() === $this->owner_id,
+            'member_count' => $this->members()->count(),
+            'members' => $this->whenLoaded('members')
         ];
     }
 }

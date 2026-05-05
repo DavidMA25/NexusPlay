@@ -75,15 +75,18 @@ export function ChatProvider({ children }) {
             // Conversación nueva (el otro usuario la creó): añadirla con unread 1
             // Los datos básicos vienen en data.conversation (añadidos en broadcastWith)
             if (data.conversation && !isOwnMsg) {
+                const isGroup = !!data.conversation.is_group;
                 const newConv = {
                     id:            data.conversation.id,
-                    is_group:      data.conversation.is_group,
+                    is_group:      isGroup,
                     group_name:    data.conversation.group_name,
                     owner_id:      data.conversation.owner_id,
-                    name:          data.sender_name,   // se actualizará al abrir
-                    avatar_url:    data.sender_avatar,
-                    other_user_id: data.sender_id,
-                    participants:  [],
+                    name:          isGroup 
+                        ? (data.conversation.group_name || 'Group Chat') 
+                        : (data.sender_nickname || data.sender_name),
+                    avatar_url:    isGroup ? data.conversation.avatar_url : data.sender_avatar,
+                    other_user_id: isGroup ? null : data.sender_id,
+                    participants:  data.conversation.participants || [],
                     last_message: {
                         content:    data.content,
                         sender_id:  data.sender_id,
@@ -159,6 +162,13 @@ export function ChatProvider({ children }) {
         setTimeout(() => subscribeToConversation(conv), 0);
     }, [subscribeToConversation]);
 
+    const removeConversation = useCallback((id) => {
+        setConversations(prev => prev.filter(c => c.id !== id));
+        if (activeConvIdRef.current === id) {
+            setActiveConversationId(null);
+        }
+    }, []);
+
     const totalUnread = conversations.reduce((acc, c) => acc + (c.unread_count ?? 0), 0);
 
     return (
@@ -170,6 +180,7 @@ export function ChatProvider({ children }) {
             fetchConversations,
             openConversation,
             addOrUpdateConversation,
+            removeConversation,
             setConversations,
         }}>
             {children}

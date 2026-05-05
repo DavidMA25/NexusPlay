@@ -45,7 +45,7 @@ export default function FindPlayers() {
       const res = await api.post('/conversations/direct', { user_id: userId });
       addOrUpdateConversation(res.data);
       openConversation(res.data.id);
-      navigate('/dashboard/messages');
+      navigate('/dashboard/messages', { state: { prefillMessage: 'Hi!' } });
     } catch (e) {
       console.error('Error abriendo conversación:', e);
     }

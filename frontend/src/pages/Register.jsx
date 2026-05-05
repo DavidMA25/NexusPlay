@@ -24,11 +24,11 @@ export default function Register() {
       e.preventDefault();
       setError('');
       if (password !== confirmPassword) {
-          setError('Las contraseñas no coinciden');
+          setError('Passwords do not match');
           return;
       }
       if (role === 'team' && (!teamName || !region)) {
-          setError('El nombre del equipo y la región son obligatorios');
+          setError('Team name and region are required');
           return;
       }
       setLoading(true);
@@ -36,7 +36,7 @@ export default function Register() {
           await register(name, email, password, role, teamName, region, website, description);
           navigate('/verify-email');
       } catch (err) {
-          setError(err.response?.data?.message || 'Error al crear la cuenta. Intenta nuevamente.');
+          setError(err.response?.data?.message || 'Error creating account. Please try again.');
       } finally {
           setLoading(false);
       }

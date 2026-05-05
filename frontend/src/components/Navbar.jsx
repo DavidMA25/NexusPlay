@@ -24,9 +24,6 @@ export default function Navbar() {
 
                 {/* Enlaces centrales */}
                 <div className="hidden md:flex items-center gap-12 text-sm text-gray-300">
-                    <Link to="/dashboard/players" className="hover:text-white transition-colors">Find Players</Link>
-                    <Link to="/dashboard/teams" className="hover:text-white transition-colors">Find Teams</Link>
-                    <Link to="/dashboard/events" className="hover:text-white transition-colors">Events</Link>
                 </div>
 
                 {/* Botones de Auth — cambian según estado de sesión */}

@@ -15,12 +15,20 @@ class Team extends Model
         'logo_url',
         'description',
         'region',
-        'website'
+        'website',
+        'language',
+        'game_igdb_id',
+        'platform'
     ];
 
     public function owner()
     {
         return $this->belongsTo(User::class, 'owner_id');
+    }
+
+    public function vacancies()
+    {
+        return $this->hasMany(Vacancy::class);
     }
 
     public function members()

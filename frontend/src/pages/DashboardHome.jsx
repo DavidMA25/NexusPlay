@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
-import { Bot, MapPin, Globe, MessageSquare, Bell, Users, Gamepad2, Shield, Heart, Trophy, Info } from 'lucide-react';
+import { useNotifications } from '../context/NotificationContext';
+import { Bot, MapPin, Globe, MessageSquare, Bell, Users, Gamepad2, Shield, Heart, Trophy, Info, Megaphone, Check } from 'lucide-react';
 import pcIcon from '../assets/pc.svg';
 import nintendoIcon from '../assets/nintendo.svg';
 import xboxIcon from '../assets/xbox.svg';
@@ -36,46 +37,14 @@ const platformStyles = {
 export default function DashboardHome() {
   const { user, api } = useAuth();
   const { conversations, openConversation } = useChat();
+  const { notifications, markAllAsRead } = useNotifications();
   const navigate = useNavigate();
   const [ads, setAds] = useState([]);
   const [loadingAds, setLoadingAds] = useState(true);
+  const [vacancies, setVacancies] = useState([]);
+  const [loadingVacancies, setLoadingVacancies] = useState(true);
 
-  const mockNotifications = [
-    { id: 1, type: "like", text: "Alex liked your profile", time: "2 hours ago", read: false, icon: <Heart size={18} className="text-brand-red" /> },
-    { id: 2, type: "tournament", text: "Weekly Showdown starting soon", time: "5 hours ago", read: false, icon: <Trophy size={18} className="text-yellow-500" /> },
-    { id: 3, type: "system", text: "Welcome to NexusPlay Beta!", time: "1 day ago", read: true, icon: <Info size={18} className="text-blue-500" /> },
-  ];
 
-  const mockTeams = [
-    {
-      id: 1,
-      name: "Phoenix Squad",
-      gameName: "Valorant",
-      gameRank: "Diamond",
-      gamePlatform: "pc",
-      roleNeeded: "Sentinel",
-      members: 4,
-      maxMembers: 5,
-      message: "Looking for a serious Sentinel player for upcoming tournaments.",
-      avatarBg: "bg-brand-red",
-      location: "Europe",
-      language: "English"
-    },
-    {
-      id: 2,
-      name: "Liquid Dragons",
-      gameName: "League of Legends",
-      gameRank: "Platinum",
-      gamePlatform: "pc",
-      roleNeeded: "Jungler",
-      members: 3,
-      maxMembers: 5,
-      message: "Chill team playing evening ranked flex. Need a reliable Jungler.",
-      avatarBg: "bg-[#003791]",
-      location: "North America",
-      language: "English"
-    }
-  ];
 
   const recentMessages = [...conversations]
     .sort((a, b) =>
@@ -100,27 +69,26 @@ export default function DashboardHome() {
   }
 
   useEffect(() => {
-    const fetchAds = async () => {
+    const fetchData = async () => {
       if (!user) return;
       try {
         setLoadingAds(true);
+        setLoadingVacancies(true);
+        
         const userGameIds = user.stats?.map(s => String(s.game_igdb_id)) || [];
-        
-        const response = await api.get('/player-ads');
-        const allAds = response.data.data || [];
-        
         const userRegion = user.profile?.region;
         const userLanguage = user.profile?.languages;
 
-        // solo muestro anuncios del mismo juego y region que el usuario
+        // Fetch Player Ads
+        const adsResponse = await api.get('/player-ads');
+        const allAds = adsResponse.data.data || [];
+        
         const matchingAds = allAds.filter(ad => {
           const adGameId = String(ad.stat?.game_igdb_id);
           const adRegion = ad.user?.profile?.region;
-          
           const isNotCurrentUser = ad.user_id !== user.id;
           const hasMatchingGame = userGameIds.includes(adGameId);
           const isMatchingRegion = userRegion ? adRegion === userRegion : true;
-
           return isNotCurrentUser && hasMatchingGame && isMatchingRegion;
         });
 
@@ -129,16 +97,27 @@ export default function DashboardHome() {
           const bLangMatch = (userLanguage && b.user?.profile?.languages === userLanguage) ? 1 : 0;
           return bLangMatch - aLangMatch;
         });
-
         setAds(matchingAds.slice(0, 3));
+
+        // Fetch Team Vacancies
+        const vacanciesResponse = await api.get('/vacancies');
+        const allVacancies = vacanciesResponse.data.data || [];
+
+        // Show the latest vacancies, excluding the user's own teams
+        const recentVacancies = allVacancies
+          .filter(v => v.team?.owner_id !== user.id)
+          .slice(0, 2);
+
+        setVacancies(recentVacancies);
       } catch (error) {
-        console.error('Error fetching ads:', error);
+        console.error('Error fetching dashboard data:', error);
       } finally {
         setLoadingAds(false);
+        setLoadingVacancies(false);
       }
     };
     
-    fetchAds();
+    fetchData();
   }, [user, api]);
 
   const mapAdData = (ad) => {
@@ -161,6 +140,21 @@ export default function DashboardHome() {
       gameRank: stat?.rank_tier || "Unranked",
       gamePlatform: platform,
       gameRole: stat?.role_main || "Flex",
+    };
+  };
+
+  const mapVacancyData = (v) => {
+    const team = v.team;
+    return {
+      id: v.id,
+      name: team?.name || 'Unknown Team',
+      logoUrl: team?.logo_url,
+      gameName: team?.game_name || 'Unknown Game',
+      gameRank: v.rank_min || 'Any Rank',
+      members: team?.member_count || 0,
+      maxMembers: team?.max_members || 5,
+      message: v.description || v.title,
+      avatarBg: "bg-brand-red",
     };
   };
 
@@ -259,22 +253,68 @@ export default function DashboardHome() {
               </div>
               <h2 className="text-lg font-bold text-white">Notifications</h2>
             </div>
-            <button className="text-xs text-brand-red hover:text-white transition-colors">Mark read</button>
+            <button 
+              onClick={markAllAsRead}
+              className="text-xs text-brand-red hover:text-white transition-colors"
+            >
+              Mark read
+            </button>
           </div>
           
           <div className="flex-1 min-h-0 overflow-y-auto pr-1 custom-scrollbar space-y-2">
-            {mockNotifications.map(notification => (
-              <div key={notification.id} className={`flex items-start gap-3 p-2 rounded-lg border ${notification.read ? 'bg-[#1a1a1a] border-transparent' : 'bg-[#1e1a1a] border-brand-red/20'}`}>
-                <div className="mt-0.5 shrink-0">
-                  {notification.icon}
+            {notifications.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-gray-600 gap-1 py-4">
+                  <Bell size={20} className="opacity-30" />
+                  <p className="text-xs">No notifications</p>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className={`text-sm ${notification.read ? 'text-gray-300' : 'text-white font-medium'} truncate`}>{notification.text}</p>
-                  <p className="text-xs text-gray-500 mt-1">{notification.time}</p>
+            ) : notifications.slice(0, 5).map(notification => {
+              let icon = <Bell size={18} className="text-brand-red" />;
+              let text = "Notification";
+              
+              switch(notification.type) {
+                case 'new_message':
+                  icon = <MessageSquare size={18} className="text-blue-400" />;
+                  text = `New message from ${notification.data.sender_name}`;
+                  break;
+                case 'team_application':
+                  icon = <Shield size={18} className="text-brand-red" />;
+                  text = `${notification.data.user_name} applied to ${notification.data.team_name}`;
+                  break;
+                case 'application_accepted':
+                  icon = <Check size={18} className="text-green-500" />;
+                  text = `Accepted into ${notification.data.team_name}`;
+                  break;
+                case 'application_rejected':
+                  icon = <Shield size={18} className="text-gray-500" />;
+                  text = `Rejected from ${notification.data.team_name}`;
+                  break;
+                case 'ad_match':
+                  icon = <Megaphone size={18} className="text-yellow-500" />;
+                  text = `${notification.data.creator_name} posted an ad for ${notification.data.game_name}`;
+                  break;
+                case 'vacancy_match':
+                  icon = <Users size={18} className="text-brand-red" />;
+                  text = `${notification.data.team_name} is looking for players in ${notification.data.game_name}`;
+                  break;
+              }
+
+              return (
+                <div 
+                  key={notification.id} 
+                  onClick={() => navigate('/dashboard/notifications')}
+                  className={`flex items-start gap-3 p-2 rounded-lg border cursor-pointer transition-colors ${notification.read ? 'bg-[#1a1a1a] border-transparent' : 'bg-[#1e1a1a] border-brand-red/20 hover:bg-[#251a1a]'}`}
+                >
+                  <div className="mt-0.5 shrink-0">
+                    {icon}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm ${notification.read ? 'text-gray-300' : 'text-white font-medium'} truncate`}>{text}</p>
+                    <p className="text-xs text-gray-500 mt-1">{notification.created_at}</p>
+                  </div>
+                  {!notification.read && <div className="w-2 h-2 rounded-full bg-brand-red shrink-0 mt-1"></div>}
                 </div>
-                {!notification.read && <div className="w-2 h-2 rounded-full bg-brand-red shrink-0 mt-1"></div>}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
@@ -287,49 +327,71 @@ export default function DashboardHome() {
               </div>
               <h2 className="text-lg font-bold text-white">Teams You Might Like</h2>
             </div>
-            <button onClick={() => navigate('/find-teams')} className="text-xs text-gray-400 hover:text-white transition-colors">View All</button>
+            <button onClick={() => navigate('/dashboard/teams')} className="text-xs text-gray-400 hover:text-white transition-colors">View All</button>
           </div>
           
           <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 h-full">
-              {mockTeams.map((team) => (
-                <div
-                  key={team.id}
-                  className="bg-[#1a1a1a] border border-gray-800 rounded-xl p-6 flex flex-col items-center text-center transition-all hover:border-brand-red/50 hover:shadow-[0_0_10px_rgba(255,51,51,0.1)] h-full"
-                >
-                  <div className="flex items-center gap-3 w-full shrink-0">
-                    <div className="relative shrink-0">
-                      <div className={`w-14 h-14 rounded-lg flex items-center justify-center ${team.avatarBg}`}>
-                        <Shield size={28} className="text-white" />
+            {loadingVacancies ? (
+              <div className="flex-1 h-full flex justify-center items-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-brand-red"></div>
+              </div>
+            ) : vacancies.length === 0 ? (
+              <div className="flex-1 h-full flex flex-col justify-center items-center text-center">
+                <Users size={32} className="text-gray-600 mb-2" />
+                <h3 className="text-gray-400 font-medium text-sm">No matching teams found</h3>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 h-full">
+                {vacancies.map((v) => {
+                  const team = mapVacancyData(v);
+                  return (
+                    <div
+                      key={team.id}
+                      className="bg-[#1a1a1a] border border-gray-800 rounded-xl p-6 flex flex-col items-center text-center transition-all hover:border-brand-red/50 hover:shadow-[0_0_10px_rgba(255,51,51,0.1)] h-full"
+                    >
+                      <div className="flex items-center gap-3 w-full shrink-0">
+                        <div className="relative shrink-0">
+                          {team.logoUrl ? (
+                            <img 
+                              src={team.logoUrl.startsWith('http') ? team.logoUrl : `http://localhost:8000${team.logoUrl}`} 
+                              alt={team.name} 
+                              className="w-14 h-14 rounded-lg object-cover border border-gray-800" 
+                            />
+                          ) : (
+                            <div className={`w-14 h-14 rounded-lg flex items-center justify-center ${team.avatarBg}`}>
+                              <Shield size={28} className="text-white" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 text-left overflow-hidden">
+                          <h3 className="text-base font-bold text-white truncate">{team.name}</h3>
+                          <p className="text-sm text-gray-400 truncate">Members: {team.members}/{team.maxMembers}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap justify-center items-center gap-2 mt-4 shrink-0">
+                        <span className="text-xs font-bold text-brand-red bg-brand-red/10 px-2.5 py-1 rounded">
+                          {team.gameName}
+                        </span>
+                        <span className="text-xs font-bold text-gray-300 bg-gray-800 px-2.5 py-1 rounded">
+                          {team.gameRank}
+                        </span>
+                      </div>
+
+                      <div className="w-full mt-4 pt-4 border-t border-gray-800 flex-1 flex items-center justify-center min-h-0">
+                        <p className="text-xs text-gray-300 italic line-clamp-2">"{team.message}"</p>
+                      </div>
+
+                      <div className="w-full mt-3 shrink-0">
+                        <button onClick={() => navigate('/dashboard/teams')} className="w-full bg-transparent border border-gray-700 hover:border-gray-500 text-white text-xs font-medium py-1.5 rounded transition-colors">
+                          View Team
+                        </button>
                       </div>
                     </div>
-                    <div className="flex-1 text-left overflow-hidden">
-                      <h3 className="text-base font-bold text-white truncate">{team.name}</h3>
-                      <p className="text-sm text-gray-400 truncate">Members: {team.members}/{team.maxMembers}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap justify-center items-center gap-2 mt-4 shrink-0">
-                    <span className="text-xs font-bold text-brand-red bg-brand-red/10 px-2.5 py-1 rounded">
-                      {team.gameName}
-                    </span>
-                    <span className="text-xs font-bold text-gray-300 bg-gray-800 px-2.5 py-1 rounded">
-                      {team.gameRank}
-                    </span>
-                  </div>
-
-                  <div className="w-full mt-4 pt-4 border-t border-gray-800 flex-1 flex items-center justify-center min-h-0">
-                    <p className="text-xs text-gray-300 italic line-clamp-2">"{team.message}"</p>
-                  </div>
-
-                  <div className="w-full mt-3 shrink-0">
-                    <button onClick={() => navigate('/find-teams')} className="w-full bg-transparent border border-gray-700 hover:border-gray-500 text-white text-xs font-medium py-1.5 rounded transition-colors">
-                      View Team
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
 
@@ -349,7 +411,7 @@ export default function DashboardHome() {
             {recentMessages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-gray-600 gap-1 py-4">
                 <MessageSquare size={20} className="opacity-30" />
-                <p className="text-xs">Sin mensajes recientes</p>
+                <p className="text-xs">No recent messages</p>
               </div>
             ) : recentMessages.map(conv => {
               const initial = (conv.name ?? '?').charAt(0).toUpperCase();
@@ -372,7 +434,7 @@ export default function DashboardHome() {
                       <span className="text-[10px] text-gray-500">{formatMsgTime(conv.last_message?.created_at)}</span>
                     </div>
                     <p className={`text-xs truncate ${conv.unread_count > 0 ? 'text-gray-300 font-medium' : 'text-gray-500'}`}>
-                      {conv.last_message?.content || 'Sin mensajes'}
+                      {conv.last_message?.content || 'No messages'}
                     </p>
                   </div>
                   {conv.unread_count > 0 && (

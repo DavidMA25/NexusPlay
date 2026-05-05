@@ -18,7 +18,7 @@ export default function Login() {
             await login(email, password);
             navigate('/dashboard');
         } catch (err) {
-            setError(err.response?.data?.message || 'Error al iniciar sesión. Verifica tus credenciales.');
+            setError(err.response?.data?.message || 'Error logging in. Please check your credentials.');
         }
     };
 

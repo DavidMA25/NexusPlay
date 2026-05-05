@@ -10,10 +10,12 @@ class StoreVacancyRequest extends FormRequest
     {
         return [
             'team_id' => 'required|exists:teams,id',
-            'game_igdb_id' => 'required|integer',
-            'title' => 'required|string|max:255',
+            'game_igdb_id' => 'nullable|integer',
+            'title' => 'nullable|string|max:255',
             'description' => 'required|string',
-            'role_needed' => 'required|string|max:100',
+            'role_needed' => 'nullable|string|max:100',
+            'required_rank_min' => 'nullable|string',
+            'required_rank_max' => 'nullable|string',
         ];
     }
 }

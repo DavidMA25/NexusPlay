@@ -6,7 +6,6 @@ import {
     MessageSquare,
     Bell,
     Settings,
-    Search,
     ChevronDown,
     UserCircle,
     UserCog,
@@ -217,18 +216,8 @@ export default function DashboardLayout() {
                     className="h-20 border-b border-gray-800 bg-[#0a0a0a] flex items-center justify-between px-8 shrink-0 relative"
                 >
 
-                    {/* Input de busqueda con su icono metido dentro usando absolute */}
-                    <div className="relative w-full max-w-md">
-                        <Search
-                            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
-                            size={18}
-                        />
-                        <input
-                            type="text"
-                            placeholder="Search players, teams, events..."
-                            className="w-full bg-[#121212] border border-gray-800 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-red transition-colors placeholder-gray-600"
-                        />
-                    </div>
+                    {/* Empty space for alignment if needed, or just remove if flex-between handles it */}
+                    <div />
 
                     {/* Controles de la derecha (Notificaciones y Perfil) */}
                     <div className="flex items-center gap-6">

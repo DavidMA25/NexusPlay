@@ -5,11 +5,11 @@ namespace App\Events;
 use App\Models\Message;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class MessageSent implements ShouldBroadcastNow
+class MessageSent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -54,22 +54,33 @@ class MessageSent implements ShouldBroadcastNow
         $sender       = $this->message->sender;
         $conversation = $this->message->conversation;
 
+        // Si es un grupo, intentamos buscar el logo del equipo
+        $avatarUrl = null;
+        if ($conversation->is_group) {
+            $team = \App\Models\Team::where('name', $conversation->group_name)
+                ->where('owner_id', $conversation->owner_id)
+                ->first();
+            $avatarUrl = $team?->logo_url;
+        } else {
+            $avatarUrl = $sender?->avatar_url;
+        }
+
         return [
             'id'              => $this->message->id,
             'conversation_id' => $this->message->conversation_id,
             'sender_id'       => $this->message->sender_id,
-            'sender_name'     => $sender?->nickname ?? $sender?->name ?? 'Unknown',
+            'sender_name'     => $sender?->name ?? 'Unknown',
+            'sender_nickname' => $sender?->nickname,
             'sender_avatar'   => $sender?->avatar_url,
             'content'         => $this->message->content,
             'deleted_at'      => null,
             'created_at'      => $this->message->created_at->toISOString(),
-            // Datos de la conversación para que el frontend pueda crearla
-            // en el estado si todavía no la conoce
             'conversation'    => [
                 'id'          => $conversation->id,
                 'is_group'    => $conversation->is_group,
                 'group_name'  => $conversation->group_name,
                 'owner_id'    => $conversation->owner_id,
+                'avatar_url'  => $avatarUrl,
             ],
         ];
     }

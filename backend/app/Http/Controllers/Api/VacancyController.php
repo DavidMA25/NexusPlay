@@ -10,10 +10,50 @@ use Illuminate\Http\Request;
 
 class VacancyController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $query = Vacancy::with('team')->latest();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhereHas('team', function($t) use ($search) {
+                      $t->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        if ($request->filled('region')) {
+            $region = $request->region;
+            $query->whereHas('team', function($t) use ($region) {
+                $t->where('region', $region);
+            });
+        }
+
+        if ($request->filled('game')) {
+            $game = $request->game;
+            // Filter by game name or IGDB ID if it's numeric
+            if (is_numeric($game)) {
+                $query->where('game_igdb_id', $game);
+            } else {
+                $query->whereHas('team', function($t) use ($game) {
+                    $t->where('game_name', 'like', "%{$game}%");
+                });
+            }
+        }
+
+        if ($request->filled('rank')) {
+            $rank = $request->rank;
+            $query->where(function($q) use ($rank) {
+                $q->where('required_rank_min', 'like', "%{$rank}%")
+                  ->orWhere('required_rank_max', 'like', "%{$rank}%");
+            });
+        }
+
         return VacancyResource::collection(
-            Vacancy::with('team')->latest()->paginate(5)
+            $query->paginate(10)
         );
     }
 

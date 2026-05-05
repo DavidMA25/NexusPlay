@@ -236,13 +236,18 @@ function ChatPanel({ conversation, onBack, initialInputText = '' }) {
                         id: data.id, conversation_id: data.conversation_id,
                         sender_id: data.sender_id, content: data.content,
                         deleted_at: null, created_at: data.created_at,
-                        sender: { id: data.sender_id, name: data.sender_name, avatar_url: data.sender_avatar },
+                        sender: { 
+                            id: data.sender_id, 
+                            name: data.sender_name, 
+                            nickname: data.sender_nickname,
+                            avatar_url: data.sender_avatar 
+                        },
                     };
 
                     // Si es mensaje propio: reemplazar el optimistic (opt-*) pendiente
                     // para evitar duplicados
                     const optimisticIdx = prev.findIndex(
-                        m => String(m.id).startsWith('opt-') && m.sender_id === data.sender_id
+                        m => String(m.id).startsWith('opt-') && String(m.sender_id) === String(data.sender_id)
                     );
                     if (optimisticIdx !== -1) {
                         const next = [...prev];
@@ -313,7 +318,7 @@ function ChatPanel({ conversation, onBack, initialInputText = '' }) {
     };
 
     const renderMsg = (msg, idx, arr) => {
-        const isMe = msg.sender_id === user?.id;
+        const isMe = String(msg.sender_id) === String(user?.id);
         const isDeleted = !!msg.deleted_at;
         const showAvatar = !isMe && (idx === 0 || arr[idx - 1]?.sender_id !== msg.sender_id);
         const showName = conversation.is_group && !isMe && showAvatar;

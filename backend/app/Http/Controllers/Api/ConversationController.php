@@ -321,13 +321,13 @@ class ConversationController extends Controller
         $lastMsg = $conversation->lastMessage;
 
         // Para conversaciones directas, el "nombre" es el otro usuario
+        $otherUser = !$conversation->is_group
+            ? $conversation->participants->firstWhere('id', '!=', $userId)
+            : null;
+
         $displayName = $conversation->is_group
             ? ($conversation->group_name ?? "Group Chat")
-            : $conversation->participants
-                ->firstWhere('id', '!=', $userId)
-                ?->nickname
-                ?? $conversation->participants->firstWhere('id', '!=', $userId)?->name
-                ?? 'Unknown';
+            : ($otherUser?->nickname ?? $otherUser?->name ?? 'Unknown');
 
         // Avatar:
         $avatarUrl = null;

@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
     Search, Info, Send, Users, X,
-    Plus, Trash2, ChevronLeft, Hash, MessageSquare
+    Plus, Trash2, ChevronLeft, Hash, MessageSquare, Shield
 } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
 import { useEcho } from '../hooks/useEcho';
+import GameSearchInput from '../components/GameSearchInput';
 
 function formatTime(iso) {
     if (!iso) return '';
@@ -18,21 +20,30 @@ function formatTime(iso) {
     return d.toLocaleDateString([], { day: '2-digit', month: '2-digit' });
 }
 
-function Avatar({ name, avatarUrl, size = 'md' }) {
+function Avatar({ name, avatarUrl, size = 'md', isGroup = false }) {
     const sizeMap = { sm: 'w-8 h-8 text-xs', md: 'w-10 h-10 text-sm', lg: 'w-12 h-12 text-base' };
     const initial = (name ?? '?').charAt(0).toUpperCase();
     const base = import.meta.env.VITE_API_URL?.replace('/api', '') ?? 'http://localhost:8000';
+    
     return (
-        <div className={`${sizeMap[size]} rounded-full bg-brand-red/20 border border-brand-red/40 flex items-center justify-center font-bold text-brand-red overflow-hidden flex-shrink-0`}>
-            {avatarUrl ? <img src={`${base}${avatarUrl}`} alt={name} className="w-full h-full object-cover" /> : initial}
+        <div className={`${sizeMap[size]} rounded-full bg-[#222] border border-gray-700 flex items-center justify-center font-bold text-gray-400 overflow-hidden flex-shrink-0`}>
+            {avatarUrl 
+                ? <img src={avatarUrl.startsWith('http') ? avatarUrl : `${base}${avatarUrl}`} alt={name} className="w-full h-full object-cover" /> 
+                : (isGroup ? <Hash size={size === 'sm' ? 12 : 16} /> : initial)
+            }
         </div>
     );
 }
 
-function NewGroupModal({ onClose, onCreated }) {
+
+
+function CreateTeamModal({ onClose, onCreated }) {
     const { api } = useAuth();
     const { conversations } = useChat();
-    const [groupName, setGroupName] = useState('');
+    const [formData, setFormData] = useState({
+        name: '', region: 'Europe', language: 'English', game: '', game_igdb_id: '', platform: 'PC', description: ''
+    });
+    const [logo, setLogo] = useState(null);
     const [selected, setSelected] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -46,61 +57,122 @@ function NewGroupModal({ onClose, onCreated }) {
     );
 
     const handleCreate = async () => {
-        if (!groupName.trim() || selected.length < 2) return;
+        if (!formData.name.trim() || !formData.game_igdb_id) {
+            setError('Name and Game are required.');
+            return;
+        }
         setLoading(true); setError('');
+        
         try {
-            const res = await api.post('/conversations/group', {
-                group_name: groupName.trim(),
-                user_ids: selected.map(u => u.id),
+            const data = new FormData();
+            Object.keys(formData).forEach(key => data.append(key, formData[key]));
+            if (logo) data.append('logo', logo);
+            if (selected.length > 0) data.append('members', JSON.stringify(selected.map(u => u.id)));
+
+            await api.post('/teams', data, {
+                headers: { 'Content-Type': 'multipart/form-data' }
             });
-            onCreated(res.data);
+            onCreated();
             onClose();
         } catch (e) {
-            setError(e.response?.data?.message ?? 'Error creating group.');
+            setError(e.response?.data?.message ?? 'Error creating team.');
         } finally { setLoading(false); }
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
             onClick={e => e.target === e.currentTarget && onClose()}>
-            <div className="w-full max-w-md bg-[#121212] border border-gray-800 rounded-xl shadow-2xl overflow-hidden">
-                <div className="flex items-center justify-between p-5 border-b border-gray-800">
+            <div className="w-full max-w-md bg-[#121212] border border-gray-800 rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                <div className="flex items-center justify-between p-5 border-b border-gray-800 flex-shrink-0">
                     <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-lg bg-brand-red/10 flex items-center justify-center">
-                            <Users size={18} className="text-brand-red" />
+                            <Shield size={18} className="text-brand-red" />
                         </div>
-                        <h3 className="font-bold text-white">New group</h3>
+                        <h3 className="font-bold text-white">Create Esport Team</h3>
                     </div>
                     <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors"><X size={20} /></button>
                 </div>
-                <div className="p-5 space-y-4">
-                    <input type="text" placeholder="Group name..."
-                        value={groupName} onChange={e => setGroupName(e.target.value)}
-                        className="w-full bg-[#0a0a0a] border border-gray-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-red transition-colors placeholder-gray-600" />
-                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Select members (min. 2)</p>
-                    {eligible.length === 0 ? (
-                        <p className="text-sm text-gray-500 text-center py-4">You need to have direct conversations first.</p>
-                    ) : (
-                        <div className="space-y-1 max-h-52 overflow-y-auto">
-                            {eligible.map(u => {
-                                const sel = selected.find(s => s.id === u.id);
-                                return (
-                                    <button key={u.id} onClick={() => toggle(u)}
-                                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left border ${sel ? 'bg-brand-red/10 border-brand-red/30' : 'hover:bg-[#1a1a1a] border-transparent'}`}>
-                                        <Avatar name={u.name} avatarUrl={u.avatar_url} size="sm" />
-                                        <span className="text-sm text-white">{u.name}</span>
-                                        {sel && <div className="ml-auto w-4 h-4 rounded-full bg-brand-red flex items-center justify-center text-[9px] text-white font-bold">✓</div>}
-                                    </button>
-                                );
-                            })}
+                
+                <div className="p-5 space-y-4 overflow-y-auto flex-1">
+                    <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 rounded-xl border border-dashed border-gray-700 flex flex-col items-center justify-center text-gray-500 overflow-hidden relative group">
+                            {logo ? (
+                                <img src={URL.createObjectURL(logo)} alt="Logo" className="w-full h-full object-cover" />
+                            ) : (
+                                <span className="text-[10px]">Logo</span>
+                            )}
+                            <input type="file" accept="image/*" onChange={e => setLogo(e.target.files[0])} className="absolute inset-0 opacity-0 cursor-pointer" />
                         </div>
-                    )}
+                        <div className="flex-1">
+                            <input type="text" placeholder="Team Name *"
+                                value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})}
+                                className="w-full bg-[#0a0a0a] border border-gray-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-red" />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                        <select value={formData.region} onChange={e => setFormData({...formData, region: e.target.value})} className="bg-[#0a0a0a] border border-gray-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-red">
+                            <option value="Europe">Europe</option>
+                            <option value="North America">North America</option>
+                            <option value="South America">South America</option>
+                            <option value="Asia">Asia</option>
+                        </select>
+                        <select value={formData.language} onChange={e => setFormData({...formData, language: e.target.value})} className="bg-[#0a0a0a] border border-gray-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-red">
+                            <option value="English">English</option>
+                            <option value="Spanish">Spanish</option>
+                            <option value="French">French</option>
+                            <option value="German">German</option>
+                        </select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-[#0a0a0a] border border-gray-800 rounded-lg focus-within:border-brand-red flex items-center">
+                            <GameSearchInput 
+                                value={formData.game}
+                                onChange={v => setFormData({...formData, game: v})}
+                                onSelect={g => setFormData({...formData, game: g.title, game_igdb_id: g.gameId})}
+                            />
+                        </div>
+                        <select value={formData.platform} onChange={e => setFormData({...formData, platform: e.target.value})} className="bg-[#0a0a0a] border border-gray-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-red">
+                            <option value="PC">PC</option>
+                            <option value="PlayStation">PlayStation</option>
+                            <option value="Xbox">Xbox</option>
+                            <option value="Mobile">Mobile</option>
+                            <option value="Crossplay">Crossplay</option>
+                        </select>
+                    </div>
+
+                    <textarea placeholder="Description (optional)" rows={2}
+                        value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})}
+                        className="w-full bg-[#0a0a0a] border border-gray-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-red resize-none" />
+
+                    <div className="pt-2">
+                        <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-2">Invite Members (Optional)</p>
+                        {eligible.length === 0 ? (
+                            <p className="text-xs text-gray-600 italic">No direct contacts to invite.</p>
+                        ) : (
+                            <div className="space-y-1 max-h-32 overflow-y-auto pr-1">
+                                {eligible.map(u => {
+                                    const sel = selected.find(s => s.id === u.id);
+                                    return (
+                                        <button key={u.id} onClick={() => toggle(u)}
+                                            className={`w-full flex items-center gap-3 px-2 py-1.5 rounded-lg transition-colors text-left border ${sel ? 'bg-brand-red/10 border-brand-red/30' : 'hover:bg-[#1a1a1a] border-transparent'}`}>
+                                            <Avatar name={u.name} avatarUrl={u.avatar_url} size="sm" />
+                                            <span className="text-xs text-white">{u.name}</span>
+                                            {sel && <div className="ml-auto w-3 h-3 rounded-full bg-brand-red flex items-center justify-center text-[8px] text-white font-bold">✓</div>}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
                     {error && <p className="text-xs text-red-500 bg-red-500/10 rounded-lg px-3 py-2">{error}</p>}
                 </div>
-                <div className="p-5 border-t border-gray-800">
-                    <button onClick={handleCreate} disabled={!groupName.trim() || selected.length < 2 || loading}
+                
+                <div className="p-5 border-t border-gray-800 flex-shrink-0">
+                    <button onClick={handleCreate} disabled={!formData.name.trim() || !formData.game_igdb_id || loading}
                         className="w-full bg-brand-red hover:bg-[#FF4D4D] disabled:opacity-40 disabled:cursor-not-allowed text-white py-2.5 rounded-lg text-sm font-medium transition-all">
-                        {loading ? 'Creating...' : `Create group (${selected.length} members)`}
+                        {loading ? 'Creating...' : `Create Team`}
                     </button>
                 </div>
             </div>
@@ -108,7 +180,7 @@ function NewGroupModal({ onClose, onCreated }) {
     );
 }
 
-function ChatPanel({ conversation, onBack }) {
+function ChatPanel({ conversation, onBack, initialInputText = '' }) {
     const { user, api, token } = useAuth();
     const echo = useEcho(token);
 
@@ -116,9 +188,10 @@ function ChatPanel({ conversation, onBack }) {
     const [loadingMsgs, setLoadingMsgs] = useState(true);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(false);
-    const [inputText, setInputText] = useState('');
+    const [inputText, setInputText] = useState(initialInputText);
     const [sending, setSending] = useState(false);
     const [showInfo, setShowInfo] = useState(false);
+    const { removeConversation } = useChat();
 
     const bottomRef = useRef(null);
     const inputRef = useRef(null);
@@ -226,6 +299,18 @@ function ChatPanel({ conversation, onBack }) {
     };
 
     const isGroupOwner = conversation.is_group && conversation.owner_id === user?.id;
+
+    const handleLeaveGroup = async () => {
+        if (!window.confirm("Are you sure you want to leave this team chat?")) return;
+        try {
+            await api.post(`/conversations/${conversation.id}/leave`);
+            removeConversation(conversation.id);
+            onBack();
+        } catch (e) {
+            console.error("Error leaving group", e);
+            alert(e.response?.data?.message || "Error leaving group");
+        }
+    };
 
     const renderMsg = (msg, idx, arr) => {
         const isMe = msg.sender_id === user?.id;
@@ -341,6 +426,13 @@ function ChatPanel({ conversation, onBack }) {
                                 </div>
                             ))}
                         </div>
+                        {conversation.is_group && (
+                            <div className="p-4 border-t border-gray-800 mt-auto">
+                                <button onClick={handleLeaveGroup} className="w-full py-2.5 bg-brand-red/10 hover:bg-brand-red/20 text-brand-red rounded-lg text-xs font-bold transition-colors border border-brand-red/20">
+                                    {isGroupOwner ? "Leave & Transfer/Delete Team" : "Leave Team Chat"}
+                                </button>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
@@ -350,16 +442,30 @@ function ChatPanel({ conversation, onBack }) {
 
 export default function Messages() {
     const { conversations, loading, activeConversationId, openConversation, addOrUpdateConversation } = useChat();
+    const location = useLocation();
+    const navigate = useNavigate();
+
     const [search, setSearch] = useState('');
     const [activeTab, setActiveTab] = useState('All');
-    const [showNewGroup, setShowNewGroup] = useState(false);
+    const [showCreateTeam, setShowCreateTeam] = useState(false);
     const [showMobile, setShowMobile] = useState(false);
+
+    const prefillMessage = location.state?.prefillMessage;
+
+    // Clear the state so it doesn't persist on reload
+    useEffect(() => {
+        if (location.state?.prefillMessage) {
+            const newState = { ...location.state };
+            delete newState.prefillMessage;
+            navigate(location.pathname, { replace: true, state: newState });
+        }
+    }, [location, navigate]);
 
     const activeConversation = conversations.find(c => c.id === activeConversationId) ?? null;
 
     const filtered = conversations.filter(c => {
         const matchSearch = c.name?.toLowerCase().includes(search.toLowerCase());
-        const matchTab = activeTab === 'All' ? true : activeTab === 'Grupos' ? c.is_group : !c.is_group;
+        const matchTab = activeTab === 'All' ? true : activeTab === 'Teams' ? c.is_group : !c.is_group;
         return matchSearch && matchTab;
     });
 
@@ -373,10 +479,12 @@ export default function Messages() {
                 <div className="p-4 border-b border-gray-800">
                     <div className="flex items-center justify-between mb-3">
                         <h2 className="text-lg font-bold">Messages</h2>
-                        <button onClick={() => setShowNewGroup(true)}
-                            className="w-8 h-8 rounded-lg bg-brand-red/10 hover:bg-brand-red/20 flex items-center justify-center text-brand-red transition-colors" title="New group">
-                            <Plus size={16} />
-                        </button>
+                        <div className="relative">
+                            <button onClick={() => setShowCreateTeam(true)}
+                                className="w-8 h-8 rounded-lg bg-brand-red/10 hover:bg-brand-red/20 flex items-center justify-center text-brand-red transition-colors" title="Create Team">
+                                <Plus size={16} />
+                            </button>
+                        </div>
                     </div>
                     <div className="relative mb-3">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={15} />
@@ -384,7 +492,7 @@ export default function Messages() {
                             className="w-full bg-[#1a1a1a] border border-gray-800 rounded-lg pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:border-brand-red transition-colors placeholder-gray-600" />
                     </div>
                     <div className="flex gap-1.5">
-                        {['All', 'DMs', 'Groups'].map(tab => (
+                        {['All', 'DMs', 'Teams'].map(tab => (
                             <button key={tab} onClick={() => setActiveTab(tab)}
                                 className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${activeTab === tab ? 'bg-brand-red text-white' : 'text-gray-400 hover:text-white hover:bg-[#1a1a1a]'}`}>
                                 {tab}
@@ -409,10 +517,7 @@ export default function Messages() {
                             <button key={conv.id} onClick={() => handleSelect(conv)}
                                 className={`relative w-full flex items-center gap-3 px-4 py-3.5 hover:bg-[#1a1a1a] transition-colors text-left ${isActive ? 'bg-[#1a1a1a]' : ''}`}>
                                 {isActive && <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-brand-red" />}
-                                {conv.is_group
-                                    ? <div className="w-10 h-10 rounded-full bg-[#222] border border-gray-700 flex items-center justify-center flex-shrink-0"><Hash size={16} className="text-gray-400" /></div>
-                                    : <Avatar name={conv.name} avatarUrl={conv.avatar_url} />
-                                }
+                                <Avatar name={conv.name} avatarUrl={conv.avatar_url} isGroup={conv.is_group} />
                                 <div className="flex-1 min-w-0">
                                     <div className="flex justify-between items-baseline">
                                         <span className={`text-sm font-medium truncate ${isActive ? 'text-white' : 'text-gray-200'}`}>{conv.name}</span>
@@ -434,7 +539,7 @@ export default function Messages() {
             {/* Panel derecho */}
             <div className={`flex-1 min-w-0 ${showMobile ? 'flex' : 'hidden md:flex'} flex-col`}>
                 {activeConversation
-                    ? <ChatPanel key={activeConversation.id} conversation={activeConversation} onBack={() => setShowMobile(false)} />
+                    ? <ChatPanel key={activeConversation.id} conversation={activeConversation} onBack={() => setShowMobile(false)} initialInputText={prefillMessage} />
                     : <div className="flex-1 flex flex-col items-center justify-center text-gray-600 gap-3">
                         <MessageSquare size={44} className="opacity-20" />
                         <p className="text-sm">Select a conversation</p>
@@ -443,7 +548,7 @@ export default function Messages() {
                 }
             </div>
 
-            {showNewGroup && <NewGroupModal onClose={() => setShowNewGroup(false)} onCreated={handleGroupCreated} />}
+            {showCreateTeam && <CreateTeamModal onClose={() => setShowCreateTeam(false)} onCreated={() => navigate('/dashboard/teams')} />}
         </div>
     );
 }

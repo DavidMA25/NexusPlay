@@ -12,7 +12,11 @@ class StoreTeamRequest extends FormRequest
             'name' => 'required|string|max:255',
             'region' => 'required|string',
             'description' => 'nullable|string',
-            'website' => 'nullable|url'
+            'website' => 'nullable|url',
+            'logo' => 'nullable|image|max:2048', // 2MB max
+            'language' => 'required|string',
+            'game_igdb_id' => 'nullable|integer',
+            'platform' => 'required|string',
         ];
     }
 }

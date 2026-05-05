@@ -80,10 +80,10 @@ export function ChatProvider({ children }) {
                     is_group:      data.conversation.is_group,
                     group_name:    data.conversation.group_name,
                     owner_id:      data.conversation.owner_id,
-                    name:          data.sender_name,   // se actualizará al abrir
+                    name:          data.conversation.is_group ? (data.conversation.group_name || 'Group Chat') : data.sender_name,
                     avatar_url:    data.sender_avatar,
                     other_user_id: data.sender_id,
-                    participants:  [],
+                    participants:  data.conversation.participants || [],
                     last_message: {
                         content:    data.content,
                         sender_id:  data.sender_id,
@@ -159,6 +159,13 @@ export function ChatProvider({ children }) {
         setTimeout(() => subscribeToConversation(conv), 0);
     }, [subscribeToConversation]);
 
+    const removeConversation = useCallback((id) => {
+        setConversations(prev => prev.filter(c => c.id !== id));
+        if (activeConvIdRef.current === id) {
+            setActiveConversationId(null);
+        }
+    }, []);
+
     const totalUnread = conversations.reduce((acc, c) => acc + (c.unread_count ?? 0), 0);
 
     return (
@@ -170,6 +177,7 @@ export function ChatProvider({ children }) {
             fetchConversations,
             openConversation,
             addOrUpdateConversation,
+            removeConversation,
             setConversations,
         }}>
             {children}

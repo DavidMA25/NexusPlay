@@ -20,12 +20,14 @@ import { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
+import { useNotifications } from '../context/NotificationContext';
 import logo from '../assets/logo.png';
 
 export default function DashboardLayout() {
     // Extraemos los datos del usuario logueado y la funcion de cerrar sesion desde AuthContext
     const { user, logout, api } = useAuth();
     const { totalUnread } = useChat();
+    const { unreadCount } = useNotifications();
     const navigate = useNavigate();
 
     // Estado para controlar si el desplegable del perfil esta visible o no
@@ -40,14 +42,29 @@ export default function DashboardLayout() {
     const [publishSuccess, setPublishSuccess] = useState(false);
     const [publishError, setPublishError] = useState('');
 
-    // Fetch user's player stats when modal opens
+    // Estados para el modal de anuncio de equipo
+    const [showTeamAdModal, setShowTeamAdModal] = useState(false);
+    const [myTeams, setMyTeams] = useState([]);
+    const [selectedTeamId, setSelectedTeamId] = useState('');
+    const [teamAdDesc, setTeamAdDesc] = useState('');
+    const [teamAdRankMin, setTeamAdRankMin] = useState('');
+    const [teamAdRankMax, setTeamAdRankMax] = useState('');
+    const [publishingTeam, setPublishingTeam] = useState(false);
+    const [teamPublishSuccess, setTeamPublishSuccess] = useState(false);
+    const [teamPublishError, setTeamPublishError] = useState('');
+
+    // Fetch user's player stats and teams when component mounts
     useEffect(() => {
-        if (showAdModal) {
-            api.get('/player-stats').then(res => {
-                setMyStats(res.data.data || res.data);
-            }).catch(err => console.error('Error fetching stats:', err));
-        }
-    }, [showAdModal]);
+        api.get('/player-stats').then(res => {
+            setMyStats(res.data.data || res.data);
+        }).catch(err => console.error('Error fetching stats:', err));
+        
+        api.get('/teams/my').then(res => {
+            const teams = res.data.data || res.data;
+            // Only teams where user is admin/owner
+            setMyTeams(teams.filter(t => t.is_admin));
+        }).catch(err => console.error('Error fetching teams:', err));
+    }, [api]);
 
     const handlePublishAd = async () => {
         if (!selectedStatId || !adMessage.trim()) return;
@@ -72,6 +89,36 @@ export default function DashboardLayout() {
         }
     };
 
+    const handlePublishTeamAd = async () => {
+        if (!selectedTeamId || !teamAdDesc.trim()) return;
+        setPublishingTeam(true);
+        setTeamPublishError('');
+        try {
+            const team = myTeams.find(t => t.id === parseInt(selectedTeamId));
+            await api.post('/vacancies', {
+                team_id: parseInt(selectedTeamId),
+                description: teamAdDesc.trim(),
+                required_rank_min: teamAdRankMin || null,
+                required_rank_max: teamAdRankMax || null,
+                role_needed: 'Any',
+                game_igdb_id: team?.game_igdb_id
+            });
+            setTeamPublishSuccess(true);
+            setTimeout(() => {
+                setShowTeamAdModal(false);
+                setSelectedTeamId('');
+                setTeamAdDesc('');
+                setTeamAdRankMin('');
+                setTeamAdRankMax('');
+                setTeamPublishSuccess(false);
+            }, 1500);
+        } catch (err) {
+            setTeamPublishError(err.response?.data?.message || 'Error publishing team ad.');
+        } finally {
+            setPublishingTeam(false);
+        }
+    };
+
     // Guardo la ruta actual en una variable. 
     // Lo uso luego para saber en que pagina estoy y pintar ese boton de rojo.
     const location = useLocation();
@@ -86,7 +133,7 @@ export default function DashboardLayout() {
         { path: '/dashboard/events', icon: <Calendar size={20} />, label: 'Events' },
         // A algunos items les paso la propiedad 'badge' para mostrar el circulito rojo de notificaciones
         { path: '/dashboard/messages', icon: <MessageSquare size={20} />, label: 'Messages', badge: totalUnread || null },
-        { path: '/dashboard/notifications', icon: <Bell size={20} />, label: 'Notifications', badge: 3 },
+        { path: '/dashboard/notifications', icon: <Bell size={20} />, label: 'Notifications', badge: unreadCount || null },
         { path: '/dashboard/profile', icon: <UserCircle size={20} />, label: 'My Profile' },
         { path: '/dashboard/settings', icon: <Settings size={20} />, label: 'Settings' },
     ];
@@ -141,7 +188,7 @@ export default function DashboardLayout() {
                 </nav>
 
                 {/* Zona inferior del menu: Botón Publish Ad */}
-                <div className="p-4 border-t border-gray-800">
+                <div className="p-4 border-t border-gray-800 space-y-2">
                     <button
                         onClick={() => setShowAdModal(true)}
                         className="w-full flex items-center justify-center gap-2 bg-brand-red hover:bg-[#FF4D4D] text-white px-4 py-3 rounded-lg text-sm font-medium transition-all shadow-[0_0_10px_rgba(255,51,51,0.2)] hover:shadow-[0_0_20px_rgba(255,51,51,0.4)] whitespace-nowrap"
@@ -149,6 +196,15 @@ export default function DashboardLayout() {
                         <Megaphone size={18} />
                         Publish Ad
                     </button>
+                    {myTeams.length > 0 && (
+                        <button
+                            onClick={() => setShowTeamAdModal(true)}
+                            className="w-full flex items-center justify-center gap-2 bg-[#1a1a1a] border border-gray-700 hover:bg-[#222] text-white px-4 py-3 rounded-lg text-sm font-medium transition-all whitespace-nowrap"
+                        >
+                            <Shield size={18} />
+                            Publish Team Ad
+                        </button>
+                    )}
                 </div>
             </aside>
 
@@ -178,11 +234,13 @@ export default function DashboardLayout() {
                     <div className="flex items-center gap-6">
 
                         {/* Campana de notificaciones con puntito rojo de aviso */}
-                        <button className="text-gray-400 hover:text-white transition-colors relative">
+                        <button onClick={() => navigate('/dashboard/notifications')} className="text-gray-400 hover:text-white transition-colors relative">
                             <Bell size={20} />
-                            <span
-                                className="absolute -top-1 -right-1 w-2 h-2 bg-brand-red rounded-full"
-                            ></span>
+                            {unreadCount > 0 && (
+                                <span
+                                    className="absolute -top-1 -right-1 w-2 h-2 bg-brand-red rounded-full"
+                                ></span>
+                            )}
                         </button>
 
                         {/* Contenedor relativo para poder posicionar el menu desplegable justo debajo */}
@@ -226,7 +284,7 @@ export default function DashboardLayout() {
                                             className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
                                         >
                                             <UserCircle size={16} />
-                                            Ver perfil
+                                            View Profile
                                         </Link>
                                         <Link
                                             to="/dashboard/settings"
@@ -234,7 +292,7 @@ export default function DashboardLayout() {
                                             className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
                                         >
                                             <Settings size={16} />
-                                            Ajustes
+                                            Settings
                                         </Link>
                                     </div>
 
@@ -351,6 +409,102 @@ export default function DashboardLayout() {
                             >
                                 <Send size={16} />
                                 {publishing ? 'Publishing...' : 'Publish Ad'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ===== MODAL: Publish Team Ad ===== */}
+            {showTeamAdModal && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4 animate-[fadeIn_0.2s_ease-out]"
+                    onClick={(e) => { if (e.target === e.currentTarget) setShowTeamAdModal(false); }}
+                >
+                    <div className="w-full max-w-md bg-[#121212] border border-gray-800 rounded-xl shadow-2xl animate-[slideUp_0.3s_ease-out] overflow-hidden">
+
+                        {/* Header */}
+                        <div className="flex items-center justify-between p-6 border-b border-gray-800">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-lg bg-brand-red/10 flex items-center justify-center">
+                                    <Shield size={20} className="text-brand-red" />
+                                </div>
+                                <div>
+                                    <h3 className="text-white font-bold text-lg">Publish Team Ad</h3>
+                                    <p className="text-gray-500 text-xs">Find players for your team</p>
+                                </div>
+                            </div>
+                            <button onClick={() => setShowTeamAdModal(false)} className="text-gray-500 hover:text-white transition-colors">
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        {/* Body */}
+                        <div className="p-6 space-y-5">
+
+                            {/* Team Select */}
+                            <div>
+                                <label className="text-xs text-gray-400 mb-2 block font-medium uppercase tracking-wider">Select Team</label>
+                                <select
+                                    value={selectedTeamId}
+                                    onChange={(e) => setSelectedTeamId(e.target.value)}
+                                    className="w-full bg-[#0a0a0a] border border-gray-800 text-white text-sm rounded-lg p-3 focus:border-brand-red outline-none transition-colors"
+                                >
+                                    <option value="">Choose a team...</option>
+                                    {myTeams.map((team) => (
+                                        <option key={team.id} value={team.id}>
+                                            {team.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Description */}
+                            <div>
+                                <label className="text-xs text-gray-400 mb-2 block font-medium uppercase tracking-wider">What are you looking for?</label>
+                                <textarea
+                                    value={teamAdDesc}
+                                    onChange={(e) => setTeamAdDesc(e.target.value)}
+                                    rows={3}
+                                    placeholder="We are looking for a dedicated entry fragger for tournaments..."
+                                    className="w-full bg-[#0a0a0a] border border-gray-800 text-white text-sm rounded-lg p-3 focus:border-brand-red outline-none transition-colors resize-none placeholder-gray-600"
+                                />
+                            </div>
+
+                            {/* Ranks */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-xs text-gray-400 mb-2 block font-medium uppercase tracking-wider">Min Rank</label>
+                                    <input type="text" value={teamAdRankMin} onChange={e => setTeamAdRankMin(e.target.value)} placeholder="e.g. Diamond"
+                                        className="w-full bg-[#0a0a0a] border border-gray-800 text-white text-sm rounded-lg p-3 focus:border-brand-red outline-none transition-colors" />
+                                </div>
+                                <div>
+                                    <label className="text-xs text-gray-400 mb-2 block font-medium uppercase tracking-wider">Max Rank</label>
+                                    <input type="text" value={teamAdRankMax} onChange={e => setTeamAdRankMax(e.target.value)} placeholder="e.g. Ascendant"
+                                        className="w-full bg-[#0a0a0a] border border-gray-800 text-white text-sm rounded-lg p-3 focus:border-brand-red outline-none transition-colors" />
+                                </div>
+                            </div>
+
+                            {/* Error */}
+                            {teamPublishError && (
+                                <p className="text-red-500 text-xs bg-red-500/10 rounded-lg px-3 py-2">{teamPublishError}</p>
+                            )}
+
+                            {/* Success */}
+                            {teamPublishSuccess && (
+                                <p className="text-green-500 text-xs bg-green-500/10 rounded-lg px-3 py-2">✓ Ad published successfully!</p>
+                            )}
+                        </div>
+
+                        {/* Footer */}
+                        <div className="p-6 border-t border-gray-800">
+                            <button
+                                onClick={handlePublishTeamAd}
+                                disabled={!selectedTeamId || !teamAdDesc.trim() || publishingTeam || teamPublishSuccess}
+                                className="w-full flex items-center justify-center gap-2 bg-brand-red hover:bg-[#FF4D4D] disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-lg text-sm font-medium transition-all shadow-[0_0_10px_rgba(255,51,51,0.2)] hover:shadow-[0_0_15px_rgba(255,51,51,0.4)]"
+                            >
+                                <Send size={16} />
+                                {publishingTeam ? 'Publishing...' : 'Publish Team Ad'}
                             </button>
                         </div>
                     </div>

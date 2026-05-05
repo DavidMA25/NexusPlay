@@ -26,6 +26,7 @@ Route::post('/login',    [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 
 Route::get('/players',    [PlayerController::class, 'index']);
+Route::get('/players/{id}', [PlayerController::class, 'show']);
 Route::get('/player-ads', [PlayerAdController::class, 'index']);
 Route::get('/vacancies',  [VacancyController::class, 'index']);
 
@@ -53,17 +54,17 @@ Route::middleware('auth:sanctum')->group(function () {
         $user = \App\Models\User::findOrFail($id);
 
         if (!hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
-            return response()->json(['message' => 'Enlace de verificación inválido.'], 403);
+            return response()->json(['message' => 'Invalid verification link.'], 403);
         }
         if (!$request->hasValidSignature()) {
-            return response()->json(['message' => 'El enlace ha expirado o no es válido.'], 403);
+            return response()->json(['message' => 'The link has expired or is invalid.'], 403);
         }
         if ($user->hasVerifiedEmail()) {
-            return response()->json(['message' => 'El email ya estaba verificado.']);
+            return response()->json(['message' => 'The email was already verified.']);
         }
 
         $user->markEmailAsVerified();
-        return response()->json(['message' => 'Email verificado correctamente.']);
+        return response()->json(['message' => 'Email successfully verified.']);
     })->name('verification.verify');
 
     Route::post('/email/resend', [AuthController::class, 'resendVerification']);
@@ -72,7 +73,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/igdb/search', [IGDBController::class, 'search']);
 
     // Equipos
+    Route::get('/teams/my', [TeamController::class, 'myTeams']);
     Route::apiResource('teams', TeamController::class);
+    Route::post('/teams/{team}/members', [TeamController::class, 'addMember']);
+    Route::delete('/teams/{team}/members/{user}', [TeamController::class, 'removeMember']);
+
+    // Notificaciones
+    Route::get('/notifications', [\App\Http\Controllers\Api\NotificationController::class, 'index']);
+    Route::patch('/notifications/read-all', [\App\Http\Controllers\Api\NotificationController::class, 'markAllRead']);
+    Route::get('/notifications/unread-count', [\App\Http\Controllers\Api\NotificationController::class, 'unreadCount']);
+    Route::patch('/notifications/{notification}/read', [\App\Http\Controllers\Api\NotificationController::class, 'markRead']);
 
     // Vacantes
     Route::post('/vacancies',             [VacancyController::class, 'store']);
@@ -115,4 +125,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/conversations/{conversation}/messages',                           [ConversationController::class, 'sendMessage']);
     Route::delete('/conversations/{conversation}/messages/{message}',               [ConversationController::class, 'deleteMessage']);
     Route::post('/conversations/{conversation}/read',                               [ConversationController::class, 'markRead']);
+    Route::post('/conversations/{conversation}/leave',                              [ConversationController::class, 'leaveGroup']);
 });

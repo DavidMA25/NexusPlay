@@ -64,7 +64,7 @@ class AuthController extends Controller
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
-                'message' => 'Credenciales incorrectas'
+                'message' => 'Invalid credentials'
             ], 401);
         }
 
@@ -165,11 +165,11 @@ class AuthController extends Controller
         $user = $request->user();
 
         if ($user->hasVerifiedEmail()) {
-            return response()->json(['message' => 'El email ya está verificado.'], 422);
+            return response()->json(['message' => 'The email is already verified.'], 422);
         }
 
         $user->sendEmailVerificationNotification();
 
-        return response()->json(['message' => 'Email de verificación reenviado.']);
+        return response()->json(['message' => 'Verification email resent.']);
     }
 }

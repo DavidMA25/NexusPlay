@@ -90,4 +90,26 @@ class IGDBService
         Log::error('IGDB Search Failed: ' . $response->body());
         return [];
     }
+    public function getGameById(int $id)
+    {
+        return Cache::remember("igdb_game_{$id}", 86400, function () use ($id) {
+            $token = $this->getAccessToken();
+            if (!$token) return null;
+
+            $body = "fields name; where id = {$id};";
+
+            $response = Http::withHeaders([
+                'Client-ID' => $this->clientId,
+                'Authorization' => 'Bearer ' . $token,
+                'Content-Type' => 'text/plain',
+            ])->withBody($body, 'text/plain')->post('https://api.igdb.com/v4/games');
+
+            if ($response->successful()) {
+                $data = $response->json();
+                return $data[0]['name'] ?? null;
+            }
+
+            return null;
+        });
+    }
 }

@@ -62,4 +62,10 @@ class PlayerController extends Controller
 
         return response()->json($players);
     }
+
+    public function show($id)
+    {
+        $player = User::with(['profile', 'stats'])->findOrFail($id);
+        return response()->json($player);
+    }
 }

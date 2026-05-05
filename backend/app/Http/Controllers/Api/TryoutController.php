@@ -107,7 +107,7 @@ class TryoutController extends Controller
 
         if (! $deleted) {
             return response()->json([
-                'message' => 'No puedes cancelar esta inscripción.',
+                'message' => 'You cannot cancel this registration.',
             ], 422);
         }
 

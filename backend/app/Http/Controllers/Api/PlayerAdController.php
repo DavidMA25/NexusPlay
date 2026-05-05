@@ -75,6 +75,36 @@ class PlayerAdController extends Controller
 
         $ad->load(['user.profile', 'stat']);
 
+        // Notification matching logic
+        $gameId = $stat->game_igdb_id;
+        $region = auth()->user()->profile?->region;
+        $creatorName = auth()->user()->nickname ?? auth()->user()->name;
+
+        // Find users interested in this game and region
+        $interestedUsers = \App\Models\User::where('id', '!=', auth()->id())
+            ->whereHas('stats', function ($q) use ($gameId) {
+                $q->where('game_igdb_id', $gameId);
+            })
+            ->whereHas('profile', function ($q) use ($region) {
+                if ($region) {
+                    $q->where('region', $region);
+                }
+            })
+            ->get();
+
+        foreach ($interestedUsers as $user) {
+            \App\Models\Notification::createAndBroadcast([
+                'user_id' => $user->id,
+                'type' => 'ad_match',
+                'data' => [
+                    'ad_id' => $ad->id,
+                    'game_name' => $stat->game_name,
+                    'creator_name' => $creatorName,
+                    'message' => \Illuminate\Support\Str::limit($ad->message, 50)
+                ]
+            ]);
+        }
+
         return response()->json($ad, 201);
     }
 

@@ -150,8 +150,8 @@ export default function ProfileSettingsTab() {
     const inputStyles = "w-full bg-[#1a1a1a] border border-transparent hover:border-gray-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-red transition-colors";
 
     return (
-        <div className="bg-[#121212] border border-gray-800 rounded-xl p-8">
-            <h2 className="text-lg font-bold text-white mb-6">Profile Settings</h2>
+        <div className="bg-[#121212] border border-gray-800 rounded-xl p-5">
+            <h2 className="text-lg font-bold text-white mb-4">Profile Settings</h2>
 
             {statusMessage && (
                 <div className={`mb-6 p-4 rounded-lg text-sm font-medium ${statusMessage.type === 'success' ? 'bg-green-500/20 border border-green-500 text-green-400' : 'bg-red-500/20 border border-red-500 text-red-500'}`}>
@@ -159,10 +159,10 @@ export default function ProfileSettingsTab() {
                 </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
 
                 {/* Avatar Section */}
-                <div className="flex items-center gap-6 mb-8">
+                <div className="flex items-center gap-4 mb-2">
                     <div className="relative group cursor-pointer shrink-0" onClick={handleAvatarClick}>
                         <div className="w-20 h-20 rounded-full bg-brand-red/20 border-2 border-brand-red flex items-center justify-center text-brand-red font-bold text-2xl uppercase overflow-hidden">
                             {avatarPreview ? (
@@ -189,7 +189,7 @@ export default function ProfileSettingsTab() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Username */}
                     <div className="space-y-2">
                         <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Username</label>
@@ -214,8 +214,8 @@ export default function ProfileSettingsTab() {
                     </div>
                 </div>
 
-                {/* Languages (Kept the new style you liked) */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Languages */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Primary Language</label>
                         <select
@@ -265,13 +265,13 @@ export default function ProfileSettingsTab() {
                     <textarea
                         value={bio}
                         onChange={(e) => setBio(e.target.value)}
-                        rows="3"
+                        rows="2"
                         className={`${inputStyles} resize-none`}
                     ></textarea>
                 </div>
 
                 {/* Games Section - Redesigned to be highly intuitive */}
-                <div className="space-y-4 pt-4 border-t border-gray-800/60">
+                <div className="space-y-3 pt-3 border-t border-gray-800/60">
                     <div className="flex items-center justify-between mb-2">
                         <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">My Games</label>
                     </div>
@@ -369,7 +369,7 @@ export default function ProfileSettingsTab() {
                 </div>
 
                 {/* Footer buttons */}
-                <div className="pt-6">
+                <div className="pt-3">
                     <button
                         type="submit"
                         className="flex items-center gap-2 bg-brand-red hover:bg-[#ff4d4d] text-white px-6 py-2.5 rounded-md text-sm font-medium transition-all shadow-[0_0_10px_rgba(255,51,51,0.2)] hover:shadow-[0_0_15px_rgba(255,51,51,0.4)]"

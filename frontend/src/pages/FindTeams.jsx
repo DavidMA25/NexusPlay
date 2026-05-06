@@ -257,7 +257,9 @@ export default function FindTeams() {
                           />
                           <div className="flex gap-2">
                             <button onClick={() => { setApplyingAdId(null); setApplyMessage(''); }} className="flex-1 bg-gray-800 hover:bg-gray-700 text-white font-bold py-1.5 text-xs rounded-lg transition-all">Cancel</button>
-                            <button onClick={() => submitApplication(ad.id)} disabled={submittingApply} className="flex-1 bg-brand-red hover:bg-[#FF4D4D] disabled:opacity-50 text-white font-bold py-1.5 text-xs rounded-lg transition-all">Send</button>
+                            <button onClick={() => submitApplication(ad.id)} disabled={submittingApply} className="flex-1 bg-brand-red hover:bg-[#FF4D4D] disabled:opacity-50 text-white font-bold py-1.5 text-xs rounded-lg transition-all flex items-center justify-center gap-1">
+                              {submittingApply ? <><span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />Sending...</> : 'Send'}
+                            </button>
                           </div>
                         </div>
                       );

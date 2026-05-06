@@ -3,10 +3,10 @@ import { Link } from 'react-router-dom';
 
 export default function Footer() {
     return (
-        <footer className="bg-[#0a0a0a] border-t border-gray-800 pt-16 pb-8 px-4">
+        <footer className="bg-[#0a0a0a] border-t border-gray-800 pt-10 md:pt-16 pb-8 px-4">
             <div className="max-w-7xl mx-auto">
                 {/* Grid principal: Logo/Desc + 4 Columnas de links */}
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-12 mb-16">
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 md:gap-10 lg:gap-12 mb-12 md:mb-16">
 
                     {/* Columna del Logo y Redes (ocupa 2 columnas en pantallas grandes) */}
                     <div className="col-span-2">

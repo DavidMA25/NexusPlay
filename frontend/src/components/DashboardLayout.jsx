@@ -12,7 +12,8 @@ import {
     LogOut,
     Megaphone,
     X,
-    Send
+    Send,
+    Menu
 } from 'lucide-react';
 
 import { useState, useEffect } from 'react';
@@ -23,16 +24,14 @@ import { useNotifications } from '../context/NotificationContext';
 import logo from '../assets/logo.png';
 
 export default function DashboardLayout() {
-    // Extraemos los datos del usuario logueado y la funcion de cerrar sesion desde AuthContext
     const { user, logout, api } = useAuth();
     const { totalUnread } = useChat();
     const { unreadCount } = useNotifications();
     const navigate = useNavigate();
 
-    // Estado para controlar si el desplegable del perfil esta visible o no
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-    // Estados para el modal de publicar anuncio
     const [showAdModal, setShowAdModal] = useState(false);
     const [myStats, setMyStats] = useState([]);
     const [selectedStatId, setSelectedStatId] = useState('');
@@ -41,7 +40,6 @@ export default function DashboardLayout() {
     const [publishSuccess, setPublishSuccess] = useState(false);
     const [publishError, setPublishError] = useState('');
 
-    // Estados para el modal de anuncio de equipo
     const [showTeamAdModal, setShowTeamAdModal] = useState(false);
     const [myTeams, setMyTeams] = useState([]);
     const [selectedTeamId, setSelectedTeamId] = useState('');
@@ -52,15 +50,13 @@ export default function DashboardLayout() {
     const [teamPublishSuccess, setTeamPublishSuccess] = useState(false);
     const [teamPublishError, setTeamPublishError] = useState('');
 
-    // Fetch user's player stats and teams when component mounts
     useEffect(() => {
         api.get('/player-stats').then(res => {
             setMyStats(res.data.data || res.data);
         }).catch(err => console.error('Error fetching stats:', err));
-        
+
         api.get('/teams/my').then(res => {
             const teams = res.data.data || res.data;
-            // Only teams where user is admin/owner
             setMyTeams(teams.filter(t => t.is_admin));
         }).catch(err => console.error('Error fetching teams:', err));
     }, [api]);
@@ -118,66 +114,71 @@ export default function DashboardLayout() {
         }
     };
 
-    // Guardo la ruta actual en una variable. 
-    // Lo uso luego para saber en que pagina estoy y pintar ese boton de rojo.
     const location = useLocation();
 
-    // En lugar de repetir el codigo del boton 7 veces, creo un array de objetos.
-    // Asi el menu es escalable: si el dia de manana Mario o yo queremos anadir una seccion, 
-    // solo hay que meter una linea nueva aqui y se pinta sola.
     const menuItems = [
         { path: '/dashboard', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },
         { path: '/dashboard/players', icon: <Users size={20} />, label: 'Find Players' },
         { path: '/dashboard/teams', icon: <Shield size={20} />, label: 'Find Teams' },
         { path: '/dashboard/events', icon: <Calendar size={20} />, label: 'Events' },
-        // A algunos items les paso la propiedad 'badge' para mostrar el circulito rojo de notificaciones
         { path: '/dashboard/messages', icon: <MessageSquare size={20} />, label: 'Messages', badge: totalUnread || null },
         { path: '/dashboard/notifications', icon: <Bell size={20} />, label: 'Notifications', badge: unreadCount || null },
         { path: '/dashboard/profile', icon: <UserCircle size={20} />, label: 'My Profile' },
         { path: '/dashboard/settings', icon: <Settings size={20} />, label: 'Settings' },
     ];
 
+    const closeSidebar = () => setIsSidebarOpen(false);
+
     return (
-        // Contenedor principal que ocupa toda la pantalla (h-screen) sin crecer más allá
         <div className="h-screen overflow-hidden bg-[#0a0a0a] flex text-white font-sans">
 
-            {/* ================= BARRA LATERAL (SIDEBAR) ================= */}
-            {/* Le pongo w-64 para dejarla fija y hidden md:flex para que se oculte en moviles */}
-            <aside className="w-64 bg-[#121212] border-r border-gray-800 flex-col hidden md:flex">
+            {/* Overlay para cerrar el menú en móvil */}
+            {isSidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-black/60 z-30 md:hidden"
+                    onClick={closeSidebar}
+                />
+            )}
 
-                {/* Cabecera del Sidebar con el Logo */}
-                <div className="h-20 flex items-center px-6 border-b border-gray-800">
+            {/* ================= SIDEBAR ================= */}
+            <aside className={`
+                fixed md:relative z-40 h-full w-64
+                bg-[#121212] border-r border-gray-800 flex flex-col
+                transition-transform duration-300
+                ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+            `}>
+
+                <div className="h-16 md:h-20 flex items-center justify-between px-6 border-b border-gray-800 shrink-0">
                     <Link to="/" className="flex items-center gap-2">
                         <img src={logo} alt="NexusPlay Logo" className="h-8 w-auto object-contain" />
                     </Link>
+                    <button
+                        className="md:hidden text-gray-400 hover:text-white transition-colors"
+                        onClick={closeSidebar}
+                    >
+                        <X size={20} />
+                    </button>
                 </div>
 
-                {/* Zona central del menu: iteramos sobre el array que creamos arriba */}
-                <nav className="flex-1 py-6 px-4 space-y-2">
+                <nav className="flex-1 py-6 px-4 space-y-2 overflow-y-auto">
                     {menuItems.map((item, index) => {
-                        // Comprobamos si la ruta del navegador coincide con la de este boton
                         const isActive = location.pathname === item.path;
-
                         return (
                             <Link
                                 key={index}
                                 to={item.path}
-                                // Si esta activo, le pongo fondo rojizo y texto rojo. Si no, gris.
+                                onClick={closeSidebar}
                                 className={`flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${isActive
                                     ? 'bg-brand-red/10 text-brand-red font-medium'
                                     : 'text-gray-400 hover:text-white hover:bg-[#1a1a1a]'
-                                    }`}
+                                }`}
                             >
                                 <div className="flex items-center gap-3">
                                     {item.icon}
                                     <span>{item.label}</span>
                                 </div>
-
-                                {/* Renderizado condicional: si el item tiene 'badge', pinto la pildora roja */}
                                 {item.badge && (
-                                    <span
-                                        className="bg-brand-red text-white text-[10px] font-bold px-2 py-0.5 rounded-full"
-                                    >
+                                    <span className="bg-brand-red text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
                                         {item.badge}
                                     </span>
                                 )}
@@ -186,10 +187,9 @@ export default function DashboardLayout() {
                     })}
                 </nav>
 
-                {/* Zona inferior del menu: Botón Publish Ad */}
-                <div className="p-4 border-t border-gray-800 space-y-2">
+                <div className="p-4 border-t border-gray-800 space-y-2 shrink-0">
                     <button
-                        onClick={() => setShowAdModal(true)}
+                        onClick={() => { setShowAdModal(true); closeSidebar(); }}
                         className="w-full flex items-center justify-center gap-2 bg-brand-red hover:bg-[#FF4D4D] text-white px-4 py-3 rounded-lg text-sm font-medium transition-all shadow-[0_0_10px_rgba(255,51,51,0.2)] hover:shadow-[0_0_20px_rgba(255,51,51,0.4)] whitespace-nowrap"
                     >
                         <Megaphone size={18} />
@@ -197,7 +197,7 @@ export default function DashboardLayout() {
                     </button>
                     {myTeams.length > 0 && (
                         <button
-                            onClick={() => setShowTeamAdModal(true)}
+                            onClick={() => { setShowTeamAdModal(true); closeSidebar(); }}
                             className="w-full flex items-center justify-center gap-2 bg-[#1a1a1a] border border-gray-700 hover:bg-[#222] text-white px-4 py-3 rounded-lg text-sm font-medium transition-all whitespace-nowrap"
                         >
                             <Shield size={18} />
@@ -207,42 +207,36 @@ export default function DashboardLayout() {
                 </div>
             </aside>
 
-            {/* ================= AREA PRINCIPAL DERECHA ================= */}
-            {/* Uso flex-1 para que ocupe todo el ancho restante de la pantalla */}
-            <main className="flex-1 flex flex-col h-full overflow-hidden">
+            {/* ================= ÁREA PRINCIPAL ================= */}
+            <main className="flex-1 flex flex-col h-full overflow-hidden min-w-0">
 
-                {/* Barra superior de busqueda y utilidades */}
-                <header
-                    className="h-20 border-b border-gray-800 bg-[#0a0a0a] flex items-center justify-between px-8 shrink-0 relative"
-                >
+                <header className="h-16 md:h-20 border-b border-gray-800 bg-[#0a0a0a] flex items-center justify-between px-4 md:px-8 shrink-0">
 
-                    {/* Empty space for alignment if needed, or just remove if flex-between handles it */}
-                    <div />
+                    {/* Hamburguesa — solo en móvil */}
+                    <button
+                        className="md:hidden text-gray-400 hover:text-white transition-colors"
+                        onClick={() => setIsSidebarOpen(true)}
+                    >
+                        <Menu size={22} />
+                    </button>
 
-                    {/* Controles de la derecha (Notificaciones y Perfil) */}
-                    <div className="flex items-center gap-6">
+                    <div className="hidden md:block" />
 
-                        {/* Campana de notificaciones con puntito rojo de aviso */}
+                    <div className="flex items-center gap-4 md:gap-6">
+
                         <button onClick={() => navigate('/dashboard/notifications')} className="text-gray-400 hover:text-white transition-colors relative">
                             <Bell size={20} />
                             {unreadCount > 0 && (
-                                <span
-                                    className="absolute -top-1 -right-1 w-2 h-2 bg-brand-red rounded-full"
-                                ></span>
+                                <span className="absolute -top-1 -right-1 w-2 h-2 bg-brand-red rounded-full"></span>
                             )}
                         </button>
 
-                        {/* Contenedor relativo para poder posicionar el menu desplegable justo debajo */}
                         <div className="relative">
-
-                            {/* Boton del perfil que al hacer click cambia el estado abierto/cerrado */}
                             <div
                                 onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                                className="flex items-center gap-2 cursor-pointer border-l border-gray-800 pl-6 hover:opacity-80 transition-opacity"
+                                className="flex items-center gap-2 cursor-pointer border-l border-gray-800 pl-4 md:pl-6 hover:opacity-80 transition-opacity"
                             >
-                                <div
-                                    className="w-8 h-8 rounded-full bg-brand-red/20 border border-brand-red flex items-center justify-center text-brand-red font-bold text-sm uppercase overflow-hidden"
-                                >
+                                <div className="w-8 h-8 rounded-full bg-brand-red/20 border border-brand-red flex items-center justify-center text-brand-red font-bold text-sm uppercase overflow-hidden">
                                     {user?.avatar_url ? (
                                         <img src={`http://localhost:8000${user.avatar_url}`} alt="Avatar" className="w-full h-full object-cover" />
                                     ) : (
@@ -255,17 +249,12 @@ export default function DashboardLayout() {
                                 />
                             </div>
 
-                            {/* El menu desplegable. Solo se renderiza si isProfileMenuOpen es true */}
                             {isProfileMenuOpen && (
                                 <div className="absolute right-0 mt-6 w-56 bg-[#121212] border border-gray-800 rounded-xl shadow-2xl overflow-hidden z-50">
-
-                                    {/* Cabecera del desplegable con el correo */}
                                     <div className="p-4 border-b border-gray-800 bg-[#1a1a1a]">
                                         <p className="text-sm font-bold text-white truncate">{user?.name || 'User'}</p>
                                         <p className="text-xs text-gray-400 truncate mt-0.5">{user?.email || 'user@nexusplay.com'}</p>
                                     </div>
-
-                                    {/* Opciones del menu */}
                                     <div className="p-2 space-y-1">
                                         <Link
                                             to="/dashboard/profile"
@@ -284,8 +273,6 @@ export default function DashboardLayout() {
                                             Settings
                                         </Link>
                                     </div>
-
-                                    {/* Boton de Logout en rojo para destacar */}
                                     <div className="p-2 border-t border-gray-800">
                                         <button
                                             onClick={async () => {
@@ -305,12 +292,7 @@ export default function DashboardLayout() {
                     </div>
                 </header>
 
-                {/* 
-                    Este es el contenedor dinámico. El Outlet de React Router inyecta aqui 
-                    el contenido de la ruta en la que estemos (ej: las estadisticas, la lista de jugadores, etc) 
-                    sin tener que recargar ni el menu lateral ni la barra superior.
-                */}
-                <div className="flex-1 overflow-y-auto p-8">
+                <div className="flex-1 overflow-y-auto p-4 md:p-8">
                     <Outlet />
                 </div>
 
@@ -323,8 +305,6 @@ export default function DashboardLayout() {
                     onClick={(e) => { if (e.target === e.currentTarget) setShowAdModal(false); }}
                 >
                     <div className="w-full max-w-md bg-[#121212] border border-gray-800 rounded-xl shadow-2xl animate-[slideUp_0.3s_ease-out] overflow-hidden">
-
-                        {/* Header */}
                         <div className="flex items-center justify-between p-6 border-b border-gray-800">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-lg bg-brand-red/10 flex items-center justify-center">
@@ -339,11 +319,7 @@ export default function DashboardLayout() {
                                 <X size={20} />
                             </button>
                         </div>
-
-                        {/* Body */}
                         <div className="p-6 space-y-5">
-
-                            {/* Game Select */}
                             <div>
                                 <label className="text-xs text-gray-400 mb-2 block font-medium uppercase tracking-wider">Select Game</label>
                                 {myStats.length === 0 ? (
@@ -363,8 +339,6 @@ export default function DashboardLayout() {
                                     </select>
                                 )}
                             </div>
-
-                            {/* Message */}
                             <div>
                                 <label className="text-xs text-gray-400 mb-2 block font-medium uppercase tracking-wider">Short Message</label>
                                 <textarea
@@ -377,19 +351,13 @@ export default function DashboardLayout() {
                                 />
                                 <p className="text-right text-gray-600 text-[10px] mt-1">{adMessage.length}/255</p>
                             </div>
-
-                            {/* Error */}
                             {publishError && (
                                 <p className="text-red-500 text-xs bg-red-500/10 rounded-lg px-3 py-2">{publishError}</p>
                             )}
-
-                            {/* Success */}
                             {publishSuccess && (
                                 <p className="text-green-500 text-xs bg-green-500/10 rounded-lg px-3 py-2">✓ Ad published successfully!</p>
                             )}
                         </div>
-
-                        {/* Footer */}
                         <div className="p-6 border-t border-gray-800">
                             <button
                                 onClick={handlePublishAd}
@@ -411,8 +379,6 @@ export default function DashboardLayout() {
                     onClick={(e) => { if (e.target === e.currentTarget) setShowTeamAdModal(false); }}
                 >
                     <div className="w-full max-w-md bg-[#121212] border border-gray-800 rounded-xl shadow-2xl animate-[slideUp_0.3s_ease-out] overflow-hidden">
-
-                        {/* Header */}
                         <div className="flex items-center justify-between p-6 border-b border-gray-800">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-lg bg-brand-red/10 flex items-center justify-center">
@@ -427,11 +393,7 @@ export default function DashboardLayout() {
                                 <X size={20} />
                             </button>
                         </div>
-
-                        {/* Body */}
                         <div className="p-6 space-y-5">
-
-                            {/* Team Select */}
                             <div>
                                 <label className="text-xs text-gray-400 mb-2 block font-medium uppercase tracking-wider">Select Team</label>
                                 <select
@@ -447,8 +409,6 @@ export default function DashboardLayout() {
                                     ))}
                                 </select>
                             </div>
-
-                            {/* Description */}
                             <div>
                                 <label className="text-xs text-gray-400 mb-2 block font-medium uppercase tracking-wider">What are you looking for?</label>
                                 <textarea
@@ -459,8 +419,6 @@ export default function DashboardLayout() {
                                     className="w-full bg-[#0a0a0a] border border-gray-800 text-white text-sm rounded-lg p-3 focus:border-brand-red outline-none transition-colors resize-none placeholder-gray-600"
                                 />
                             </div>
-
-                            {/* Ranks */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-xs text-gray-400 mb-2 block font-medium uppercase tracking-wider">Min Rank</label>
@@ -473,19 +431,13 @@ export default function DashboardLayout() {
                                         className="w-full bg-[#0a0a0a] border border-gray-800 text-white text-sm rounded-lg p-3 focus:border-brand-red outline-none transition-colors" />
                                 </div>
                             </div>
-
-                            {/* Error */}
                             {teamPublishError && (
                                 <p className="text-red-500 text-xs bg-red-500/10 rounded-lg px-3 py-2">{teamPublishError}</p>
                             )}
-
-                            {/* Success */}
                             {teamPublishSuccess && (
                                 <p className="text-green-500 text-xs bg-green-500/10 rounded-lg px-3 py-2">✓ Ad published successfully!</p>
                             )}
                         </div>
-
-                        {/* Footer */}
                         <div className="p-6 border-t border-gray-800">
                             <button
                                 onClick={handlePublishTeamAd}

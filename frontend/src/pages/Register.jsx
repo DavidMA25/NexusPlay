@@ -229,17 +229,6 @@ export default function Register() {
             />
           </div>
 
-          {/* Terms & Conditions Checkbox */}
-          <div className="flex items-start gap-2 text-sm mt-4">
-            <input 
-              type="checkbox" 
-              className="rounded bg-[#1a1a1a] border-gray-700 text-brand-red focus:ring-0 w-4 h-4 mt-0.5" 
-            />
-            <span className="text-gray-400">
-              I agree to the <a href="#" className="text-brand-red hover:underline">Terms of Service</a> and <a href="#" className="text-brand-red hover:underline">Privacy Policy</a>
-            </span>
-          </div>
-
           {/* Botón principal */}
           <button 
             type="submit"

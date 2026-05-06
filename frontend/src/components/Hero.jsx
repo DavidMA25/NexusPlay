@@ -6,7 +6,7 @@ import heroBg from '../assets/hero.jpg';
 export default function Hero() {
     const navigate = useNavigate();
     return (
-        <div className="relative flex flex-col items-center justify-center pt-32 pb-20 px-4 text-center overflow-hidden bg-[#0a0a0a]">
+        <div className="relative flex flex-col items-center justify-center pt-24 pb-16 md:pt-32 md:pb-20 px-4 text-center overflow-hidden bg-[#0a0a0a]">
 
             {/* foto de fondo, la opacidad baja para que no tape el texto */}
             <img
@@ -26,12 +26,12 @@ export default function Hero() {
                 <span className="text-gray-400 text-sm">The #1 eSports Recruitment Platform</span>
             </div>
 
-            <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight">
+            <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight">
                 Elevate Your Game.<br />
                 Find Your <span className="text-brand-red">Squad.</span>
             </h1>
 
-            <p className="text-gray-400 text-lg md:text-xl max-w-2xl mb-10">
+            <p className="text-gray-400 text-base md:text-xl max-w-2xl mb-10">
                 The professional hub for eSports recruitment. Connect with teams, manage tryouts, and build your legacy.
             </p>
 

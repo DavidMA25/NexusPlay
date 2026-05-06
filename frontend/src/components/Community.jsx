@@ -12,14 +12,14 @@ export default function Community() {
     ];
 
     return (
-        <section className="py-20 px-4 max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-12">
+        <section className="py-16 md:py-20 px-4 max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
 
             {/* IZQUIERDA: Textos y el botón principal */}
             <div className="flex-1">
                 <span className="text-brand-red font-bold text-sm tracking-widest uppercase">
                     Join the Community
                 </span>
-                <h2 className="text-white text-4xl md:text-6xl font-bold mt-4 mb-6 leading-tight">
+                <h2 className="text-white text-3xl sm:text-4xl md:text-6xl font-bold mt-4 mb-6 leading-tight">
                     Be Part of the <span className="text-brand-red">Next Generation</span> of eSports
                 </h2>
                 <p className="text-gray-400 text-lg mb-10 max-w-xl">
@@ -88,7 +88,7 @@ export default function Community() {
                         <div className="relative flex items-center">
                             <input
                                 type="text"
-                                placeholder="Escribe un mensaje..."
+                                placeholder="Type a message..."
                                 className="w-full bg-[#1a1a1a] border border-gray-800 rounded-xl py-3 px-4 text-white text-sm focus:outline-none focus:border-brand-red transition-colors"
                             />
                             <button className="absolute right-2 p-2 bg-brand-red rounded-lg text-white">

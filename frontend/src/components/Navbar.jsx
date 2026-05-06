@@ -27,7 +27,7 @@ export default function Navbar() {
                 </div>
 
                 {/* Botones de Auth — cambian según estado de sesión */}
-                <div className="flex items-center gap-6">
+                <div className="flex items-center gap-3 md:gap-6">
                     {user ? (
                         <>
                             <span className="text-sm text-gray-400 hidden md:block">{user.name}</span>
@@ -39,7 +39,7 @@ export default function Navbar() {
                             </button>
                             <Link
                                 to="/dashboard"
-                                className="bg-brand-red hover:bg-[#FF4D4D] text-white text-sm font-medium py-2 px-6 rounded-md transition-colors shadow-[0_0_15px_rgba(255,51,51,0.5)] cursor-pointer"
+                                className="bg-brand-red hover:bg-[#FF4D4D] text-white text-sm font-medium py-2 px-4 md:px-6 rounded-md transition-colors shadow-[0_0_15px_rgba(255,51,51,0.5)] cursor-pointer"
                             >
                                 Dashboard
                             </Link>
@@ -54,7 +54,7 @@ export default function Navbar() {
                             </Link>
                             <Link
                                 to="/register"
-                                className="bg-brand-red hover:bg-[#FF4D4D] text-white text-sm font-medium py-2 px-6 rounded-md transition-colors shadow-[0_0_15px_rgba(255,51,51,0.5)]"
+                                className="bg-brand-red hover:bg-[#FF4D4D] text-white text-sm font-medium py-2 px-4 md:px-6 rounded-md transition-colors shadow-[0_0_15px_rgba(255,51,51,0.5)]"
                             >
                                 Register
                             </Link>

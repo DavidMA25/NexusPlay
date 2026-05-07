@@ -5,11 +5,11 @@ namespace App\Events;
 use App\Models\Message;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class MessageSent implements ShouldBroadcast
+class MessageSent implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -57,9 +57,7 @@ class MessageSent implements ShouldBroadcast
         // Si es un grupo, intentamos buscar el logo del equipo
         $avatarUrl = null;
         if ($conversation->is_group) {
-            $team = \App\Models\Team::where('name', $conversation->group_name)
-                ->where('owner_id', $conversation->owner_id)
-                ->first();
+            $team = \App\Models\Team::where('conversation_id', $conversation->id)->first();
             $avatarUrl = $team?->logo_url;
         } else {
             $avatarUrl = $sender?->avatar_url;

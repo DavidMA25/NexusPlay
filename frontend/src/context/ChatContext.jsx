@@ -6,7 +6,7 @@ const ChatContext = createContext(null);
 
 export const useChat = () => {
     const ctx = useContext(ChatContext);
-    if (!ctx) throw new Error('useChat debe usarse dentro de ChatProvider');
+    if (!ctx) throw new Error('useChat must be used inside ChatProvider');
     return ctx;
 };
 
@@ -14,17 +14,23 @@ export function ChatProvider({ children }) {
     const { user, token, api } = useAuth();
     const echo = useEcho(token);
 
-    const [conversations, setConversations]         = useState([]);
+    const [conversations, setConversations]               = useState([]);
     const [activeConversationId, setActiveConversationId] = useState(null);
-    const [loading, setLoading]                     = useState(false);
+    const [loading, setLoading]                           = useState(false);
 
-    // Refs para evitar stale closures dentro de listeners de Reverb
+    // Refs to avoid stale closures inside Reverb listeners
     const activeConvIdRef    = useRef(null);
     const userIdRef          = useRef(null);
     const subscribedChannels = useRef(new Set());
 
+    // External notification handler — NotificationContext injects this
+    // so both can share the same private-user channel without conflicts
+    const notificationHandlerRef = useRef(null);
+
     useEffect(() => { activeConvIdRef.current = activeConversationId; }, [activeConversationId]);
     useEffect(() => { userIdRef.current = user?.id ?? null; },          [user?.id]);
+
+    // ── Fetch conversations on login ──────────────────────────────────────────
 
     const fetchConversations = useCallback(async () => {
         if (!user) return;
@@ -33,7 +39,7 @@ export function ChatProvider({ children }) {
             const res = await api.get('/conversations');
             setConversations(res.data);
         } catch (e) {
-            console.error('Error cargando conversaciones:', e);
+            console.error('Error loading conversations:', e);
         } finally {
             setLoading(false);
         }
@@ -47,6 +53,8 @@ export function ChatProvider({ children }) {
             subscribedChannels.current.clear();
         }
     }, [user?.id]);
+
+    // ── Incoming message handler (used by the user.{id} channel) ─────────────
 
     const handleIncomingMessage = useCallback((data) => {
         const isActive = activeConvIdRef.current === data.conversation_id;
@@ -72,17 +80,16 @@ export function ChatProvider({ children }) {
                 });
             }
 
-            // Conversación nueva (el otro usuario la creó): añadirla con unread 1
-            // Los datos básicos vienen en data.conversation (añadidos en broadcastWith)
+            // New conversation created by someone else — add it with unread: 1
             if (data.conversation && !isOwnMsg) {
                 const isGroup = !!data.conversation.is_group;
-                const newConv = {
+                return [{
                     id:            data.conversation.id,
                     is_group:      isGroup,
                     group_name:    data.conversation.group_name,
                     owner_id:      data.conversation.owner_id,
-                    name:          isGroup 
-                        ? (data.conversation.group_name || 'Group Chat') 
+                    name:          isGroup
+                        ? (data.conversation.group_name || 'Group Chat')
                         : (data.sender_nickname || data.sender_name),
                     avatar_url:    isGroup ? data.conversation.avatar_url : data.sender_avatar,
                     other_user_id: isGroup ? null : data.sender_id,
@@ -93,13 +100,16 @@ export function ChatProvider({ children }) {
                         created_at: data.created_at,
                     },
                     unread_count: 1,
-                };
-                return [newConv, ...prev];
+                }, ...prev];
             }
 
             return prev;
         });
     }, []);
+
+    // ── Single private-user channel subscription ──────────────────────────────
+    // Both message.sent and notification.received are handled here so that
+    // echo.leave() is only called once and doesn't kill the other listener.
 
     useEffect(() => {
         if (!echo || !user?.id) return;
@@ -107,12 +117,19 @@ export function ChatProvider({ children }) {
         const channelName = `user.${user.id}`;
         const channel = echo.private(channelName);
 
-        channel.listen('.message.sent', handleIncomingMessage);
+        channel
+            .listen('.message.sent', handleIncomingMessage)
+            .listen('.notification.received', (data) => {
+                // Delegate to NotificationContext if it has registered a handler
+                notificationHandlerRef.current?.(data);
+            });
 
         return () => {
             echo.leave(channelName);
         };
     }, [echo, user?.id, handleIncomingMessage]);
+
+    // ── Per-conversation channel (message.deleted only) ───────────────────────
 
     const subscribeToConversation = useCallback((conv) => {
         if (!echo) return;
@@ -125,13 +142,12 @@ export function ChatProvider({ children }) {
                     prev.map(c => {
                         if (c.id !== data.conversation_id) return c;
                         if (c.last_message?.id === data.id) {
-                            return { ...c, last_message: { ...c.last_message, content: '[Mensaje eliminado]' } };
+                            return { ...c, last_message: { ...c.last_message, content: '[Message deleted]' } };
                         }
                         return c;
                     })
                 );
             });
-        // Nota: .message.sent lo gestiona el canal user.{id} para evitar duplicados
 
         subscribedChannels.current.add(channelName);
     }, [echo]);
@@ -140,6 +156,8 @@ export function ChatProvider({ children }) {
         if (!echo) return;
         conversations.forEach(subscribeToConversation);
     }, [echo, conversations, subscribeToConversation]);
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
     const openConversation = useCallback((id) => {
         setActiveConversationId(id);
@@ -166,6 +184,7 @@ export function ChatProvider({ children }) {
         setConversations(prev => prev.filter(c => c.id !== id));
         if (activeConvIdRef.current === id) {
             setActiveConversationId(null);
+            activeConvIdRef.current = null;
         }
     }, []);
 
@@ -182,6 +201,8 @@ export function ChatProvider({ children }) {
             addOrUpdateConversation,
             removeConversation,
             setConversations,
+            // Exposed so NotificationContext can register its handler
+            notificationHandlerRef,
         }}>
             {children}
         </ChatContext.Provider>

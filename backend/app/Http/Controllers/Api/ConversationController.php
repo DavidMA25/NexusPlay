@@ -10,6 +10,7 @@ use App\Models\Message;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class ConversationController extends Controller
 {
@@ -53,7 +54,13 @@ class ConversationController extends Controller
 
     public function findOrCreateDirect(Request $request)
     {
-        $request->validate(['user_id' => 'required|exists:users,id|different:' . auth()->id()]);
+        $request->validate([
+            'user_id' => [
+                'required',
+                'exists:users,id',
+                Rule::notIn([auth()->id()]),
+            ],
+        ]);
 
         $userId  = auth()->id();
         $otherId = $request->user_id;
@@ -110,7 +117,7 @@ class ConversationController extends Controller
             if (!$hasTalked) {
                 $user = User::find($memberId);
                 return response()->json([
-                    'message' => 'Solo puedes añadir usuarios con los que hayas hablado antes.',
+                    'message' => 'You can only add users you have previously talked to.',
                     'user'    => $user?->nickname ?? $user?->name,
                 ], 422);
             }
@@ -139,44 +146,42 @@ class ConversationController extends Controller
         $this->authorizeParticipant($conversation);
 
         if (!$conversation->is_group) {
-            return response()->json(['message' => 'No es un grupo.'], 400);
+            return response()->json(['message' => 'This is not a group conversation.'], 400);
         }
 
-        $userId = auth()->id();
+        $userId  = auth()->id();
         $isOwner = $conversation->owner_id === $userId;
 
-        // Intentar encontrar el Team asociado
-        $team = \App\Models\Team::where('name', $conversation->group_name)->where('owner_id', $conversation->owner_id)->first();
+        // Find the linked team using the real FK — no name guessing
+        $team = \App\Models\Team::where('conversation_id', $conversation->id)->first();
 
         if ($isOwner) {
-            $otherParticipant = $conversation->participants()
+            $nextOwner = $conversation->participants()
                 ->where('users.id', '!=', $userId)
                 ->orderBy('conversation_participants.created_at', 'asc')
                 ->first();
 
-            if ($otherParticipant) {
-                // Transferir propiedad
-                $conversation->update(['owner_id' => $otherParticipant->id]);
+            if ($nextOwner) {
+                // Transfer ownership of conversation and team
+                $conversation->update(['owner_id' => $nextOwner->id]);
                 if ($team) {
-                    $team->update(['owner_id' => $otherParticipant->id]);
-                    $team->members()->detach($otherParticipant->id);
+                    $team->update(['owner_id' => $nextOwner->id]);
                 }
-                $conversation->participants()->detach($userId);
             } else {
-                // Eliminar porque no queda nadie
+                // Last member leaving — delete everything
                 $conversation->participants()->detach();
                 $conversation->delete();
                 if ($team) {
                     $team->members()->detach();
                     $team->delete();
                 }
+                return response()->noContent();
             }
-        } else {
-            // Usuario normal
-            $conversation->participants()->detach($userId);
-            if ($team) {
-                $team->members()->detach($userId);
-            }
+        }
+
+        $conversation->participants()->detach($userId);
+        if ($team) {
+            $team->members()->detach($userId);
         }
 
         return response()->noContent();
@@ -272,7 +277,7 @@ class ConversationController extends Controller
         $isMine     = $message->sender_id === $userId;
 
         if (!$isMine && !$isOwner) {
-            return response()->json(['message' => 'No tienes permiso para eliminar este mensaje.'], 403);
+            return response()->json(['message' => 'You do not have permission to delete this message.'], 403);
         }
 
         $message->update(['deleted_at' => now(), 'content' => '']);
@@ -313,7 +318,7 @@ class ConversationController extends Controller
             ->where('user_id', auth()->id())
             ->exists();
 
-        abort_unless($isParticipant, 403, 'No eres participante de esta conversación.');
+        abort_unless($isParticipant, 403, 'You are not a participant of this conversation.');
     }
 
     private function formatConversation(Conversation $conversation, int $userId): array
@@ -332,9 +337,7 @@ class ConversationController extends Controller
         // Avatar:
         $avatarUrl = null;
         if ($conversation->is_group) {
-            $team = \App\Models\Team::where('name', $conversation->group_name)
-                ->where('owner_id', $conversation->owner_id)
-                ->first();
+            $team = \App\Models\Team::where('conversation_id', $conversation->id)->first();
             $avatarUrl = $team?->logo_url;
         } else {
             $avatarUrl = $conversation->participants->firstWhere('id', '!=', $userId)?->avatar_url;
@@ -359,7 +362,7 @@ class ConversationController extends Controller
                 'avatar_url' => $p->avatar_url,
             ]),
             'last_message' => $lastMsg ? [
-                'content'    => $lastMsg->deleted_at ? '[Mensaje eliminado]' : $lastMsg->content,
+                'content'    => $lastMsg->deleted_at ? '[Message deleted]' : $lastMsg->content,
                 'sender_id'  => $lastMsg->sender_id,
                 'created_at' => $lastMsg->created_at?->toISOString(),
             ] : null,

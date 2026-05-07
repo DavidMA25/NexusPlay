@@ -44,11 +44,14 @@ class TeamController extends Controller
         ]);
 
         $conversation = \App\Models\Conversation::create([
-            'is_group' => true,
+            'is_group'   => true,
             'group_name' => $team->name,
-            'owner_id' => auth()->id()
+            'owner_id'   => auth()->id(),
         ]);
         $conversation->participants()->attach(auth()->id());
+
+        // Link team ↔ conversation with a real FK
+        $team->update(['conversation_id' => $conversation->id]);
 
         if ($request->has('members')) {
             $memberIds = json_decode($request->input('members'), true);

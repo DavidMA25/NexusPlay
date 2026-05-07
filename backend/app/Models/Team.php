@@ -18,7 +18,8 @@ class Team extends Model
         'website',
         'language',
         'game_igdb_id',
-        'platform'
+        'platform',
+        'conversation_id',
     ];
 
     public function owner()

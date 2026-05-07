@@ -35,6 +35,6 @@ class Message extends Model
      */
     public function getDisplayContentAttribute(): string
     {
-        return $this->deleted_at ? '[Mensaje eliminado]' : $this->content;
+        return $this->deleted_at ? '[Message deleted]' : $this->content;
     }
 }

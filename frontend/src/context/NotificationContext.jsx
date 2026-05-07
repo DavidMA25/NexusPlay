@@ -1,22 +1,24 @@
-import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
-import { useEcho } from '../hooks/useEcho';
+import { useChat } from './ChatContext';
 
 const NotificationContext = createContext(null);
 
 export const useNotifications = () => {
     const ctx = useContext(NotificationContext);
-    if (!ctx) throw new Error('useNotifications debe usarse dentro de NotificationProvider');
+    if (!ctx) throw new Error('useNotifications must be used inside NotificationProvider');
     return ctx;
 };
 
 export function NotificationProvider({ children }) {
-    const { user, token, api } = useAuth();
-    const echo = useEcho(token);
+    const { user, api } = useAuth();
+    // notificationHandlerRef is owned by ChatContext — we register our handler
+    // there so both contexts share the single private-user.{id} channel
+    const { notificationHandlerRef } = useChat();
 
     const [notifications, setNotifications] = useState([]);
-    const [unreadCount, setUnreadCount] = useState(0);
-    const [loading, setLoading] = useState(false);
+    const [unreadCount, setUnreadCount]     = useState(0);
+    const [loading, setLoading]             = useState(false);
 
     const fetchNotifications = useCallback(async () => {
         if (!user) return;
@@ -49,25 +51,19 @@ export function NotificationProvider({ children }) {
             setNotifications([]);
             setUnreadCount(0);
         }
-    }, [user?.id, fetchNotifications, fetchUnreadCount]);
+    }, [user?.id]);
 
+    // Register our handler into ChatContext's ref — no separate channel needed
     useEffect(() => {
-        if (!echo || !user?.id) return;
-
-        const channelName = `user.${user.id}`;
-        const channel = echo.private(channelName);
-
-        channel.listen('.notification.received', (data) => {
+        notificationHandlerRef.current = (data) => {
             setNotifications(prev => [data, ...prev]);
             setUnreadCount(prev => prev + 1);
-            
-            // Optional: Show a toast or desktop notification here
-        });
+        };
 
         return () => {
-            echo.leave(channelName);
+            notificationHandlerRef.current = null;
         };
-    }, [echo, user?.id]);
+    }, [notificationHandlerRef]);
 
     const markAsRead = async (id) => {
         try {
@@ -96,7 +92,7 @@ export function NotificationProvider({ children }) {
             loading,
             fetchNotifications,
             markAsRead,
-            markAllAsRead
+            markAllAsRead,
         }}>
             {children}
         </NotificationContext.Provider>

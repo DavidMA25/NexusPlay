@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
 import { useNotifications } from '../context/NotificationContext';
-import { Bot, MapPin, Globe, MessageSquare, Bell, Users, Gamepad2, Shield, Heart, Trophy, Info, Megaphone, Check } from 'lucide-react';
+import { Bot, MapPin, Globe, MessageSquare, Bell, Users, Gamepad2, Shield, Heart, Trophy, Info, Megaphone, Check, X } from 'lucide-react';
 import pcIcon from '../assets/pc.svg';
 import nintendoIcon from '../assets/nintendo.svg';
 import xboxIcon from '../assets/xbox.svg';
@@ -285,7 +285,7 @@ export default function DashboardHome() {
                   text = `Accepted into ${notification.data.team_name}`;
                   break;
                 case 'application_rejected':
-                  icon = <Shield size={18} className="text-gray-500" />;
+                  icon = <X size={18} className="text-red-500" />;
                   text = `Rejected from ${notification.data.team_name}`;
                   break;
                 case 'ad_match':

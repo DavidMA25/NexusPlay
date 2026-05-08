@@ -23,7 +23,7 @@ class AuthController extends Controller
             'description' => 'nullable|string'
         ]);
 
-        $userRole = (isset($data['role']) && $data['role'] === 'team') ? 'recruiter' : 'player';
+        $userRole = 'player';
 
         $user = User::create([
             'name' => $data['name'],

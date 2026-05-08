@@ -20,7 +20,7 @@ get_header();
             position: relative;
             overflow: hidden;
         ">
-            <!-- Brillo decorativo -->
+            <!-- Decorative glow -->
             <div style="
                 position: absolute; top: 0; left: 0; right: 0; height: 2px;
                 background: linear-gradient(90deg, transparent, var(--color-red), transparent);
@@ -32,11 +32,11 @@ get_header();
             </div>
 
             <h1 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem;">
-                <?php _e( 'Página no encontrada', 'nexusplay' ); ?>
+                <?php _e( 'Page not found', 'nexusplay' ); ?>
             </h1>
 
             <p style="color: var(--color-text-muted); max-width: 400px; margin: 0 auto 2rem;">
-                <?php _e( 'La página que buscas no existe o fue movida. Prueba a buscar lo que necesitas.', 'nexusplay' ); ?>
+                <?php _e( 'The page you are looking for does not exist or has been moved.', 'nexusplay' ); ?>
             </p>
 
             <?php get_search_form(); ?>
@@ -52,7 +52,7 @@ get_header();
                    font-weight: 700;
                    font-size: 0.9rem;
                ">
-                &larr; <?php _e( 'Volver al inicio', 'nexusplay' ); ?>
+                &larr; <?php _e( 'Back to home', 'nexusplay' ); ?>
             </a>
         </div>
 

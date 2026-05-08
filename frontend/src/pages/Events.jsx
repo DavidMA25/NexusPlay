@@ -93,7 +93,7 @@ function formatDate(d) {
   } catch { return d; }
 }
 
-function useEnrollment(wpPostId, token) {
+function useEnrollment(wpPostId, token, onOwnerResolved) {
   const [data, setData]   = useState({ enrolled: false, status: null, is_owner: false });
   const [busy, setBusy]   = useState(false);
   const [error, setError] = useState(null);
@@ -104,9 +104,13 @@ function useEnrollment(wpPostId, token) {
       const r = await fetch(`${LARAVEL_API}/tryouts/${wpPostId}/my-status`, {
         headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
       });
-      if (r.ok) setData(await r.json());
+      if (r.ok) {
+        const d = await r.json();
+        setData(d);
+        if (onOwnerResolved) onOwnerResolved(!!d.is_owner);
+      }
     } catch {}
-  }, [wpPostId, token]);
+  }, [wpPostId, token, onOwnerResolved]);
 
   const join = async () => {
     setBusy(true); setError(null);
@@ -142,8 +146,8 @@ function useEnrollment(wpPostId, token) {
   return { data, fetchStatus, join, leave, busy, error };
 }
 
-function EnrollButton({ wpPostId, tryoutStatus, token }) {
-  const { data, fetchStatus, join, leave, busy, error } = useEnrollment(wpPostId, token);
+function EnrollButton({ wpPostId, tryoutStatus, token, onOwnerResolved }) {
+  const { data, fetchStatus, join, leave, busy, error } = useEnrollment(wpPostId, token, onOwnerResolved);
   useEffect(() => { fetchStatus(); }, [fetchStatus]);
 
   const canEnroll = tryoutStatus === 'scheduled' || tryoutStatus === 'ongoing';
@@ -181,14 +185,14 @@ function EnrollButton({ wpPostId, tryoutStatus, token }) {
   );
 }
 
-function ParticipantsPanel({ wpPostId, token, userRole }) {
+function ParticipantsPanel({ wpPostId, token, isOwner }) {
   const [open, setOpen]             = useState(false);
   const [parts, setParts]           = useState([]);
   const [stats, setStats]           = useState(null);
   const [loading, setLoading]       = useState(false);
   const [updatingId, setUpdatingId] = useState(null);
 
-  const isManager = userRole === 'recruiter' || userRole === 'admin';
+  const isManager = isOwner;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -270,18 +274,20 @@ function ParticipantsPanel({ wpPostId, token, userRole }) {
                     <span className={`flex items-center gap-1 text-[10px] font-semibold ${si.color}`}>
                       <si.Icon /> {si.label}
                     </span>
-                    {isManager && p.status !== 'rejected' && (
+                    {isManager && (
                       <div className="flex gap-1 ml-1">
                         {p.status !== 'approved' && (
                           <button disabled={updatingId === p.id} onClick={() => updateStatus(p.id, 'approved')}
                             className="text-[10px] font-bold px-2 py-0.5 rounded bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-colors disabled:opacity-40">
-                            Approve
+                            ✓
                           </button>
                         )}
-                        <button disabled={updatingId === p.id} onClick={() => updateStatus(p.id, 'rejected')}
-                          className="text-[10px] font-bold px-2 py-0.5 rounded bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors disabled:opacity-40">
-                          Reject
-                        </button>
+                        {p.status !== 'rejected' && (
+                          <button disabled={updatingId === p.id} onClick={() => updateStatus(p.id, 'rejected')}
+                            className="text-[10px] font-bold px-2 py-0.5 rounded bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors disabled:opacity-40">
+                            ✕
+                          </button>
+                        )}
                       </div>
                     )}
                   </li>
@@ -296,6 +302,7 @@ function ParticipantsPanel({ wpPostId, token, userRole }) {
 }
 
 function EventCard({ tryout, token, userRole }) {
+  const [isOwner, setIsOwner] = useState(false);
   const status         = tryoutField(tryout, 'tryout_status') || 'scheduled';
   const eventDate      = tryoutField(tryout, 'event_date');
   const locationType   = tryoutField(tryout, 'location_type') || 'online';
@@ -378,7 +385,8 @@ function EventCard({ tryout, token, userRole }) {
             }
           </div>
           <div className="flex items-center gap-2">
-            <EnrollButton wpPostId={tryout.id} tryoutStatus={status} token={token} />
+            <EnrollButton wpPostId={tryout.id} tryoutStatus={status} token={token}
+              onOwnerResolved={setIsOwner} />
             <a href={tryout.link} target="_blank" rel="noopener noreferrer" title="View on WordPress"
               className="flex items-center border border-gray-700 hover:border-gray-500 text-gray-500 hover:text-white p-1.5 rounded transition-colors">
               <ExternalLink size={10} />
@@ -387,7 +395,7 @@ function EventCard({ tryout, token, userRole }) {
         </div>
       </div>
 
-      <ParticipantsPanel wpPostId={tryout.id} token={token} userRole={userRole} />
+      <ParticipantsPanel wpPostId={tryout.id} token={token} isOwner={isOwner} />
     </div>
   );
 }
@@ -501,9 +509,9 @@ export default function Events() {
           <p className="text-xs text-gray-500 mt-1.5 flex items-center gap-1.5">
             <Shield size={11} />
             Signed in as <span className="text-white font-medium">{user.nickname || user.name}</span>
-            {(user.role === 'recruiter' || user.role === 'admin') && (
+            {user.role === 'admin' && (
               <span className="bg-brand-red/10 text-brand-red text-[10px] font-bold px-2 py-0.5 rounded">
-                {user.role}
+                admin
               </span>
             )}
           </p>

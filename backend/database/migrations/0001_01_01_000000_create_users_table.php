@@ -18,7 +18,7 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('nickname', 50)->nullable();
-            $table->enum('role', ['player', 'recruiter', 'admin'])->default('player');
+            $table->enum('role', ['player', 'admin'])->default('player');
             $table->string('avatar_url')->nullable();
             $table->text('bio')->nullable();
             $table->rememberToken();

@@ -26,12 +26,12 @@
                 <?php endif; ?>
             </div>
 
-            <!-- Navegación principal -->
+            <!-- Primary navigation -->
             <nav class="main-navigation" id="site-navigation" role="navigation"
-                 aria-label="<?php esc_attr_e( 'Menú principal', 'nexusplay' ); ?>">
+                 aria-label="<?php esc_attr_e( 'Primary Navigation', 'nexusplay' ); ?>">
                 <button class="menu-toggle" aria-controls="primary-menu" aria-expanded="false">
                     &#9776;
-                    <span class="screen-reader-text"><?php _e( 'Menú', 'nexusplay' ); ?></span>
+                    <span class="screen-reader-text"><?php _e( 'Menu', 'nexusplay' ); ?></span>
                 </button>
 
                 <?php
@@ -40,7 +40,7 @@
                     'menu_id'        => 'primary-menu',
                     'container'      => false,
                     'fallback_cb'    => function() {
-                        echo '<ul id="primary-menu"><li><a href="' . esc_url( home_url( '/' ) ) . '">' . __( 'Inicio', 'nexusplay' ) . '</a></li></ul>';
+                        echo '<ul id="primary-menu"><li><a href="' . esc_url( home_url( '/' ) ) . '">' . __( 'Home', 'nexusplay' ) . '</a></li></ul>';
                     },
                 ] );
                 ?>

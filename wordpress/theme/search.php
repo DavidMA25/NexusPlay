@@ -16,14 +16,14 @@ get_header();
                 <?php
                 printf(
                     /* translators: %s: search query */
-                    esc_html__( 'Resultados para: "%s"', 'nexusplay' ),
+                    esc_html__( 'Search results for: "%s"', 'nexusplay' ),
                     '<span style="color:var(--color-red);">' . esc_html( get_search_query() ) . '</span>'
                 );
                 ?>
             </h1>
             <?php if ( have_posts() ) : ?>
                 <p style="color:var(--color-text-muted); font-size:0.875rem; margin-top:0.375rem;">
-                    <?php printf( _n( '%s resultado', '%s resultados', $wp_query->found_posts, 'nexusplay' ), number_format_i18n( $wp_query->found_posts ) ); ?>
+                    <?php printf( _n( '%s result', '%s results', $wp_query->found_posts, 'nexusplay' ), number_format_i18n( $wp_query->found_posts ) ); ?>
                 </p>
             <?php endif; ?>
         </header>

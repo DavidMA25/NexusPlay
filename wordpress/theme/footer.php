@@ -33,10 +33,10 @@
                 </div>
                 <?php endif; ?>
 
-                <!-- Menú footer -->
+                <!-- Footer menu -->
                 <?php if ( has_nav_menu( 'footer' ) ) : ?>
                 <div class="footer-section">
-                    <h4><?php _e( 'Navegación', 'nexusplay' ); ?></h4>
+                    <h4><?php _e( 'Navigation', 'nexusplay' ); ?></h4>
                     <?php
                     wp_nav_menu( [
                         'theme_location' => 'footer',
@@ -54,7 +54,7 @@
                 <p>
                     &copy; <?php echo date( 'Y' ); ?>
                     <a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php bloginfo( 'name' ); ?></a>.
-                    <?php _e( 'Todos los derechos reservados.', 'nexusplay' ); ?>
+                    <?php _e( 'All rights reserved.', 'nexusplay' ); ?>
                 </p>
                 <p>
                     <?php

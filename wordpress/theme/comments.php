@@ -17,7 +17,7 @@ if ( post_password_required() ) {
         <h2 class="comments-title">
             <?php
             printf(
-                _n( '%s comentario', '%s comentarios', get_comments_number(), 'nexusplay' ),
+                _n( '%s comment', '%s comments', get_comments_number(), 'nexusplay' ),
                 number_format_i18n( get_comments_number() )
             );
             ?>
@@ -44,16 +44,16 @@ if ( post_password_required() ) {
 
     <?php if ( ! comments_open() && get_comments_number() && post_type_supports( get_post_type(), 'comments' ) ) : ?>
         <p style="color:var(--color-text-muted); font-size:0.875rem; text-align:center; padding:1rem;">
-            <?php _e( 'Los comentarios están cerrados.', 'nexusplay' ); ?>
+            <?php _e( 'Comments are closed.', 'nexusplay' ); ?>
         </p>
     <?php endif; ?>
 
     <?php
     comment_form( [
-        'title_reply'         => __( 'Deja un comentario', 'nexusplay' ),
-        'title_reply_to'      => __( 'Responder a %s', 'nexusplay' ),
-        'cancel_reply_link'   => __( 'Cancelar', 'nexusplay' ),
-        'label_submit'        => __( 'Enviar comentario', 'nexusplay' ),
+        'title_reply'         => __( 'Leave a comment', 'nexusplay' ),
+        'title_reply_to'      => __( 'Reply to %s', 'nexusplay' ),
+        'cancel_reply_link'   => __( 'Cancel', 'nexusplay' ),
+        'label_submit'        => __( 'Submit comment', 'nexusplay' ),
         'class_submit'        => 'submit',
         'comment_notes_before'=> '',
         'comment_notes_after' => '',
@@ -80,12 +80,12 @@ function nexusplay_comment_callback( WP_Comment $comment, array $args, int $dept
             <div class="comment-meta">
                 <a href="<?php echo esc_url( get_comment_link( $comment ) ); ?>" class="comment-metadata">
                     <time datetime="<?php comment_time( 'c' ); ?>">
-                        <?php comment_date(); ?> <?php _e( 'a las', 'nexusplay' ); ?> <?php comment_time(); ?>
+                        <?php comment_date(); ?> <?php _e( 'at', 'nexusplay' ); ?> <?php comment_time(); ?>
                     </time>
                 </a>
                 <?php if ( '0' === $comment->comment_approved ) : ?>
                     <em style="color:var(--color-text-dim); font-size:0.8rem;">
-                        <?php _e( '(Pendiente de aprobación)', 'nexusplay' ); ?>
+                        <?php _e( '(Pending approval)', 'nexusplay' ); ?>
                     </em>
                 <?php endif; ?>
             </div>

@@ -19,9 +19,9 @@ get_header();
             </p>
         </header>
 
-        <!-- Filtro por estado (usando parámetro GET simple) -->
+        <!-- Status filter (simple GET param) -->
         <?php
-        $current_filter = isset( $_GET['estado'] ) ? sanitize_text_field( $_GET['estado'] ) : '';
+        $current_filter = isset( $_GET['status'] ) ? sanitize_text_field( $_GET['status'] ) : '';
         $filters = [
             '' => __( 'All', 'nexusplay' ),
             'scheduled' => __( 'Upcoming', 'nexusplay' ),
@@ -32,7 +32,7 @@ get_header();
         <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1.5rem;">
             <?php foreach ( $filters as $val => $label ) :
                 $active = $current_filter === $val;
-                $href   = $val ? add_query_arg( 'estado', $val ) : remove_query_arg( 'estado' );
+                $href   = $val ? add_query_arg( 'status', $val ) : remove_query_arg( 'status' );
             ?>
                 <a href="<?php echo esc_url( $href ); ?>"
                    style="

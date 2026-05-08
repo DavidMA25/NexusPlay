@@ -13,10 +13,10 @@
     text-align: center;
 ">
     <h2 style="font-size:1.25rem; margin-bottom:0.75rem;">
-        <?php _e( 'No se encontró nada', 'nexusplay' ); ?>
+        <?php _e( 'Nothing found', 'nexusplay' ); ?>
     </h2>
     <p style="color:var(--color-text-muted); margin-bottom:1.5rem;">
-        <?php _e( 'Prueba con una búsqueda diferente.', 'nexusplay' ); ?>
+        <?php _e( 'Try a different search.', 'nexusplay' ); ?>
     </p>
     <?php get_search_form(); ?>
 </section>

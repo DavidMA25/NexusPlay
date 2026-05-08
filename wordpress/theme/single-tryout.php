@@ -62,7 +62,7 @@ $resolve_avatar = function( string $url ) use ( $laravel_base ): string {
 
         <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
 
-            <!-- Cabecera del tryout -->
+            <!-- Tryout header -->
             <div class="tryout-header">
 
                 <span class="tryout-status tryout-status-<?php echo esc_attr( $status ); ?>">
@@ -100,7 +100,7 @@ $resolve_avatar = function( string $url ) use ( $laravel_base ): string {
                         <span class="label"><?php esc_html_e( 'Date', 'nexusplay' ); ?></span>
                         <span class="value">
                             <?php echo esc_html( date_i18n(
-                                get_option( 'date_format' ) . ' — ' . get_option( 'time_format' ),
+                                'M j, Y g:i A',
                                 strtotime( $ev_date )
                             ) ); ?>
                         </span>
@@ -169,14 +169,14 @@ $resolve_avatar = function( string $url ) use ( $laravel_base ): string {
 
             </div><!-- .tryout-header -->
 
-            <!-- Descripción -->
+            <!-- Description -->
             <?php if ( get_the_content() ) : ?>
             <div class="single-post-content" style="margin:1.5rem 0;">
                 <?php the_content(); ?>
             </div>
             <?php endif; ?>
 
-            <!-- Participantes desde Laravel -->
+            <!-- Participants from Laravel -->
             <?php if ( $participants_data && ! empty( $participants_data['participants'] ) ) : ?>
             <section style="margin-bottom:2rem;">
                 <h2 style="font-size:1.125rem; font-weight:700; margin-bottom:1rem;">
@@ -220,7 +220,7 @@ $resolve_avatar = function( string $url ) use ( $laravel_base ): string {
                 </p>
             <?php endif; ?>
 
-            <!-- Comentarios -->
+            <!-- Comments -->
             <?php if ( comments_open() || get_comments_number() ) : ?>
                 <div class="comments-area">
                     <?php comments_template(); ?>

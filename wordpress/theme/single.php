@@ -15,7 +15,7 @@ get_header();
 
             <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
 
-                <!-- Cabecera del post -->
+                <!-- Post header -->
                 <header class="single-post-header">
 
                     <div class="post-card-meta" style="margin-bottom:1rem;">
@@ -31,22 +31,22 @@ get_header();
 
                 </header>
 
-                <!-- Imagen destacada -->
+                <!-- Featured image -->
                 <?php if ( has_post_thumbnail() ) : ?>
                     <div class="single-post-thumbnail">
                         <?php the_post_thumbnail( 'nexusplay-hero' ); ?>
                     </div>
                 <?php endif; ?>
 
-                <!-- Contenido -->
+                <!-- Content -->
                 <div class="single-post-content">
                     <?php the_content(); ?>
                 </div>
 
-                <!-- Paginación dentro del post -->
+                <!-- In-post pagination -->
                 <?php
                 wp_link_pages( [
-                    'before'    => '<div class="page-links">' . __( 'Páginas:', 'nexusplay' ),
+                    'before'    => '<div class="page-links">' . __( 'Pages:', 'nexusplay' ),
                     'after'     => '</div>',
                     'link_before' => '<span class="page-numbers">',
                     'link_after'  => '</span>',
@@ -69,7 +69,7 @@ get_header();
 
             </article>
 
-            <!-- Navegación entre posts -->
+            <!-- Post navigation -->
             <nav class="post-navigation" style="
                 display:flex;
                 justify-content:space-between;
@@ -83,7 +83,7 @@ get_header();
                 <div><?php next_post_link( '%link', '%title &rarr;' ); ?></div>
             </nav>
 
-            <!-- Comentarios -->
+            <!-- Comments -->
             <?php if ( comments_open() || get_comments_number() ) : ?>
                 <div class="comments-area">
                     <?php comments_template(); ?>

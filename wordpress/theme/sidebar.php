@@ -22,7 +22,7 @@
         // Widgets por defecto si el sidebar está vacío.
         ?>
 
-        <!-- Búsqueda -->
+        <!-- Search -->
         <div class="widget widget_search">
             <h3 class="widget-title"><?php _e( 'Search', 'nexusplay' ); ?></h3>
             <?php get_search_form(); ?>
@@ -46,13 +46,29 @@
             </ul>
         </div>
 
-        <!-- Categorías -->
+        <!-- Games (tryout_game taxonomy — only on tryout pages) -->
+        <?php if ( is_singular( 'tryout' ) || is_post_type_archive( 'tryout' ) ) : ?>
+        <div class="widget widget_categories">
+            <h3 class="widget-title"><?php _e( 'Games', 'nexusplay' ); ?></h3>
+            <ul>
+                <?php
+                wp_list_categories( [
+                    'taxonomy' => 'tryout_game',
+                    'title_li' => '',
+                    'show_count' => true,
+                ] );
+                ?>
+            </ul>
+        </div>
+        <?php else : ?>
+        <!-- Categories (standard posts) -->
         <div class="widget widget_categories">
             <h3 class="widget-title"><?php _e( 'Categories', 'nexusplay' ); ?></h3>
             <ul>
                 <?php wp_list_categories( [ 'title_li' => '', 'show_count' => true ] ); ?>
             </ul>
         </div>
+        <?php endif; ?>
 
         <!-- Nube de tags -->
         <div class="widget widget_tag_cloud">
@@ -60,7 +76,7 @@
             <?php wp_tag_cloud( [ 'smallest' => 11, 'largest' => 16, 'unit' => 'px', 'format' => 'flat' ] ); ?>
         </div>
 
-        <!-- Tryouts próximos (si el plugin está activo) -->
+        <!-- Upcoming Tryouts (if plugin is active) -->
         <?php if ( post_type_exists( 'tryout' ) ) : ?>
         <div class="widget">
             <h3 class="widget-title"><?php _e( 'Upcoming Tryouts', 'nexusplay' ); ?></h3>

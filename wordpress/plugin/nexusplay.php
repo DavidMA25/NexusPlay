@@ -2,7 +2,7 @@
 /**
  * Plugin Name: NexusPlay
  * Plugin URI:  https://github.com/DavidMA25/NexusPlay
- * Description: Gestiona el Custom Post Type de Tryouts e integra con las tablas de Laravel (misma BD) para mostrar participantes.
+ * Description: Manages the Tryouts Custom Post Type and integrates with Laravel tables (shared DB) to display participants.
  * Version:     1.0.0
  * Author:      NexusPlay Team
  * License:     GPL-2.0+

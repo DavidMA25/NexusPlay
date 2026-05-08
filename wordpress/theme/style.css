@@ -908,3 +908,240 @@ img { max-width: 100%; height: auto; display: block; }
 
 .wp-caption { max-width: 100%; }
 .wp-caption-text { color: var(--color-text-dim); font-size: 0.8125rem; text-align: center; margin-top: 0.375rem; }
+
+/* =============================================================================
+   TRYOUT CARD META — with icons
+   ============================================================================= */
+
+.tryout-card-meta {
+    display: flex;
+    gap: 0.875rem;
+    flex-wrap: wrap;
+    margin: 0.75rem 0;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+}
+
+.tryout-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    white-space: nowrap;
+}
+
+.tryout-meta-icon {
+    color: var(--color-red);
+    flex-shrink: 0;
+    opacity: 0.85;
+}
+
+/* =============================================================================
+   COMMENTS — spacing, nesting, reply form
+   ============================================================================= */
+
+/* Gap between comments list and the reply form */
+.comments-area .comment-list {
+    margin-bottom: 2.5rem;
+}
+
+/* Nested replies — indent and visual connector */
+.comment-list .children {
+    list-style: none;
+    margin-top: 0.75rem;
+    padding-left: 1.5rem;
+    border-left: 2px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+/* The reply form (#respond) */
+#respond {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    margin-top: 2rem;
+}
+
+#respond .comment-reply-title {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--color-text);
+}
+
+#respond .comment-reply-title small {
+    font-size: 0.8rem;
+    font-weight: 400;
+    margin-left: 0.75rem;
+}
+
+#respond .comment-reply-title small a {
+    color: var(--color-red);
+}
+
+#respond .comment-notes,
+#respond .logged-in-as {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    margin-bottom: 1rem;
+}
+
+#respond .logged-in-as a {
+    color: var(--color-red);
+}
+
+/* Reply-form that appears inline between comments */
+.comment-item #respond {
+    margin-top: 1rem;
+    margin-left: 0;
+}
+
+/* Depth indentation for very deep threads */
+.comment-depth-2  { padding-left: 1rem; }
+.comment-depth-3  { padding-left: 1.5rem; }
+.comment-depth-4  { padding-left: 2rem; }
+
+/* Cancel reply link */
+#cancel-comment-reply-link {
+    color: var(--color-red);
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-decoration: none;
+    margin-left: 0.5rem;
+}
+
+#cancel-comment-reply-link:hover { text-decoration: underline; }
+
+/* =============================================================================
+   SEARCH FORM — generic (outside .widget_search, e.g. content-none.php)
+   ============================================================================= */
+
+.search-form {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.search-form .search-field {
+    flex: 1;
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: 0.6rem 0.875rem;
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color var(--transition);
+}
+
+.search-form .search-field::placeholder {
+    color: var(--color-text-dim);
+}
+
+.search-form .search-field:focus {
+    border-color: var(--color-red);
+    box-shadow: 0 0 0 2px rgba(255, 51, 51, 0.12);
+}
+
+.search-form .search-submit {
+    background: var(--color-red);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 0.6rem 1rem;
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--transition);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.search-form .search-submit:hover { background: var(--color-red-hover); }
+
+/* =============================================================================
+   RECENT COMMENTS WIDGET — widget_recent_comments
+   ============================================================================= */
+
+.widget_recent_comments ul.recentcomments {
+    gap: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.widget_recent_comments ul.recentcomments li.recentcomments {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 0 0.625rem;
+    align-items: start;
+    padding: 0.625rem 0;
+    border-bottom: 1px solid var(--color-border);
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.widget_recent_comments ul.recentcomments li.recentcomments:first-child {
+    padding-top: 0;
+}
+
+.widget_recent_comments ul.recentcomments li.recentcomments:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+/* Avatar circle — generated via ::before on the li */
+.widget_recent_comments ul.recentcomments li.recentcomments::before {
+    content: '';
+    display: block;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-border);
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    margin-top: 1px;
+    flex-shrink: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 14px;
+}
+
+/* Author name */
+.widget_recent_comments ul.recentcomments li.recentcomments .comment-author-link,
+.widget_recent_comments ul.recentcomments li.recentcomments .comment-author-link a {
+    color: var(--color-red);
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: none !important;
+    padding: 0 !important;
+    display: inline !important;
+}
+
+/* "on PostTitle" text — the direct text node + link inside the li */
+.widget_recent_comments ul.recentcomments li.recentcomments {
+    color: var(--color-text-dim);
+}
+
+/* Post title link */
+.widget_recent_comments ul.recentcomments li.recentcomments a:not([class]) {
+    color: var(--color-text-muted);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    border-bottom: none !important;
+    padding: 0 !important;
+    display: inline !important;
+    transition: color var(--transition);
+}
+
+.widget_recent_comments ul.recentcomments li.recentcomments a:not([class]):hover {
+    color: var(--color-text);
+}

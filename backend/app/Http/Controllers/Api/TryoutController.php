@@ -116,13 +116,37 @@ class TryoutController extends Controller
 
     // -------------------------------------------------------------------------
     // PATCH /tryouts/{wpPostId}/participants/{participantId}
-    // Actualizar estado de un participante (solo recruiters/admins).
+    // Update participant status.
+    // Only the team owner of the tryout (identified via wp_postmeta) can do this.
+    // WordPress editors/admins use the plugin REST endpoint instead.
     // -------------------------------------------------------------------------
     public function updateStatus(Request $request, int $wpPostId, int $participantId): JsonResponse
     {
         $request->validate([
             'status' => 'required|in:registered,approved,rejected',
         ]);
+
+        $user = $request->user();
+
+        // Resolve team ownership from the shared wp_postmeta table
+        $teamId = \DB::table('wp_postmeta')
+            ->where('post_id', $wpPostId)
+            ->where('meta_key', '_nexusplay_team_id')
+            ->value('meta_value');
+
+        if (!$teamId) {
+            return response()->json([
+                'message' => 'This tryout is not linked to a team.',
+            ], 403);
+        }
+
+        $team = \App\Models\Team::find((int) $teamId);
+
+        if (!$team || (int) $team->owner_id !== (int) $user->id) {
+            return response()->json([
+                'message' => 'Only the team owner can approve or reject participants.',
+            ], 403);
+        }
 
         $participant = TryoutParticipant::where('wp_post_id', $wpPostId)
             ->findOrFail($participantId);

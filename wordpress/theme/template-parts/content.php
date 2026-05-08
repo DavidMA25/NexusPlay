@@ -31,8 +31,8 @@
 
         <div class="post-card-footer">
             <?php nexusplay_posted_by(); ?>
-            <a href="<?php the_permalink(); ?>" class="btn-read-more" aria-label="<?php printf( esc_attr__( 'Leer más: %s', 'nexusplay' ), get_the_title() ); ?>">
-                <?php _e( 'Leer más', 'nexusplay' ); ?> &rarr;
+            <a href="<?php the_permalink(); ?>" class="btn-read-more" aria-label="<?php printf( esc_attr__( 'Read more: %s', 'nexusplay' ), get_the_title() ); ?>">
+                <?php _e( 'Read more', 'nexusplay' ); ?> &rarr;
             </a>
         </div>
 

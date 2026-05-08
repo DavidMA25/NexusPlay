@@ -29,7 +29,7 @@ get_header();
                     <?php the_content(); ?>
                     <?php
                     wp_link_pages( [
-                        'before' => '<div class="page-links">' . __( 'Páginas:', 'nexusplay' ),
+                        'before' => '<div class="page-links">' . __( 'Pages:', 'nexusplay' ),
                         'after'  => '</div>',
                     ] );
                     ?>

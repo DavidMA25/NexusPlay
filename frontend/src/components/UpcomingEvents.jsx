@@ -150,13 +150,27 @@ export default function UpcomingEvents() {
                       )}
                     </div>
 
-                    <button
-                      onClick={() => navigate('/register')}
-                      className="mt-5 w-full flex items-center justify-center gap-2 bg-brand-red/10 hover:bg-brand-red text-brand-red hover:text-white text-sm font-medium py-2.5 rounded-lg transition-all duration-300"
-                    >
-                      Join Tryout
-                      <ArrowRight size={15} />
-                    </button>
+                    <div className="flex gap-2 mt-5">
+                      {/* View Event — links to the actual WP post page */}
+                      {event.link ? (
+                        <a
+                          href={event.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1 flex items-center justify-center gap-1.5 border border-gray-700 hover:border-brand-red text-gray-300 hover:text-white text-sm font-medium py-2.5 rounded-lg transition-all duration-300"
+                        >
+                          View Event
+                        </a>
+                      ) : null}
+
+                      <button
+                        onClick={() => navigate('/register')}
+                        className={`flex items-center justify-center gap-2 bg-brand-red/10 hover:bg-brand-red text-brand-red hover:text-white text-sm font-medium py-2.5 rounded-lg transition-all duration-300 ${event.link ? 'flex-1' : 'w-full'}`}
+                      >
+                        Join Tryout
+                        <ArrowRight size={15} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               );

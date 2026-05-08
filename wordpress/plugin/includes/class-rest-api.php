@@ -172,7 +172,7 @@ class NexusPlay_REST_API {
         $wp_post_id = $request->get_param( 'id' );
 
         if ( ! $this->db->tables_exist() ) {
-            return new WP_Error( 'db_error', __( 'Tablas de Laravel no disponibles.', 'nexusplay' ), [ 'status' => 503 ] );
+            return new WP_Error( 'db_error', __( 'Laravel tables not available.', 'nexusplay' ), [ 'status' => 503 ] );
         }
 
         $participants = $this->db->get_participants( $wp_post_id );
@@ -212,8 +212,10 @@ class NexusPlay_REST_API {
 
     /**
      * PATCH /nexusplay/v1/tryouts/{id}/participants/{participant_id}
-     * Actualiza el estado de un participante directamente desde la BD compartida.
-     * Requiere capacidad edit_posts (admin/editor de WordPress).
+     * Updates a participant status.
+     * WordPress editors/admins can always do this (platform management).
+     * The Laravel team owner uses the Laravel API endpoint instead.
+     * Both paths are independent and intentional.
      */
     public function update_participant_status( WP_REST_Request $request ): WP_REST_Response|WP_Error {
         global $wpdb;
@@ -223,7 +225,7 @@ class NexusPlay_REST_API {
         $new_status     = $request->get_param( 'status' );
 
         if ( ! $this->db->tables_exist() ) {
-            return new WP_Error( 'db_error', __( 'Tablas de Laravel no disponibles.', 'nexusplay' ), [ 'status' => 503 ] );
+            return new WP_Error( 'db_error', __( 'Laravel tables not available.', 'nexusplay' ), [ 'status' => 503 ] );
         }
 
         // Verificar que el participante existe y pertenece a este tryout.
@@ -234,7 +236,7 @@ class NexusPlay_REST_API {
         ) );
 
         if ( ! $participant ) {
-            return new WP_Error( 'not_found', __( 'Participante no encontrado.', 'nexusplay' ), [ 'status' => 404 ] );
+            return new WP_Error( 'not_found', __( 'Participant not found.', 'nexusplay' ), [ 'status' => 404 ] );
         }
 
         $updated = $wpdb->update(
@@ -246,7 +248,7 @@ class NexusPlay_REST_API {
         );
 
         if ( false === $updated ) {
-            return new WP_Error( 'db_update_failed', __( 'No se pudo actualizar el estado.', 'nexusplay' ), [ 'status' => 500 ] );
+            return new WP_Error( 'db_update_failed', __( 'Could not update status.', 'nexusplay' ), [ 'status' => 500 ] );
         }
 
         return new WP_REST_Response( [

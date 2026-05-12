@@ -183,7 +183,7 @@ export default function DashboardHome() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(95vh-120px)] min-h-[500px]">
+    <div className="flex flex-col gap-4 pb-8">
       {}
       <div className="shrink-0 mb-4">
         <h1 className="text-3xl font-bold text-white mb-2">
@@ -195,10 +195,10 @@ export default function DashboardHome() {
       </div>
 
       {}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1 min-h-0 grid-rows-2">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         
         {}
-        <div className="md:col-span-2 bg-[#121212] border border-gray-800 rounded-xl p-4 flex flex-col transition-all hover:border-gray-700 min-h-0">
+        <div className="xl:col-span-2 bg-[#121212] border border-gray-800 rounded-xl p-5 flex flex-col transition-all hover:border-gray-700 h-[450px]">
           <div className="flex items-center gap-3 mb-4 shrink-0">
             <div className="p-2 bg-brand-red/10 rounded-lg">
               <Gamepad2 size={20} className="text-brand-red" />
@@ -278,7 +278,7 @@ export default function DashboardHome() {
         </div>
 
         {}
-        <div className="bg-[#121212] border border-gray-800 rounded-xl p-4 flex flex-col transition-all hover:border-gray-700 min-h-0">
+        <div className="bg-[#121212] border border-gray-800 rounded-xl p-5 flex flex-col transition-all hover:border-gray-700 h-[450px]">
           <div className="flex items-center justify-between mb-3 shrink-0">
             <div className="flex items-center gap-2">
               <div className="p-2 bg-brand-red/10 rounded-lg">
@@ -352,7 +352,7 @@ export default function DashboardHome() {
         </div>
 
         {}
-        <div className="md:col-span-2 bg-[#121212] border border-gray-800 rounded-xl p-4 flex flex-col transition-all hover:border-gray-700 min-h-0">
+        <div className="xl:col-span-2 bg-[#121212] border border-gray-800 rounded-xl p-5 flex flex-col transition-all hover:border-gray-700 h-[450px]">
           <div className="flex items-center justify-between mb-3 shrink-0">
             <div className="flex items-center gap-2">
               <div className="p-2 bg-brand-red/10 rounded-lg">
@@ -438,7 +438,7 @@ export default function DashboardHome() {
         </div>
 
         {}
-        <div className="bg-[#121212] border border-gray-800 rounded-xl p-4 flex flex-col transition-all hover:border-gray-700 min-h-0">
+        <div className="bg-[#121212] border border-gray-800 rounded-xl p-5 flex flex-col transition-all hover:border-gray-700 h-[450px]">
           <div className="flex items-center justify-between mb-3 shrink-0">
             <div className="flex items-center gap-2">
               <div className="p-2 bg-brand-red/10 rounded-lg">

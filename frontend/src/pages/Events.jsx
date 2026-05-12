@@ -60,7 +60,7 @@ const TAB_FILTERS = {
 
 function resolveAsset(url) {
   if (!url) return null;
-  if (/^https?:\/\
+  if (/^https?:\/\//.test(url)) return url;
   return `${LARAVEL_BASE}${url.startsWith('/') ? '' : '/'}${url}`;
 }
 

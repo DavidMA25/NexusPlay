@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { User, Shield, Lock, Bell } from 'lucide-react';
+import { User, Shield, Bell } from 'lucide-react';
 import ProfileSettingsTab from '../components/settings/ProfileSettingsTab';
 import AccountSettingsTab from '../components/settings/AccountSettingsTab';
-import PrivacySettingsTab from '../components/settings/PrivacySettingsTab';
 import NotificationsSettingsTab from '../components/settings/NotificationsSettingsTab';
 
 export default function Settings() {
@@ -11,7 +10,6 @@ export default function Settings() {
     const tabs = [
         { id: 'profile', label: 'Profile', icon: <User size={16} /> },
         { id: 'account', label: 'Account', icon: <Shield size={16} /> },
-        { id: 'privacy', label: 'Privacy', icon: <Lock size={16} /> },
         { id: 'notifications', label: 'Notifications', icon: <Bell size={16} /> },
     ];
 
@@ -21,8 +19,6 @@ export default function Settings() {
                 return <ProfileSettingsTab />;
             case 'account':
                 return <AccountSettingsTab />;
-            case 'privacy':
-                return <PrivacySettingsTab />;
             case 'notifications':
                 return <NotificationsSettingsTab />;
             default:

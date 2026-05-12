@@ -1,35 +1,40 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Save } from 'lucide-react';
-
-const STORAGE_KEY = 'nexusplay_notification_settings';
+import { useAuth } from '../../context/AuthContext';
 
 const defaults = {
     teamInvites: true,
-    matchRequests: true,
     messages: true,
-    events: true,
-    achievements: true,
 };
 
 export default function NotificationsSettingsTab() {
-    const [toggles, setToggles] = useState(() => {
-        try {
-            const stored = localStorage.getItem(STORAGE_KEY);
-            return stored ? { ...defaults, ...JSON.parse(stored) } : defaults;
-        } catch {
-            return defaults;
-        }
-    });
+    const { user, api, loadUser } = useAuth();
+    const [toggles, setToggles] = useState(defaults);
     const [saved, setSaved] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        if (user?.notification_preferences) {
+            setToggles({ ...defaults, ...user.notification_preferences });
+        }
+    }, [user]);
 
     const handleToggle = (key) => {
         setToggles(prev => ({ ...prev, [key]: !prev[key] }));
     };
 
-    const handleSave = () => {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(toggles));
-        setSaved(true);
-        setTimeout(() => setSaved(false), 2500);
+    const handleSave = async () => {
+        setLoading(true);
+        try {
+            await api.put('/user/notifications', { preferences: toggles });
+            setSaved(true);
+            loadUser(); // Refresh user state to update notification_preferences
+            setTimeout(() => setSaved(false), 2500);
+        } catch (e) {
+            console.error('Error saving preferences', e);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -39,10 +44,7 @@ export default function NotificationsSettingsTab() {
             <div className="space-y-6">
                 {[
                     { key: 'teamInvites', label: 'Team Invites' },
-                    { key: 'matchRequests', label: 'Match Requests' },
                     { key: 'messages', label: 'Messages' },
-                    { key: 'events', label: 'Events' },
-                    { key: 'achievements', label: 'Achievements' },
                 ].map((item) => (
                     <div key={item.key} className="flex items-center justify-between">
                         <p className="text-sm font-bold text-white">{item.label}</p>
@@ -61,9 +63,10 @@ export default function NotificationsSettingsTab() {
                 <div className="pt-4 flex items-center gap-4">
                     <button
                         onClick={handleSave}
-                        className="flex items-center gap-2 bg-brand-red hover:bg-[#ff4d4d] text-white px-6 py-2.5 rounded-md text-sm font-medium transition-all shadow-[0_0_10px_rgba(255,51,51,0.2)] hover:shadow-[0_0_15px_rgba(255,51,51,0.4)]"
+                        disabled={loading}
+                        className="flex items-center gap-2 bg-brand-red hover:bg-[#ff4d4d] text-white px-6 py-2.5 rounded-md text-sm font-medium transition-all shadow-[0_0_10px_rgba(255,51,51,0.2)] hover:shadow-[0_0_15px_rgba(255,51,51,0.4)] disabled:opacity-50"
                     >
-                        <Save size={16} /> Save Preferences
+                        <Save size={16} /> {loading ? 'Saving...' : 'Save Preferences'}
                     </button>
                     {saved && <span className="text-green-400 text-sm">✓ Saved</span>}
                 </div>

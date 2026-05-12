@@ -172,4 +172,68 @@ class AuthController extends Controller
 
         return response()->json(['message' => 'Verification email resent.']);
     }
+
+    public function updateEmail(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|unique:users,email,' . $request->user()->id,
+            'current_password' => 'required'
+        ]);
+
+        $user = $request->user();
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json(['message' => 'Current password is incorrect'], 400);
+        }
+
+        $user->email = $request->email;
+        $user->email_verified_at = null; // Require re-verification
+        $user->save();
+
+        return response()->json(['message' => 'Email updated successfully. Please verify your new email.']);
+    }
+
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required',
+            'new_password' => 'required|min:6|confirmed'
+        ]);
+
+        $user = $request->user();
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json(['message' => 'Current password is incorrect'], 400);
+        }
+
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+
+        return response()->json(['message' => 'Password updated successfully.']);
+    }
+
+    public function deleteAccount(Request $request)
+    {
+        $user = $request->user();
+        
+        // Let foreign key constraints handle deletions where possible,
+        // or explicitly delete associated records here if necessary.
+        $user->tokens()->delete();
+        $user->delete();
+
+        return response()->json(['message' => 'Account deleted successfully.']);
+    }
+
+    public function updateNotificationPreferences(Request $request)
+    {
+        $request->validate([
+            'preferences' => 'required|array'
+        ]);
+
+        $user = $request->user();
+        $user->notification_preferences = $request->preferences;
+        $user->save();
+
+        return response()->json(['message' => 'Notification preferences updated.', 'user' => $user]);
+    }
 }

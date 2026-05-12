@@ -8,6 +8,8 @@ import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
 import { useEcho } from '../hooks/useEcho';
 import GameSearchInput from '../components/GameSearchInput';
+import ConfirmModal from '../components/ConfirmModal';
+import AlertModal from '../components/AlertModal';
 
 function formatTime(iso) {
     if (!iso) return '';
@@ -191,6 +193,9 @@ function ChatPanel({ conversation, onBack, initialInputText = '' }) {
     const [inputText, setInputText] = useState(initialInputText);
     const [sending, setSending] = useState(false);
     const [showInfo, setShowInfo] = useState(false);
+    const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+    const [alertMsg, setAlertMsg] = useState(null);
+    const [leaving, setLeaving] = useState(false);
     const { removeConversation } = useChat();
 
     const bottomRef = useRef(null);
@@ -306,14 +311,17 @@ function ChatPanel({ conversation, onBack, initialInputText = '' }) {
     const isGroupOwner = conversation.is_group && conversation.owner_id === user?.id;
 
     const handleLeaveGroup = async () => {
-        if (!window.confirm("Are you sure you want to leave this team chat?")) return;
+        setLeaving(true);
         try {
             await api.post(`/conversations/${conversation.id}/leave`);
             removeConversation(conversation.id);
+            setShowLeaveConfirm(false);
             onBack();
         } catch (e) {
             console.error("Error leaving group", e);
-            alert(e.response?.data?.message || "Error leaving group");
+            setAlertMsg(e.response?.data?.message || "Error leaving group");
+        } finally {
+            setLeaving(false);
         }
     };
 
@@ -433,7 +441,7 @@ function ChatPanel({ conversation, onBack, initialInputText = '' }) {
                         </div>
                         {conversation.is_group && (
                             <div className="p-4 border-t border-gray-800 mt-auto">
-                                <button onClick={handleLeaveGroup} className="w-full py-2.5 bg-brand-red/10 hover:bg-brand-red/20 text-brand-red rounded-lg text-xs font-bold transition-colors border border-brand-red/20">
+                                <button onClick={() => setShowLeaveConfirm(true)} className="w-full py-2.5 bg-brand-red/10 hover:bg-brand-red/20 text-brand-red rounded-lg text-xs font-bold transition-colors border border-brand-red/20">
                                     {isGroupOwner ? "Leave & Transfer/Delete Team" : "Leave Team Chat"}
                                 </button>
                             </div>
@@ -441,6 +449,24 @@ function ChatPanel({ conversation, onBack, initialInputText = '' }) {
                     </div>
                 )}
             </div>
+
+            <ConfirmModal 
+                isOpen={showLeaveConfirm}
+                onClose={() => setShowLeaveConfirm(false)}
+                onConfirm={handleLeaveGroup}
+                title="Leave Team Chat"
+                message="Are you sure you want to leave this team chat? You won't see updates anymore."
+                confirmText="Leave Group"
+                variant="danger"
+                isLoading={leaving}
+            />
+
+            <AlertModal 
+                isOpen={!!alertMsg}
+                onClose={() => setAlertMsg(null)}
+                title="Error"
+                message={alertMsg}
+            />
         </div>
     );
 }

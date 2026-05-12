@@ -49,6 +49,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user',           [AuthController::class, 'user']);
     Route::post('/logout',        [AuthController::class, 'logout']);
     Route::post('/user/settings', [AuthController::class, 'updateSettings']);
+    Route::put('/user/email',     [AuthController::class, 'updateEmail']);
+    Route::put('/user/password',  [AuthController::class, 'updatePassword']);
+    Route::delete('/user/account',[AuthController::class, 'deleteAccount']);
+    Route::put('/user/notifications', [AuthController::class, 'updateNotificationPreferences']);
 
     Route::get('/email/verify/{id}/{hash}', function (Request $request, $id, $hash) {
         $user = \App\Models\User::findOrFail($id);

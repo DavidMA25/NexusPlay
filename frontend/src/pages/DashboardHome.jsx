@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
 import { useNotifications } from '../context/NotificationContext';
-import { Bot, MapPin, Globe, MessageSquare, Bell, Users, Gamepad2, Shield, Heart, Trophy, Info, Megaphone, Check, X } from 'lucide-react';
+import { Bot, MapPin, Globe, MessageSquare, Bell, Users, Gamepad2, Shield, Heart, Trophy, Info, Megaphone, Check, X, Trash2 } from 'lucide-react';
 import pcIcon from '../assets/pc.svg';
 import nintendoIcon from '../assets/nintendo.svg';
 import xboxIcon from '../assets/xbox.svg';
 import playstationIcon from '../assets/playstation.svg';
 import mobileIcon from '../assets/mobile.svg';
 import { useNavigate } from 'react-router-dom';
+import ConfirmModal from '../components/ConfirmModal';
 
 const platformIcons = {
   pc: pcIcon,
@@ -34,6 +35,7 @@ const platformStyles = {
   mobile: "bg-[#007AFF] text-white"
 };
 
+// Main user dashboard housing recent activity, quick stats, matched ads and basic notification preview
 export default function DashboardHome() {
   const { user, api } = useAuth();
   const { conversations, openConversation } = useChat();
@@ -44,7 +46,32 @@ export default function DashboardHome() {
   const [vacancies, setVacancies] = useState([]);
   const [loadingVacancies, setLoadingVacancies] = useState(true);
 
+  const [adToDelete, setAdToDelete] = useState(null);
+  const [vacancyToDelete, setVacancyToDelete] = useState(null);
 
+  const handleDeleteAd = async () => {
+    if (!adToDelete) return;
+    try {
+      await api.delete(`/player-ads/${adToDelete}`);
+      setAds(prev => prev.filter(a => a.id !== adToDelete));
+    } catch (e) {
+      console.error('Error deleting ad:', e);
+    } finally {
+      setAdToDelete(null);
+    }
+  };
+
+  const handleDeleteVacancy = async () => {
+    if (!vacancyToDelete) return;
+    try {
+      await api.delete(`/vacancies/${vacancyToDelete}`);
+      setVacancies(prev => prev.filter(v => v.id !== vacancyToDelete));
+    } catch (e) {
+      console.error('Error deleting vacancy:', e);
+    } finally {
+      setVacancyToDelete(null);
+    }
+  };
 
   const recentMessages = [...conversations]
     .sort((a, b) =>
@@ -79,7 +106,6 @@ export default function DashboardHome() {
         const userRegion = user.profile?.region;
         const userLanguage = user.profile?.languages;
 
-        // Fetch Player Ads
         const adsResponse = await api.get('/player-ads');
         const allAds = adsResponse.data.data || [];
         
@@ -99,11 +125,9 @@ export default function DashboardHome() {
         });
         setAds(matchingAds.slice(0, 3));
 
-        // Fetch Team Vacancies
         const vacanciesResponse = await api.get('/vacancies');
         const allVacancies = vacanciesResponse.data.data || [];
 
-        // Show the latest vacancies, excluding the user's own teams
         const recentVacancies = allVacancies
           .filter(v => v.team?.owner_id !== user.id)
           .slice(0, 2);
@@ -160,7 +184,7 @@ export default function DashboardHome() {
 
   return (
     <div className="flex flex-col h-[calc(95vh-120px)] min-h-[500px]">
-      {/* Welcome Header */}
+      {}
       <div className="shrink-0 mb-4">
         <h1 className="text-3xl font-bold text-white mb-2">
           Welcome back, <span className="text-brand-red">{user?.name || 'User'}</span>!
@@ -170,10 +194,10 @@ export default function DashboardHome() {
         </p>
       </div>
 
-      {/* Bento Grid */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1 min-h-0 grid-rows-2">
         
-        {/* Ads Section (Spans 2 columns, Row 1) */}
+        {}
         <div className="md:col-span-2 bg-[#121212] border border-gray-800 rounded-xl p-4 flex flex-col transition-all hover:border-gray-700 min-h-0">
           <div className="flex items-center gap-3 mb-4 shrink-0">
             <div className="p-2 bg-brand-red/10 rounded-lg">
@@ -199,8 +223,17 @@ export default function DashboardHome() {
                   return (
                     <div
                       key={player.id}
-                      className="bg-[#1a1a1a] border border-gray-800 rounded-xl p-4 flex flex-col items-center text-center transition-all hover:border-brand-red/50 hover:shadow-[0_0_10px_rgba(255,51,51,0.1)] h-max"
+                      className="bg-[#1a1a1a] border border-gray-800 rounded-xl p-4 flex flex-col items-center text-center transition-all hover:border-brand-red/50 hover:shadow-[0_0_10px_rgba(255,51,51,0.1)] h-max relative"
                     >
+                      {user?.role === 'admin' && (
+                        <button
+                          onClick={() => setAdToDelete(player.id)}
+                          className="absolute top-2 right-2 text-gray-500 hover:text-red-500 transition-colors bg-[#121212] p-1.5 rounded-md border border-gray-800 z-10"
+                          title="Delete Ad"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      )}
                       <div className="flex items-center gap-3 w-full shrink-0">
                         <div className="relative shrink-0">
                           {player.avatarUrl ? (
@@ -244,7 +277,7 @@ export default function DashboardHome() {
           </div>
         </div>
 
-        {/* Notifications Section (Col 3, Row 1) */}
+        {}
         <div className="bg-[#121212] border border-gray-800 rounded-xl p-4 flex flex-col transition-all hover:border-gray-700 min-h-0">
           <div className="flex items-center justify-between mb-3 shrink-0">
             <div className="flex items-center gap-2">
@@ -318,7 +351,7 @@ export default function DashboardHome() {
           </div>
         </div>
 
-        {/* Teams Section (Spans 2 columns, Row 2) */}
+        {}
         <div className="md:col-span-2 bg-[#121212] border border-gray-800 rounded-xl p-4 flex flex-col transition-all hover:border-gray-700 min-h-0">
           <div className="flex items-center justify-between mb-3 shrink-0">
             <div className="flex items-center gap-2">
@@ -347,8 +380,17 @@ export default function DashboardHome() {
                   return (
                     <div
                       key={team.id}
-                      className="bg-[#1a1a1a] border border-gray-800 rounded-xl p-6 flex flex-col items-center text-center transition-all hover:border-brand-red/50 hover:shadow-[0_0_10px_rgba(255,51,51,0.1)] h-full"
+                      className="bg-[#1a1a1a] border border-gray-800 rounded-xl p-6 flex flex-col items-center text-center transition-all hover:border-brand-red/50 hover:shadow-[0_0_10px_rgba(255,51,51,0.1)] h-full relative"
                     >
+                      {user?.role === 'admin' && (
+                        <button
+                          onClick={() => setVacancyToDelete(team.id)}
+                          className="absolute top-2 right-2 text-gray-500 hover:text-red-500 transition-colors bg-[#121212] p-1.5 rounded-md border border-gray-800 z-10"
+                          title="Delete Vacancy"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      )}
                       <div className="flex items-center gap-3 w-full shrink-0">
                         <div className="relative shrink-0">
                           {team.logoUrl ? (
@@ -395,7 +437,7 @@ export default function DashboardHome() {
           </div>
         </div>
 
-        {/* Messages Section (Col 3, Row 2) */}
+        {}
         <div className="bg-[#121212] border border-gray-800 rounded-xl p-4 flex flex-col transition-all hover:border-gray-700 min-h-0">
           <div className="flex items-center justify-between mb-3 shrink-0">
             <div className="flex items-center gap-2">
@@ -458,6 +500,23 @@ export default function DashboardHome() {
         </div>
 
       </div>
+
+      <ConfirmModal
+        isOpen={!!adToDelete}
+        onClose={() => setAdToDelete(null)}
+        onConfirm={handleDeleteAd}
+        title="Delete Player Ad"
+        message="Are you sure you want to delete this ad? This action cannot be undone."
+      />
+      
+      <ConfirmModal
+        isOpen={!!vacancyToDelete}
+        onClose={() => setVacancyToDelete(null)}
+        onConfirm={handleDeleteVacancy}
+        title="Delete Team Vacancy"
+        message="Are you sure you want to delete this vacancy? This action cannot be undone."
+      />
+
     </div>
   );
 }

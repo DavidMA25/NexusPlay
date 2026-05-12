@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 
 class VacancyApplicationController extends Controller
 {
+    // Creates a new team vacancy request and notifies original owner
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -20,8 +21,7 @@ class VacancyApplicationController extends Controller
         $application = VacancyApplication::create($data);
         
         $vacancy = \App\Models\Vacancy::with('team')->find($data['vacancy_id']);
-        
-        // Notify team owner
+
         \App\Models\Notification::createAndBroadcast([
             'user_id' => $vacancy->team->owner_id,
             'type' => 'team_application',
@@ -38,6 +38,7 @@ class VacancyApplicationController extends Controller
         return $application;
     }
 
+    // Transitions application to accepted status, joining player to members and chat, or deletes if rejected
     public function updateStatus(Request $request, VacancyApplication $application)
     {
         $request->validate([
@@ -55,7 +56,7 @@ class VacancyApplicationController extends Controller
         ]);
 
         if ($request->status === 'accepted') {
-            // Add user to team
+            
             if (!$vacancy->team->members()->where('user_id', $application->user_id)->exists()) {
                 $vacancy->team->members()->attach($application->user_id, [
                     'role_in_team' => 'member',
@@ -63,7 +64,6 @@ class VacancyApplicationController extends Controller
                 ]);
             }
 
-            // Add user to team conversation
             $conversation = \App\Models\Conversation::where('is_group', true)
                 ->where('group_name', $vacancy->team->name)
                 ->where('owner_id', $vacancy->team->owner_id)

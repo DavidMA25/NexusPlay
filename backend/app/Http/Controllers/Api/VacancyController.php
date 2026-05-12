@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 
 class VacancyController extends Controller
 {
+    // Retrieves a paginated list of team vacancies, optionally filtered by search, region, game, and rank
     public function index(Request $request)
     {
         $query = Vacancy::with('team')->latest();
@@ -34,7 +35,7 @@ class VacancyController extends Controller
 
         if ($request->filled('game')) {
             $game = $request->game;
-            // Filter by game name or IGDB ID if it's numeric
+            
             if (is_numeric($game)) {
                 $query->where('game_igdb_id', $game);
             } else {
@@ -57,6 +58,7 @@ class VacancyController extends Controller
         );
     }
 
+    // Creates a new team vacancy and notifies interested users
     public function store(StoreVacancyRequest $request)
     {
         $data = $request->validated();
@@ -69,15 +71,13 @@ class VacancyController extends Controller
         if (empty($data['title'])) {
             $data['title'] = "Buscamos jugador para " . $team->name;
         }
-        
-        // Ensure game_igdb_id is not null
+
         $data['game_igdb_id'] = $data['game_igdb_id'] ?? $team->game_igdb_id ?? 1;
 
         $vacancy = Vacancy::create($data);
 
-        // Notification matching logic
         $gameId = $vacancy->game_igdb_id;
-        $region = $team->region; // Assuming team has region or use owner's region
+        $region = $team->region; 
         $teamName = $team->name;
 
         $interestedUsers = \App\Models\User::where('id', '!=', auth()->id())
@@ -107,6 +107,7 @@ class VacancyController extends Controller
         return new VacancyResource($vacancy);
     }
 
+    // Retrieves details for a specific team vacancy
     public function show(Vacancy $vacancy)
     {
         return new VacancyResource(
@@ -114,6 +115,7 @@ class VacancyController extends Controller
         );
     }
 
+    // Updates a specific team vacancy
     public function update(StoreVacancyRequest $request, Vacancy $vacancy)
     {
         $vacancy->update($request->validated());
@@ -121,8 +123,14 @@ class VacancyController extends Controller
         return new VacancyResource($vacancy);
     }
 
+    // Deletes a specific team vacancy (restricted to team owner or admin)
     public function destroy(Vacancy $vacancy)
     {
+        $team = $vacancy->team;
+        if (auth()->id() !== $team->owner_id && auth()->user()->role !== 'admin') {
+            abort(403, 'Unauthorized action.');
+        }
+
         $vacancy->delete();
 
         return response()->noContent();

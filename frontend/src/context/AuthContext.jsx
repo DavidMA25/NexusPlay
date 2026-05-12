@@ -21,6 +21,7 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
+// Context Provider managing application global user session, persistency, and axios wrapper configuration
 export const AuthProvider = ({ children }) => {
 
     const [user, setUser] = useState(null);

@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
+    // Lists all notifications for the authenticated user paginated
     public function index()
     {
         $notifications = Notification::where('user_id', auth()->id())
@@ -17,6 +18,7 @@ class NotificationController extends Controller
         return \App\Http\Resources\NotificationResource::collection($notifications);
     }
 
+    // Sets a specific notification read_at timestamp to now
     public function markRead(Notification $notification)
     {
         if ($notification->user_id !== auth()->id()) {
@@ -27,6 +29,7 @@ class NotificationController extends Controller
         return response()->json(['message' => 'Marked as read']);
     }
 
+    // Sets all unread notifications of the user as read
     public function markAllRead()
     {
         Notification::where('user_id', auth()->id())
@@ -36,6 +39,7 @@ class NotificationController extends Controller
         return response()->json(['message' => 'All marked as read']);
     }
 
+    // Counts total number of unread notifications for simple badge displays
     public function unreadCount()
     {
         $count = Notification::where('user_id', auth()->id())

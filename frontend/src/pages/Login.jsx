@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
+// Login page component handling user authentication
 export default function Login() {
     const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState('');
@@ -11,6 +12,7 @@ export default function Login() {
     const { login } = useAuth();
     const navigate = useNavigate();
 
+    // Submits credentials to the authentication context
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
@@ -24,15 +26,15 @@ export default function Login() {
 
     return (
         <div className="min-h-screen flex items-center justify-center px-4">
-            {/* Contenedor principal de la tarjeta de Login */}
+            {}
             <div
                 className="bg-[#121212] border border-gray-800 rounded-2xl p-8 w-full max-w-md shadow-2xl relative overflow-hidden">
 
-                {/* Efecto de brillo superior */}
+                {}
                 <div
                     className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-brand-red to-transparent opacity-50"></div>
 
-                {/* Logo y Título */}
+                {}
                 <div className="text-center mb-8">
                     <div
                         className="w-12 h-12 bg-brand-red rounded-lg flex items-center justify-center text-white font-bold text-2xl mx-auto mb-4 shadow-lg shadow-brand-red/20">
@@ -42,7 +44,7 @@ export default function Login() {
                     <p className="text-gray-400 text-sm">Sign in to your NexusPlay account</p>
                 </div>
 
-                {/* Formulario */}
+                {}
                 {error && (
                     <div className="bg-red-500/10 border border-red-500/50 text-red-500 p-3 rounded-lg text-sm mb-6 text-center">
                         {error}
@@ -50,7 +52,7 @@ export default function Login() {
                 )}
                 <form className="space-y-6" onSubmit={handleSubmit}>
 
-                    {/* Email Input */}
+                    {}
                     <div>
                         <label className="block text-gray-300 text-sm font-medium mb-2">
                             Email
@@ -65,7 +67,7 @@ export default function Login() {
                         />
                     </div>
 
-                    {/* Password Input */}
+                    {}
                     <div>
                         <label className="block text-gray-300 text-sm font-medium mb-2">
                             Password
@@ -89,7 +91,7 @@ export default function Login() {
                         </div>
                     </div>
 
-                    {/* Remember me & Forgot Password */}
+                    {}
                     <div className="flex items-center justify-between text-sm">
                         <label className="flex items-center gap-2 cursor-pointer">
                             <input
@@ -106,7 +108,7 @@ export default function Login() {
                         </a>
                     </div>
 
-                    {/* Botón de Login */}
+                    {}
                     <button
                         className="w-full bg-brand-red hover:bg-[#FF4D4D] text-white font-bold py-3 rounded-lg shadow-lg shadow-brand-red/20 transition-all hover:shadow-brand-red/40"
                     >
@@ -114,7 +116,7 @@ export default function Login() {
                     </button>
                 </form>
 
-                {/* Footer del Login */}
+                {}
                 <p className="text-center text-gray-400 text-sm mt-8">
                     Don't have an account? <Link to="/register" className="text-brand-red hover:text-[#FF4D4D] font-medium transition-colors">Register</Link>
                 </p>

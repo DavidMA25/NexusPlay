@@ -10,7 +10,6 @@ export default function GameSearchInput({ value, onChange, onSelect }) {
     const [isOpen, setIsOpen] = useState(false);
     const wrapperRef = useRef(null);
 
-    // evita relanzar la busqueda cuando el usuario elige un juego del desplegable
     const isSelecting = useRef(false);
 
     const [errorMsg, setErrorMsg] = useState(null);

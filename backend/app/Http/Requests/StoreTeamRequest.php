@@ -13,7 +13,7 @@ class StoreTeamRequest extends FormRequest
             'region' => 'required|string',
             'description' => 'nullable|string',
             'website' => 'nullable|url',
-            'logo' => 'nullable|image|max:2048', // 2MB max
+            'logo' => 'nullable|image|max:2048', 
             'language' => 'required|string',
             'game_igdb_id' => 'nullable|integer',
             'platform' => 'required|string',

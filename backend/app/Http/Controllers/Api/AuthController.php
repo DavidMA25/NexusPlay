@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 
 class AuthController extends Controller
 {
+    // Registers a new user or team account
     public function register(Request $request)
     {
         $data = $request->validate([
@@ -53,6 +54,7 @@ class AuthController extends Controller
         ], 201);
     }
 
+    // Authenticates a user and returns an API token
     public function login(Request $request)
     {
         $request->validate([
@@ -77,6 +79,7 @@ class AuthController extends Controller
         ]);
     }
 
+    // Returns the currently authenticated user with their profile and stats
     public function user(Request $request)
     {
         $user = $request->user()->load(['profile', 'stats']);
@@ -86,6 +89,7 @@ class AuthController extends Controller
         ]);
     }
 
+    // Updates the authenticated user's profile settings, including avatar and games
     public function updateSettings(Request $request)
     {
         $request->validate([
@@ -153,6 +157,7 @@ class AuthController extends Controller
         ]);
     }
 
+    // Logs out the user by deleting their current access token
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
@@ -160,6 +165,7 @@ class AuthController extends Controller
         return response()->json(['message' => 'Logged out successfully']);
     }
 
+    // Resends the email verification notification
     public function resendVerification(Request $request)
     {
         $user = $request->user();
@@ -173,6 +179,7 @@ class AuthController extends Controller
         return response()->json(['message' => 'Verification email resent.']);
     }
 
+    // Updates the user's email address and requires re-verification
     public function updateEmail(Request $request)
     {
         $request->validate([
@@ -187,12 +194,13 @@ class AuthController extends Controller
         }
 
         $user->email = $request->email;
-        $user->email_verified_at = null; // Require re-verification
+        $user->email_verified_at = null; 
         $user->save();
 
         return response()->json(['message' => 'Email updated successfully. Please verify your new email.']);
     }
 
+    // Updates the user's password
     public function updatePassword(Request $request)
     {
         $request->validate([
@@ -212,18 +220,18 @@ class AuthController extends Controller
         return response()->json(['message' => 'Password updated successfully.']);
     }
 
+    // Deletes the user's account and associated tokens
     public function deleteAccount(Request $request)
     {
         $user = $request->user();
-        
-        // Let foreign key constraints handle deletions where possible,
-        // or explicitly delete associated records here if necessary.
+
         $user->tokens()->delete();
         $user->delete();
 
         return response()->json(['message' => 'Account deleted successfully.']);
     }
 
+    // Updates the user's notification preferences
     public function updateNotificationPreferences(Request $request)
     {
         $request->validate([

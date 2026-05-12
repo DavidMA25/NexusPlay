@@ -27,7 +27,7 @@ export default function AccountSettingsTab() {
             setTimeout(() => {
                 setIsEmailModalOpen(false);
                 setSuccessMessage(null);
-                // Optionally reload user
+                
             }, 1500);
         } catch (err) {
             setError(err.response?.data?.message || 'Error updating email');
@@ -61,7 +61,7 @@ export default function AccountSettingsTab() {
         setError(null);
         try {
             await api.delete('/user/account');
-            await logout(); // will clear auth and redirect
+            await logout(); 
         } catch (err) {
             setError(err.response?.data?.message || 'Error deleting account');
             setLoading(false);
@@ -74,7 +74,7 @@ export default function AccountSettingsTab() {
                 <h2 className="text-lg font-bold text-white mb-6">Account Settings</h2>
 
                 <div className="space-y-6">
-                    {/* Email */}
+                    {}
                     <div className="space-y-2">
                         <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Email</label>
                         <div className="flex gap-4">
@@ -102,7 +102,7 @@ export default function AccountSettingsTab() {
 
                     <hr className="border-gray-800/60" />
 
-                    {/* Change Password */}
+                    {}
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm font-bold text-white">Password</p>
@@ -130,7 +130,7 @@ export default function AccountSettingsTab() {
                 </button>
             </div>
 
-            {/* Email Modal */}
+            {}
             {isEmailModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
                     <div className="bg-[#121212] border border-gray-800 rounded-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
@@ -175,7 +175,7 @@ export default function AccountSettingsTab() {
                 </div>
             )}
 
-            {/* Password Modal */}
+            {}
             {isPasswordModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
                     <div className="bg-[#121212] border border-gray-800 rounded-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
@@ -232,7 +232,7 @@ export default function AccountSettingsTab() {
                 </div>
             )}
 
-            {/* Delete Modal */}
+            {}
             {isDeleteModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
                     <div className="bg-[#121212] border border-red-500/50 rounded-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">

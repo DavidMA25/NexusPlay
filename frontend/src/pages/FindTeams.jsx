@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { Search, Filter, Bot, Users, ChevronLeft, ChevronRight, Star, X } from 'lucide-react';
+import { Search, Filter, Bot, Users, ChevronLeft, ChevronRight, Star, X, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import ConfirmModal from '../components/ConfirmModal';
 
 export default function FindTeams() {
   const { api } = useAuth();
@@ -19,6 +20,20 @@ export default function FindTeams() {
   const [applyMessage, setApplyMessage] = useState('');
   const [submittingApply, setSubmittingApply] = useState(false);
   const [applySuccess, setApplySuccess] = useState(null);
+
+  const [vacancyToDelete, setVacancyToDelete] = useState(null);
+
+  const handleDeleteVacancy = async () => {
+    if (!vacancyToDelete) return;
+    try {
+      await api.delete(`/vacancies/${vacancyToDelete}`);
+      setAds(prev => prev.filter(v => v.id !== vacancyToDelete));
+    } catch (e) {
+      console.error('Error deleting vacancy:', e);
+    } finally {
+      setVacancyToDelete(null);
+    }
+  };
 
   const fetchAds = async () => {
     setLoading(true);
@@ -179,6 +194,22 @@ export default function FindTeams() {
               className="bg-[#1A1A1A] rounded-r-xl rounded-l-md p-5 flex flex-col transition-all duration-300 hover:shadow-[0_0_15px_rgba(255,51,51,0.05)] relative"
               style={{ borderLeft: "3px solid #FF4D4D" }}
             >
+              
+              {(() => {
+                const { user } = useAuth();
+                if (user?.role === 'admin') {
+                  return (
+                    <button
+                      onClick={() => setVacancyToDelete(ad.id)}
+                      className="absolute top-4 right-4 text-gray-500 hover:text-red-500 transition-colors bg-[#121212] p-1.5 rounded-md border border-gray-800"
+                      title="Delete Vacancy"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  );
+                }
+                return null;
+              })()}
 
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-4">
@@ -300,6 +331,14 @@ export default function FindTeams() {
           </button>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={!!vacancyToDelete}
+        onClose={() => setVacancyToDelete(null)}
+        onConfirm={handleDeleteVacancy}
+        title="Delete Team Vacancy"
+        message="Are you sure you want to delete this vacancy? This action cannot be undone."
+      />
 
     </div>
   );

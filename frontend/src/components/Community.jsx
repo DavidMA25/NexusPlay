@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 export default function Community() {
     const navigate = useNavigate();
-    // Aquí guardo mensajes de palo para que el chat no se vea vacío.
-    // Cuando Mario termine su parte, esto vendrá de la base de datos de Laravel.
+
     const dummyMessages = [
         { id: 1, user: "Shadow", color: "text-brand-red", time: "2m ago", text: "Ready for scrims tonight?" },
         { id: 2, user: "Viper", color: "text-green-500", time: "1m ago", text: "Yep, warmed up and ready 🔥" },
@@ -14,7 +13,7 @@ export default function Community() {
     return (
         <section className="py-16 md:py-20 px-4 max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
 
-            {/* IZQUIERDA: Textos y el botón principal */}
+            {}
             <div className="flex-1">
                 <span className="text-brand-red font-bold text-sm tracking-widest uppercase">
                     Join the Community
@@ -26,7 +25,7 @@ export default function Community() {
                     Únete a miles de jugadores y equipos que ya están creando su legado en NexusPlay.
                 </p>
 
-                {/* Un par de stats para que la sección rellene más */}
+                {}
                 <div className="flex flex-wrap gap-8 mb-10">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-brand-red/10 rounded-lg text-brand-red">
@@ -53,11 +52,11 @@ export default function Community() {
                 </button>
             </div>
 
-            {/* DERECHA: El mockup del chat (esto lo tiene que conectar Mario luego) */}
+            {}
             <div className="flex-1 w-full max-w-md">
                 <div className="bg-[#121212] border border-gray-800 rounded-3xl overflow-hidden shadow-2xl">
 
-                    {/* Cabecera del chat */}
+                    {}
                     <div className="p-6 border-b border-gray-800 flex justify-between items-center">
                         <div className="flex items-center gap-3">
                             <div className="w-2 h-2 rounded-full bg-brand-red animate-pulse"></div>
@@ -66,11 +65,11 @@ export default function Community() {
                         <span className="text-gray-500 text-xs">12 online</span>
                     </div>
 
-                    {/* Lista de mensajes del chat */}
+                    {}
                     <div className="p-6 space-y-6 h-[300px] overflow-y-auto">
                         {dummyMessages.map((msg) => (
                             <div key={msg.id} className="flex gap-4">
-                                {/* Uso shrink-0 para que el avatar no se aplaste si el texto es largo */}
+                                {}
                                 <div className="w-10 h-10 rounded-full bg-gray-800 shrink-0"></div>
                                 <div>
                                     <div className="flex items-center gap-2 mb-1">
@@ -83,7 +82,7 @@ export default function Community() {
                         ))}
                     </div>
 
-                    {/* El input donde se escribiría (de momento solo visual) */}
+                    {}
                     <div className="p-4 bg-[#0a0a0a] border-t border-gray-800">
                         <div className="relative flex items-center">
                             <input

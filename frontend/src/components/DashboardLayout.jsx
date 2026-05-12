@@ -132,7 +132,7 @@ export default function DashboardLayout() {
     return (
         <div className="h-screen overflow-hidden bg-[#0a0a0a] flex text-white font-sans">
 
-            {/* Overlay para cerrar el menú en móvil */}
+            {}
             {isSidebarOpen && (
                 <div
                     className="fixed inset-0 bg-black/60 z-30 md:hidden"
@@ -140,7 +140,7 @@ export default function DashboardLayout() {
                 />
             )}
 
-            {/* ================= SIDEBAR ================= */}
+            {}
             <aside className={`
                 fixed md:relative z-40 h-full w-64
                 bg-[#121212] border-r border-gray-800 flex flex-col
@@ -207,12 +207,12 @@ export default function DashboardLayout() {
                 </div>
             </aside>
 
-            {/* ================= ÁREA PRINCIPAL ================= */}
+            {}
             <main className="flex-1 flex flex-col h-full overflow-hidden min-w-0">
 
                 <header className="h-16 md:h-20 border-b border-gray-800 bg-[#0a0a0a] flex items-center justify-between px-4 md:px-8 shrink-0">
 
-                    {/* Hamburguesa — solo en móvil */}
+                    {}
                     <button
                         className="md:hidden text-gray-400 hover:text-white transition-colors"
                         onClick={() => setIsSidebarOpen(true)}
@@ -298,7 +298,7 @@ export default function DashboardLayout() {
 
             </main>
 
-            {/* ===== MODAL: Publish Ad ===== */}
+            {}
             {showAdModal && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4 animate-[fadeIn_0.2s_ease-out]"
@@ -372,7 +372,7 @@ export default function DashboardLayout() {
                 </div>
             )}
 
-            {/* ===== MODAL: Publish Team Ad ===== */}
+            {}
             {showTeamAdModal && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4 animate-[fadeIn_0.2s_ease-out]"

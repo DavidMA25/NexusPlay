@@ -9,11 +9,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class EnsureEmailIsVerifiedJson
 {
-    /**
-     * Handle an incoming request.
-     * Returns a JSON 403 response if the authenticated user has not verified
-     * their email address, instead of redirecting to a Blade view.
-     */
+    
     public function handle(Request $request, Closure $next): Response
     {
         if (! $request->user()

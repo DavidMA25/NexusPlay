@@ -11,22 +11,18 @@ const REGIONS = ['North America', 'Europe', 'Asia', 'South America', 'Oceania'];
 export default function ProfileSettingsTab() {
     const { user, api, updateUser } = useAuth();
 
-    // Basic Info
     const [username, setUsername] = useState(user?.name || '');
     const [bio, setBio] = useState(user?.bio || '');
     const [region, setRegion] = useState(user?.profile?.region || 'Europe');
-    
-    // Languages
+
     const initialLanguages = user?.profile?.languages ? user.profile.languages.split(',').map(l => l.trim()) : ['Spanish'];
     const [primaryLanguage, setPrimaryLanguage] = useState(initialLanguages[0] || 'Spanish');
     const [secondaryLanguages, setSecondaryLanguages] = useState(initialLanguages.slice(1));
 
-    // Avatar
     const [avatarFile, setAvatarFile] = useState(null);
     const [avatarPreview, setAvatarPreview] = useState(user?.avatar_url || null);
     const fileInputRef = useRef(null);
 
-    // Games
     const initialGames = user?.stats?.length > 0 
         ? user.stats.map(stat => ({
             id: stat.id,
@@ -105,7 +101,7 @@ export default function ProfileSettingsTab() {
         if (lang && !secondaryLanguages.includes(lang) && lang !== primaryLanguage) {
             setSecondaryLanguages([...secondaryLanguages, lang]);
         }
-        e.target.value = ''; // reset select
+        e.target.value = ''; 
     };
 
     const [statusMessage, setStatusMessage] = useState(null);
@@ -118,14 +114,12 @@ export default function ProfileSettingsTab() {
             formData.append('name', username);
             if (bio) formData.append('bio', bio);
             if (region) formData.append('region', region);
-            
-            // Combine primary and secondary languages
+
             const allLanguages = [primaryLanguage, ...secondaryLanguages].join(', ');
             formData.append('language', allLanguages);
             
             if (avatarFile) formData.append('avatar', avatarFile);
-            
-            // Filter valid games and map cover to cover_url for backend
+
             const validGames = userGames.filter(g => g.gameId).map(g => ({
                 ...g,
                 cover_url: g.cover
@@ -146,7 +140,6 @@ export default function ProfileSettingsTab() {
         }
     };
 
-    // Original Input Styles
     const inputStyles = "w-full bg-[#1a1a1a] border border-transparent hover:border-gray-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-red transition-colors";
 
     return (
@@ -161,7 +154,7 @@ export default function ProfileSettingsTab() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
 
-                {/* Avatar Section */}
+                {}
                 <div className="flex items-center gap-4 mb-2">
                     <div className="relative group cursor-pointer shrink-0" onClick={handleAvatarClick}>
                         <div className="w-20 h-20 rounded-full bg-brand-red/20 border-2 border-brand-red flex items-center justify-center text-brand-red font-bold text-2xl uppercase overflow-hidden">
@@ -190,7 +183,7 @@ export default function ProfileSettingsTab() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Username */}
+                    {}
                     <div className="space-y-2">
                         <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Username</label>
                         <input
@@ -201,7 +194,7 @@ export default function ProfileSettingsTab() {
                         />
                     </div>
 
-                    {/* Region */}
+                    {}
                     <div className="space-y-2">
                         <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Region</label>
                         <select
@@ -214,7 +207,7 @@ export default function ProfileSettingsTab() {
                     </div>
                 </div>
 
-                {/* Languages */}
+                {}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Primary Language</label>
@@ -259,7 +252,7 @@ export default function ProfileSettingsTab() {
                     </div>
                 </div>
 
-                {/* Bio */}
+                {}
                 <div className="space-y-2">
                     <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Bio</label>
                     <textarea
@@ -270,7 +263,7 @@ export default function ProfileSettingsTab() {
                     ></textarea>
                 </div>
 
-                {/* Games Section - Redesigned to be highly intuitive */}
+                {}
                 <div className="space-y-3 pt-3 border-t border-gray-800/60">
                     <div className="flex items-center justify-between mb-2">
                         <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">My Games</label>
@@ -291,7 +284,7 @@ export default function ProfileSettingsTab() {
                                 )}
 
                                 {!game.gameId ? (
-                                    // State 1: Game not selected (Search Mode)
+                                    
                                     <div className="space-y-2 pr-8">
                                         <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Search for a Game</label>
                                         <GameSearchInput 
@@ -301,7 +294,7 @@ export default function ProfileSettingsTab() {
                                         />
                                     </div>
                                 ) : (
-                                    // State 2: Game Selected (Details Mode)
+                                    
                                     <div className="space-y-6">
                                         <div className="flex items-center gap-4 pr-8">
                                             <img src={game.cover} alt={game.title} className="w-12 h-16 object-cover rounded shadow-md" />
@@ -368,7 +361,7 @@ export default function ProfileSettingsTab() {
                     </div>
                 </div>
 
-                {/* Footer buttons */}
+                {}
                 <div className="pt-3">
                     <button
                         type="submit"

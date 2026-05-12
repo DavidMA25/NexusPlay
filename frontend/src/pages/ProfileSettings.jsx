@@ -3,6 +3,7 @@ import { Camera, Plus, Trash2, Save, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import GameSearchInput from '../components/GameSearchInput';
 
+// Component for users to update their profile information, avatar, and gaming roster
 export default function ProfileSettings() {
     const { user, api, updateUser } = useAuth();
 
@@ -25,7 +26,6 @@ export default function ProfileSettings() {
         }
     };
 
-    // Date.now() como id temporal para que React no se queje con las keys del array
     const [userGames, setUserGames] = useState(
         user?.stats?.length > 0 
         ? user.stats.map(stat => ({
@@ -53,6 +53,7 @@ export default function ProfileSettings() {
         ));
     };
 
+    // Handles profile form submission and updates the user's data via API
     const handleSubmit = async (e) => {
         e.preventDefault();
         setStatusMessage(null);
@@ -82,7 +83,7 @@ export default function ProfileSettings() {
     return (
         <div className="max-w-3xl mx-auto space-y-8 pb-10">
             
-            {/* Cabecera */}
+            {}
             <div>
                 <h1 className="text-3xl font-bold text-white mb-2">Profile Settings</h1>
                 <p className="text-gray-400 text-sm">
@@ -133,7 +134,7 @@ export default function ProfileSettings() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Username */}
+                        {}
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-300">Username</label>
                             <input 

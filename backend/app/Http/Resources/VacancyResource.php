@@ -13,7 +13,7 @@ class VacancyResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'description' => $this->description,
-            'game_igdb_id' => $this->game_igdb_id, // we might need 'game_name' but frontend can map it
+            'game_igdb_id' => $this->game_igdb_id, 
             'role_needed' => $this->role_needed,
             'rank_min' => $this->required_rank_min,
             'rank_max' => $this->required_rank_max,

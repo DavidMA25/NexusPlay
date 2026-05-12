@@ -19,6 +19,7 @@ class Conversation extends Model
         'is_group' => 'boolean',
     ];
 
+    // Relationship: Multi-user association of who belongs in this conversation
     public function participants()
     {
         return $this->belongsToMany(User::class, 'conversation_participants')
@@ -26,11 +27,13 @@ class Conversation extends Model
             ->withTimestamps();
     }
 
+    // Relationship: Retrieves full list of standard message objects in ordering sequence
     public function messages()
     {
         return $this->hasMany(Message::class);
     }
 
+    // Short helper relationship fetching the absolute newest single message item
     public function lastMessage()
     {
         return $this->hasOne(Message::class)->latestOfMany();

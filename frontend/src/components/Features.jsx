@@ -55,7 +55,7 @@ export default function Features() {
                         onClick={() => navigate('/dashboard')}
                         className="group rounded-2xl bg-[#121212] border border-gray-800 overflow-hidden transition-all duration-300 hover:border-brand-red cursor-pointer"
                     >
-                        {/* imagen de cabecera de la tarjeta */}
+                        {}
                         <div className="relative h-44 overflow-hidden">
                             <img
                                 src={f.img}

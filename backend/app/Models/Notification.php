@@ -21,14 +21,13 @@ class Notification extends Model
         'read_at' => 'datetime'
     ];
 
+    // Relationship: Target receiver user account receiving the notification
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Create and broadcast a notification.
-     */
+    // Main builder creating notifications respecting individual user silence preferences before broadcast
     public static function createAndBroadcast(array $attributes)
     {
         $user = User::find($attributes['user_id']);

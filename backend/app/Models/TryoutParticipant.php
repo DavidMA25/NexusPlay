@@ -20,9 +20,6 @@ class TryoutParticipant extends Model
         'user_id'    => 'integer',
     ];
 
-    /**
-     * Usuario de Laravel que participa.
-     */
     public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(User::class);

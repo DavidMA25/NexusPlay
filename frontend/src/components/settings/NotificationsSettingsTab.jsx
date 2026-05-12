@@ -28,7 +28,7 @@ export default function NotificationsSettingsTab() {
         try {
             await api.put('/user/notifications', { preferences: toggles });
             setSaved(true);
-            loadUser(); // Refresh user state to update notification_preferences
+            loadUser(); 
             setTimeout(() => setSaved(false), 2500);
         } catch (e) {
             console.error('Error saving preferences', e);

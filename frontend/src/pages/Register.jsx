@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
+// Registration page component for creating new player or team accounts
 export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState('player'); 
@@ -20,6 +21,7 @@ export default function Register() {
   const { register } = useAuth();
   const navigate = useNavigate();
 
+  // Validates the form data and attempts to register the user
   const handleSubmit = async (e) => {
       e.preventDefault();
       setError('');
@@ -43,20 +45,20 @@ export default function Register() {
   }; 
 
   return (
-    /* CAMBIO AQUÍ: min-h-[calc(100vh-80px)] descuenta el Navbar y py-12 iguala los márgenes */
+    
     <div className="min-h-[calc(100vh-80px)] flex items-center justify-center px-4 py-12">
       
-      {/* Contenedor principal */}
+      {}
       <div 
         className="bg-[#121212] border border-gray-800 rounded-2xl p-8 w-full max-w-md shadow-2xl relative overflow-hidden"
       >
         
-        {/* Efecto de brillo superior */}
+        {}
         <div 
           className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-brand-red to-transparent opacity-50"
         ></div>
 
-        {/* Logo y Título */}
+        {}
         <div className="text-center mb-8">
           <div 
             className="w-12 h-12 bg-brand-red rounded-lg flex items-center justify-center text-white font-bold text-2xl mx-auto mb-4 shadow-lg shadow-brand-red/20"
@@ -67,7 +69,7 @@ export default function Register() {
           <p className="text-gray-400 text-sm">Create your account and start competing</p>
         </div>
 
-        {/* Formulario */}
+        {}
         {error && (
             <div className="bg-red-500/10 border border-red-500/50 text-red-500 p-3 rounded-lg text-sm mb-6 text-center">
                 {error}
@@ -75,7 +77,7 @@ export default function Register() {
         )}
         <form className="space-y-5" onSubmit={handleSubmit}>
 
-          {/* Selector de Rol (Player / Team) */}
+          {}
           <div className="flex gap-4 mb-6">
             <button
               type="button"
@@ -160,7 +162,7 @@ export default function Register() {
             </div>
           )}
 
-          {/* Username Input */}
+          {}
           <div>
             <label className="block text-gray-300 text-sm font-medium mb-2">
               Username
@@ -175,7 +177,7 @@ export default function Register() {
             />
           </div>
 
-          {/* Email Input */}
+          {}
           <div>
             <label className="block text-gray-300 text-sm font-medium mb-2">
               Email
@@ -190,7 +192,7 @@ export default function Register() {
             />
           </div>
 
-          {/* Password Input */}
+          {}
           <div>
             <label className="block text-gray-300 text-sm font-medium mb-2">
               Password
@@ -214,7 +216,7 @@ export default function Register() {
             </div>
           </div>
 
-          {/* Confirm Password Input */}
+          {}
           <div>
             <label className="block text-gray-300 text-sm font-medium mb-2">
               Confirm Password
@@ -229,7 +231,7 @@ export default function Register() {
             />
           </div>
 
-          {/* Botón principal */}
+          {}
           <button 
             type="submit"
             disabled={loading}
@@ -239,7 +241,7 @@ export default function Register() {
           </button>
         </form>
 
-        {/* Footer */}
+        {}
         <p className="text-center text-gray-400 text-sm mt-8">
           Already have an account? <Link to="/login" className="text-brand-red hover:text-[#FF4D4D] font-medium transition-colors">Login</Link>
         </p>

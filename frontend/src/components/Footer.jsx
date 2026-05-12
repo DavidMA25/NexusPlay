@@ -5,10 +5,10 @@ export default function Footer() {
     return (
         <footer className="bg-[#0a0a0a] border-t border-gray-800 pt-10 md:pt-16 pb-8 px-4">
             <div className="max-w-7xl mx-auto">
-                {/* Grid principal: Logo/Desc + 4 Columnas de links */}
+                {}
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 md:gap-10 lg:gap-12 mb-12 md:mb-16">
 
-                    {/* Columna del Logo y Redes (ocupa 2 columnas en pantallas grandes) */}
+                    {}
                     <div className="col-span-2">
                         <div className="flex items-center gap-2 mb-6">
                             <div className="w-8 h-8 bg-brand-red rounded flex items-center justify-center text-white font-bold">N</div>
@@ -17,7 +17,7 @@ export default function Footer() {
                         <p className="text-gray-400 text-sm mb-8 max-w-xs">
                             The professional hub for eSports recruitment. Connecting players, teams, and organizations worldwide.
                         </p>
-                        {/* Iconos sociales con hover rojo */}
+                        {}
                         <div className="flex gap-4">
                             {[Twitter, Youtube, Twitch, MessageSquare].map((Icon, i) => (
                                 <a key={i} href="#" className="p-2 bg-[#1a1a1a] rounded-lg text-gray-400 hover:text-brand-red transition-colors">
@@ -27,7 +27,7 @@ export default function Footer() {
                         </div>
                     </div>
 
-                    {/* Columna 1: Platform */}
+                    {}
                     <div>
                         <h4 className="text-white font-bold mb-6">Platform</h4>
                         <ul className="space-y-4 text-sm text-gray-400">
@@ -38,7 +38,7 @@ export default function Footer() {
                         </ul>
                     </div>
 
-                    {/* Columna 2: Company */}
+                    {}
                     <div>
                         <h4 className="text-white font-bold mb-6">Company</h4>
                         <ul className="space-y-4 text-sm text-gray-400">
@@ -49,7 +49,7 @@ export default function Footer() {
                         </ul>
                     </div>
 
-                    {/* Columna 3: Resources */}
+                    {}
                     <div>
                         <h4 className="text-white font-bold mb-6">Resources</h4>
                         <ul className="space-y-4 text-sm text-gray-400">
@@ -60,7 +60,7 @@ export default function Footer() {
                         </ul>
                     </div>
 
-                    {/* Columna 4: Legal */}
+                    {}
                     <div>
                         <h4 className="text-white font-bold mb-6">Legal</h4>
                         <ul className="space-y-4 text-sm text-gray-400">
@@ -71,7 +71,7 @@ export default function Footer() {
                     </div>
                 </div>
 
-                {/* Barra inferior de Copyright */}
+                {}
                 <div className="pt-8 border-t border-gray-900 text-xs text-gray-500">
                     <p>© 2026 NexusPlay. All rights reserved.</p>
                 </div>

@@ -1,3 +1,4 @@
+// Simple standard API helper for executing manual raw AJAX requests with authorization
 export async function apiComunication(method, endpoint, token, bodyText = "", headersText = "") {
 
     const BASE_URL = "http://localhost/nexusplay/backend/public/api";
@@ -7,12 +8,10 @@ export async function apiComunication(method, endpoint, token, bodyText = "", he
         "Accept": "application/json"
     };
 
-    // token auth
     if (token) {
         headers["Authorization"] = "Bearer " + token;
     }
 
-    // headers extra
     try {
         const extraHeaders = JSON.parse(headersText || "{}");
         headers = { ...headers, ...extraHeaders };
@@ -34,8 +33,6 @@ export async function apiComunication(method, endpoint, token, bodyText = "", he
 
     const url = BASE_URL + endpoint;
 
-    // document.getElementById("response").textContent = "Loading...";
-
     try {
         const res = await fetch(url, {
             method,
@@ -45,8 +42,6 @@ export async function apiComunication(method, endpoint, token, bodyText = "", he
 
         const text = await res.text();
 
-        // document.getElementById("response").textContent =
-        //     `STATUS: ${res.status}\n\n` + formatted;
         return JSON.parse(text);
 
     } catch (err) {

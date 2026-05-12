@@ -9,7 +9,7 @@ export default function ConfirmModal({
     message, 
     confirmText = 'Confirm', 
     cancelText = 'Cancel',
-    variant = 'danger', // 'danger' | 'info'
+    variant = 'danger', 
     isLoading = false
 }) {
     if (!isOpen) return null;

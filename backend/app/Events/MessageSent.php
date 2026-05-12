@@ -15,24 +15,12 @@ class MessageSent implements ShouldBroadcastNow
 
     public function __construct(public Message $message) {}
 
-    /**
-     * Emite en DOS canales:
-     *
-     * 1. private-conversation.{id}  — lo escuchan los clientes que tienen el chat abierto
-     *    (para mostrar el mensaje en tiempo real dentro del panel).
-     *
-     * 2. private-user.{id}          — uno por cada participante que NO es el emisor.
-     *    Lo escucha el ChatContext desde el login, sin importar qué conversaciones
-     *    conoce. Así los badges y el widget del Home se actualizan aunque el chat
-     *    no esté abierto o la conversación sea nueva.
-     */
     public function broadcastOn(): array
     {
         $channels = [
             new PrivateChannel('conversation.' . $this->message->conversation_id),
         ];
 
-        // Canal personal de cada receptor (todos los participantes salvo el emisor)
         $this->message->conversation
             ->participants()
             ->where('user_id', '!=', $this->message->sender_id)
@@ -54,7 +42,6 @@ class MessageSent implements ShouldBroadcastNow
         $sender       = $this->message->sender;
         $conversation = $this->message->conversation;
 
-        // Si es un grupo, intentamos buscar el logo del equipo
         $avatarUrl = null;
         if ($conversation->is_group) {
             $team = \App\Models\Team::where('conversation_id', $conversation->id)->first();

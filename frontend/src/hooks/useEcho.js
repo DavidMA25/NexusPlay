@@ -1,21 +1,15 @@
-/**
- * useEcho — inicializa Laravel Echo con Reverb.
- *
- * - Singleton por token: si el token cambia (re-login) se destruye y recrea.
- * - El authEndpoint apunta a /api/broadcasting/auth usando el token Bearer.
- *
- * INSTALACIÓN: npm install laravel-echo pusher-js
- */
+
 
 import { useEffect, useRef } from 'react';
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 
 let echoInstance = null;
-let echoToken    = null;  // token con el que se creó la instancia actual
+let echoToken    = null;  
 
+// Singleton holder function that manages valid Echo websocket instances per specific token
 function buildEcho(token) {
-    // Base URL sin trailing slash, sin /api al final
+    
     const apiBase = (import.meta.env.VITE_API_URL ?? 'http://localhost:8000/api')
         .replace(/\/api\/?$/, '');
 
@@ -29,7 +23,7 @@ function buildEcho(token) {
         wssPort:      Number(import.meta.env.VITE_REVERB_PORT   ?? 8080),
         forceTLS:    (import.meta.env.VITE_REVERB_SCHEME  ?? 'http') === 'https',
         enabledTransports: ['ws', 'wss'],
-        // Laravel espera esta ruta en el grupo api con auth:sanctum
+        
         authEndpoint: `${apiBase}/api/broadcasting/auth`,
         auth: {
             headers: {
@@ -41,7 +35,7 @@ function buildEcho(token) {
 }
 
 function getEcho(token) {
-    // Si el token cambió (logout + re-login), destruir la instancia anterior
+    
     if (echoInstance && echoToken !== token) {
         echoInstance.disconnect();
         echoInstance = null;
@@ -64,6 +58,7 @@ export function disconnectEcho() {
     }
 }
 
+// React hook providing consistent global access to realtime websocket subscriptions
 export function useEcho(token) {
     const ref = useRef(null);
 

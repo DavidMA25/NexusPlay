@@ -379,7 +379,7 @@ function ChatPanel({ conversation, onBack, initialInputText = '' }) {
                 </button>
             </div>
 
-            <div className="flex flex-1 min-h-0">
+            <div className="flex flex-1 min-h-0 relative">
                 {}
                 <div className="flex-1 flex flex-col min-h-0">
                     {hasMore && (
@@ -420,7 +420,7 @@ function ChatPanel({ conversation, onBack, initialInputText = '' }) {
 
                 {}
                 {showInfo && (
-                    <div className="w-60 border-l border-gray-800 bg-[#0f0f0f] flex flex-col flex-shrink-0">
+                    <div className="absolute top-16 bottom-0 right-0 w-64 z-20 md:static md:h-auto md:w-60 border-l border-gray-800 bg-[#0f0f0f] flex flex-col flex-shrink-0 shadow-xl md:shadow-none">
                         <div className="p-4 border-b border-gray-800">
                             <h4 className="text-sm font-bold text-white">{conversation.is_group ? 'Members' : 'Profile'}</h4>
                         </div>
@@ -500,9 +500,9 @@ export default function Messages() {
     const handleGroupCreated = (conv) => { addOrUpdateConversation(conv); openConversation(conv.id); setShowMobile(true); };
 
     return (
-        <div className="flex h-full w-full bg-[#0a0a0a] text-white overflow-hidden rounded-xl border border-gray-800">
+        <div className="flex h-full w-full bg-[#0a0a0a] text-white overflow-hidden">
             {}
-            <div className={`w-80 border-r border-gray-800 flex flex-col bg-[#0f0f0f] flex-shrink-0 ${showMobile ? 'hidden md:flex' : 'flex'}`}>
+            <div className={`w-full md:w-80 border-r border-gray-800 flex flex-col bg-[#0f0f0f] flex-shrink-0 ${showMobile ? 'hidden md:flex' : 'flex'}`}>
                 <div className="p-4 border-b border-gray-800">
                     <div className="flex items-center justify-between mb-3">
                         <h2 className="text-lg font-bold">Messages</h2>

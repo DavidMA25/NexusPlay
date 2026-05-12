@@ -8,6 +8,8 @@ import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
 import { useEcho } from '../hooks/useEcho';
 import GameSearchInput from '../components/GameSearchInput';
+import ConfirmModal from '../components/ConfirmModal';
+import AlertModal from '../components/AlertModal';
 
 function formatTime(iso) {
     if (!iso) return '';
@@ -34,8 +36,6 @@ function Avatar({ name, avatarUrl, size = 'md', isGroup = false }) {
         </div>
     );
 }
-
-
 
 function CreateTeamModal({ onClose, onCreated }) {
     const { api } = useAuth();
@@ -180,6 +180,7 @@ function CreateTeamModal({ onClose, onCreated }) {
     );
 }
 
+// Individual chat panel governing message socket listeners and typing behaviors
 function ChatPanel({ conversation, onBack, initialInputText = '' }) {
     const { user, api, token } = useAuth();
     const echo = useEcho(token);
@@ -191,6 +192,9 @@ function ChatPanel({ conversation, onBack, initialInputText = '' }) {
     const [inputText, setInputText] = useState(initialInputText);
     const [sending, setSending] = useState(false);
     const [showInfo, setShowInfo] = useState(false);
+    const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+    const [alertMsg, setAlertMsg] = useState(null);
+    const [leaving, setLeaving] = useState(false);
     const { removeConversation } = useChat();
 
     const bottomRef = useRef(null);
@@ -220,7 +224,6 @@ function ChatPanel({ conversation, onBack, initialInputText = '' }) {
         if (!loadingMsgs) bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [loadingMsgs, messages.length]);
 
-    // me suscribo al canal de esta conversacion para recibir mensajes en tiempo real
     useEffect(() => {
         if (!echo) return;
         const channelName = `conversation.${conversation.id}`;
@@ -229,7 +232,7 @@ function ChatPanel({ conversation, onBack, initialInputText = '' }) {
         channel
             .listen('.message.sent', data => {
                 setMessages(prev => {
-                    // Si ya existe el mensaje real (id numérico), ignorar
+                    
                     if (prev.find(m => m.id === data.id)) return prev;
 
                     const newMsg = {
@@ -244,8 +247,6 @@ function ChatPanel({ conversation, onBack, initialInputText = '' }) {
                         },
                     };
 
-                    // Si es mensaje propio: reemplazar el optimistic (opt-*) pendiente
-                    // para evitar duplicados
                     const optimisticIdx = prev.findIndex(
                         m => String(m.id).startsWith('opt-') && String(m.sender_id) === String(data.sender_id)
                     );
@@ -277,7 +278,7 @@ function ChatPanel({ conversation, onBack, initialInputText = '' }) {
         const text = inputText.trim();
         if (!text || sending) return;
         setSending(true); setInputText('');
-        // muestro el mensaje ya en pantalla sin esperar al servidor, si falla lo quito
+        
         const optId = `opt-${Date.now()}`;
         const optimistic = {
             id: optId, conversation_id: conversation.id,
@@ -306,14 +307,17 @@ function ChatPanel({ conversation, onBack, initialInputText = '' }) {
     const isGroupOwner = conversation.is_group && conversation.owner_id === user?.id;
 
     const handleLeaveGroup = async () => {
-        if (!window.confirm("Are you sure you want to leave this team chat?")) return;
+        setLeaving(true);
         try {
             await api.post(`/conversations/${conversation.id}/leave`);
             removeConversation(conversation.id);
+            setShowLeaveConfirm(false);
             onBack();
         } catch (e) {
             console.error("Error leaving group", e);
-            alert(e.response?.data?.message || "Error leaving group");
+            setAlertMsg(e.response?.data?.message || "Error leaving group");
+        } finally {
+            setLeaving(false);
         }
     };
 
@@ -357,7 +361,7 @@ function ChatPanel({ conversation, onBack, initialInputText = '' }) {
 
     return (
         <div className="flex-1 flex flex-col bg-[#0a0a0a] min-h-0">
-            {/* Header */}
+            {}
             <div className="h-16 border-b border-gray-800 flex items-center justify-between px-5 bg-[#0f0f0f] flex-shrink-0">
                 <div className="flex items-center gap-3">
                     <button onClick={onBack} className="md:hidden text-gray-400 hover:text-white mr-1"><ChevronLeft size={20} /></button>
@@ -376,7 +380,7 @@ function ChatPanel({ conversation, onBack, initialInputText = '' }) {
             </div>
 
             <div className="flex flex-1 min-h-0">
-                {/* Messages */}
+                {}
                 <div className="flex-1 flex flex-col min-h-0">
                     {hasMore && (
                         <div className="text-center p-2 flex-shrink-0">
@@ -398,7 +402,7 @@ function ChatPanel({ conversation, onBack, initialInputText = '' }) {
                         ) : messages.map((m, i, a) => renderMsg(m, i, a))}
                         <div ref={bottomRef} />
                     </div>
-                    {/* Input */}
+                    {}
                     <div className="p-4 border-t border-gray-800 bg-[#0a0a0a] flex-shrink-0">
                         <div className="flex items-center gap-3">
                             <input ref={inputRef} type="text" value={inputText}
@@ -414,7 +418,7 @@ function ChatPanel({ conversation, onBack, initialInputText = '' }) {
                     </div>
                 </div>
 
-                {/* Panel info */}
+                {}
                 {showInfo && (
                     <div className="w-60 border-l border-gray-800 bg-[#0f0f0f] flex flex-col flex-shrink-0">
                         <div className="p-4 border-b border-gray-800">
@@ -433,7 +437,7 @@ function ChatPanel({ conversation, onBack, initialInputText = '' }) {
                         </div>
                         {conversation.is_group && (
                             <div className="p-4 border-t border-gray-800 mt-auto">
-                                <button onClick={handleLeaveGroup} className="w-full py-2.5 bg-brand-red/10 hover:bg-brand-red/20 text-brand-red rounded-lg text-xs font-bold transition-colors border border-brand-red/20">
+                                <button onClick={() => setShowLeaveConfirm(true)} className="w-full py-2.5 bg-brand-red/10 hover:bg-brand-red/20 text-brand-red rounded-lg text-xs font-bold transition-colors border border-brand-red/20">
                                     {isGroupOwner ? "Leave & Transfer/Delete Team" : "Leave Team Chat"}
                                 </button>
                             </div>
@@ -441,10 +445,29 @@ function ChatPanel({ conversation, onBack, initialInputText = '' }) {
                     </div>
                 )}
             </div>
+
+            <ConfirmModal 
+                isOpen={showLeaveConfirm}
+                onClose={() => setShowLeaveConfirm(false)}
+                onConfirm={handleLeaveGroup}
+                title="Leave Team Chat"
+                message="Are you sure you want to leave this team chat? You won't see updates anymore."
+                confirmText="Leave Group"
+                variant="danger"
+                isLoading={leaving}
+            />
+
+            <AlertModal 
+                isOpen={!!alertMsg}
+                onClose={() => setAlertMsg(null)}
+                title="Error"
+                message={alertMsg}
+            />
         </div>
     );
 }
 
+// Full inbox center combining conversation list, creation dialogs and current panel display
 export default function Messages() {
     const { conversations, loading, activeConversationId, openConversation, addOrUpdateConversation } = useChat();
     const location = useLocation();
@@ -457,7 +480,6 @@ export default function Messages() {
 
     const prefillMessage = location.state?.prefillMessage;
 
-    // Clear the state so it doesn't persist on reload
     useEffect(() => {
         if (location.state?.prefillMessage) {
             const newState = { ...location.state };
@@ -479,7 +501,7 @@ export default function Messages() {
 
     return (
         <div className="flex h-full w-full bg-[#0a0a0a] text-white overflow-hidden rounded-xl border border-gray-800">
-            {/* Sidebar */}
+            {}
             <div className={`w-80 border-r border-gray-800 flex flex-col bg-[#0f0f0f] flex-shrink-0 ${showMobile ? 'hidden md:flex' : 'flex'}`}>
                 <div className="p-4 border-b border-gray-800">
                     <div className="flex items-center justify-between mb-3">
@@ -541,7 +563,7 @@ export default function Messages() {
                 </div>
             </div>
 
-            {/* Panel derecho */}
+            {}
             <div className={`flex-1 min-w-0 ${showMobile ? 'flex' : 'hidden md:flex'} flex-col`}>
                 {activeConversation
                     ? <ChatPanel key={activeConversation.id} conversation={activeConversation} onBack={() => setShowMobile(false)} initialInputText={prefillMessage} />

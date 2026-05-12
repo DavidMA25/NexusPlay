@@ -8,14 +8,12 @@ use Illuminate\Http\Request;
 
 class PlayerController extends Controller
 {
-    /**
-     * Display a paginated listing of players (users with profiles and stats).
-     */
+    
+    // Searches and returns a paginated collection of users with optional filtering by game, region, rank, or role
     public function index(Request $request)
     {
         $query = User::with(['profile', 'stats']);
 
-        // Search by name or nickname
         if ($request->filled('search')) {
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
@@ -24,7 +22,6 @@ class PlayerController extends Controller
             });
         }
 
-        // Filter by region (in profile)
         if ($request->filled('region')) {
             $region = $request->input('region');
             $query->whereHas('profile', function ($q) use ($region) {
@@ -32,25 +29,21 @@ class PlayerController extends Controller
             });
         }
 
-        // Filter by game (igdb_id in stats)
         if ($request->filled('game')) {
             $game = $request->input('game');
-            // Assuming the frontend might pass a game name or ID, for now we will assume it filters exactly if it's an ID, or we need to join/map it. 
-            // In the DB game_igdb_id is integer, so we assume frontend will send the ID if needed or we change this later.
+
             $query->whereHas('stats', function ($q) use ($game) {
-                $q->where('game_igdb_id', $game); // Or handle text search depending on implementation
+                $q->where('game_igdb_id', $game); 
             });
         }
 
-        // Filter by rank (in stats)
         if ($request->filled('rank')) {
             $rank = $request->input('rank');
             $query->whereHas('stats', function ($q) use ($rank) {
                 $q->where('rank_tier', 'like', "%{$rank}%");
             });
         }
-        
-        // Filter by roles (in stats)
+
         if ($request->filled('role')) {
             $role = $request->input('role');
             $query->whereHas('stats', function ($q) use ($role) {
@@ -63,9 +56,29 @@ class PlayerController extends Controller
         return response()->json($players);
     }
 
+    // Shows details of a single specific user by ID load with their game profile
     public function show($id)
     {
         $player = User::with(['profile', 'stats'])->findOrFail($id);
         return response()->json($player);
+    }
+
+    // Allows an admin role to fully delete another user account
+    public function destroy($id)
+    {
+        if (auth()->user()->role !== 'admin') {
+            abort(403, 'Unauthorized action.');
+        }
+        
+        $user = User::findOrFail($id);
+        
+        if ($user->id === auth()->id()) {
+            abort(400, 'Cannot delete yourself here.');
+        }
+        
+        $user->tokens()->delete();
+        $user->delete();
+        
+        return response()->noContent();
     }
 }

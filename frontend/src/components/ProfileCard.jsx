@@ -43,7 +43,6 @@ export default function ProfileCard({ playerData, isOwnProfile = false, onClose 
     const { api, user: authUser } = useAuth();
     const { addOrUpdateConversation, openConversation } = useChat();
 
-    // Nunca permitir enviarse mensajes a uno mismo, aunque isOwnProfile llegue mal
     const isSelf = isOwnProfile || (authUser?.id && playerData?.id && authUser.id === playerData.id);
 
     const handleMessage = async () => {

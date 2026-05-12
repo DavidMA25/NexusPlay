@@ -10,6 +10,7 @@ export const useChat = () => {
     return ctx;
 };
 
+// React provider orchestrating websocket listeners, unread counts, and list of active conversations
 export function ChatProvider({ children }) {
     const { user, token, api } = useAuth();
     const echo = useEcho(token);
@@ -18,19 +19,14 @@ export function ChatProvider({ children }) {
     const [activeConversationId, setActiveConversationId] = useState(null);
     const [loading, setLoading]                           = useState(false);
 
-    // Refs to avoid stale closures inside Reverb listeners
     const activeConvIdRef    = useRef(null);
     const userIdRef          = useRef(null);
     const subscribedChannels = useRef(new Set());
 
-    // External notification handler — NotificationContext injects this
-    // so both can share the same private-user channel without conflicts
     const notificationHandlerRef = useRef(null);
 
     useEffect(() => { activeConvIdRef.current = activeConversationId; }, [activeConversationId]);
     useEffect(() => { userIdRef.current = user?.id ?? null; },          [user?.id]);
-
-    // ── Fetch conversations on login ──────────────────────────────────────────
 
     const fetchConversations = useCallback(async () => {
         if (!user) return;
@@ -54,8 +50,7 @@ export function ChatProvider({ children }) {
         }
     }, [user?.id]);
 
-    // ── Incoming message handler (used by the user.{id} channel) ─────────────
-
+    // Reacts instantly to realtime stream updates append or updating internal chat caches
     const handleIncomingMessage = useCallback((data) => {
         const isActive = activeConvIdRef.current === data.conversation_id;
         const isOwnMsg = data.sender_id === userIdRef.current;
@@ -80,7 +75,6 @@ export function ChatProvider({ children }) {
                 });
             }
 
-            // New conversation created by someone else — add it with unread: 1
             if (data.conversation && !isOwnMsg) {
                 const isGroup = !!data.conversation.is_group;
                 return [{
@@ -107,10 +101,6 @@ export function ChatProvider({ children }) {
         });
     }, []);
 
-    // ── Single private-user channel subscription ──────────────────────────────
-    // Both message.sent and notification.received are handled here so that
-    // echo.leave() is only called once and doesn't kill the other listener.
-
     useEffect(() => {
         if (!echo || !user?.id) return;
 
@@ -120,7 +110,7 @@ export function ChatProvider({ children }) {
         channel
             .listen('.message.sent', handleIncomingMessage)
             .listen('.notification.received', (data) => {
-                // Delegate to NotificationContext if it has registered a handler
+                
                 notificationHandlerRef.current?.(data);
             });
 
@@ -128,8 +118,6 @@ export function ChatProvider({ children }) {
             echo.leave(channelName);
         };
     }, [echo, user?.id, handleIncomingMessage]);
-
-    // ── Per-conversation channel (message.deleted only) ───────────────────────
 
     const subscribeToConversation = useCallback((conv) => {
         if (!echo) return;
@@ -156,8 +144,6 @@ export function ChatProvider({ children }) {
         if (!echo) return;
         conversations.forEach(subscribeToConversation);
     }, [echo, conversations, subscribeToConversation]);
-
-    // ── Helpers ───────────────────────────────────────────────────────────────
 
     const openConversation = useCallback((id) => {
         setActiveConversationId(id);
@@ -201,7 +187,7 @@ export function ChatProvider({ children }) {
             addOrUpdateConversation,
             removeConversation,
             setConversations,
-            // Exposed so NotificationContext can register its handler
+            
             notificationHandlerRef,
         }}>
             {children}

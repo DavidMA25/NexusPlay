@@ -14,10 +14,8 @@ use Illuminate\Validation\Rule;
 
 class ConversationController extends Controller
 {
-    // =========================================================================
-    // LISTAR CONVERSACIONES DEL USUARIO AUTENTICADO
-    // =========================================================================
 
+    // Retrieves all conversations (direct and group) for the authenticated user, ordered by the latest message
     public function index(Request $request)
     {
         $userId = auth()->id();
@@ -48,10 +46,7 @@ class ConversationController extends Controller
         return response()->json($conversations->map(fn($c) => $this->formatConversation($c, $userId)));
     }
 
-    // =========================================================================
-    // INICIAR O RECUPERAR CONVERSACIÓN 1-1
-    // =========================================================================
-
+    // Finds an existing direct conversation with another user, or creates a new one
     public function findOrCreateDirect(Request $request)
     {
         $request->validate([
@@ -65,7 +60,6 @@ class ConversationController extends Controller
         $userId  = auth()->id();
         $otherId = $request->user_id;
 
-        // Buscar una conversación directa (no grupo) donde estén solo estos dos
         $existing = Conversation::where('is_group', false)
             ->whereHas('participants', fn($q) => $q->where('users.id', $userId))
             ->whereHas('participants', fn($q) => $q->where('users.id', $otherId))
@@ -87,10 +81,7 @@ class ConversationController extends Controller
         return response()->json($this->formatConversation($conversation, $userId), 201);
     }
 
-    // =========================================================================
-    // CREAR GRUPO
-    // =========================================================================
-
+    // Creates a new group conversation with selected users
     public function createGroup(Request $request)
     {
         $request->validate([
@@ -102,12 +93,10 @@ class ConversationController extends Controller
         $userId  = auth()->id();
         $members = array_unique($request->user_ids);
 
-        // Prevent adding yourself to the group
         if (in_array($userId, $members)) {
             return response()->json(['message' => 'You cannot add yourself to the group.'], 422);
         }
 
-        // Verificar que el creador ha hablado antes con cada miembro
         foreach ($members as $memberId) {
             $hasTalked = Conversation::where('is_group', false)
                 ->whereHas('participants', fn($q) => $q->where('users.id', $userId))
@@ -137,10 +126,7 @@ class ConversationController extends Controller
         return response()->json($this->formatConversation($conversation, $userId), 201);
     }
 
-    // =========================================================================
-    // SALIR DE UN GRUPO
-    // =========================================================================
-
+    // Allows a user to leave a group conversation, or transfers ownership if the owner leaves
     public function leaveGroup(Conversation $conversation)
     {
         $this->authorizeParticipant($conversation);
@@ -152,7 +138,6 @@ class ConversationController extends Controller
         $userId  = auth()->id();
         $isOwner = $conversation->owner_id === $userId;
 
-        // Find the linked team using the real FK — no name guessing
         $team = \App\Models\Team::where('conversation_id', $conversation->id)->first();
 
         if ($isOwner) {
@@ -162,13 +147,13 @@ class ConversationController extends Controller
                 ->first();
 
             if ($nextOwner) {
-                // Transfer ownership of conversation and team
+                
                 $conversation->update(['owner_id' => $nextOwner->id]);
                 if ($team) {
                     $team->update(['owner_id' => $nextOwner->id]);
                 }
             } else {
-                // Last member leaving — delete everything
+                
                 $conversation->participants()->detach();
                 $conversation->delete();
                 if ($team) {
@@ -187,10 +172,7 @@ class ConversationController extends Controller
         return response()->noContent();
     }
 
-    // =========================================================================
-    // MENSAJES DE UNA CONVERSACIÓN
-    // =========================================================================
-
+    // Retrieves a paginated list of messages for a specific conversation
     public function messages(Request $request, Conversation $conversation)
     {
         $this->authorizeParticipant($conversation);
@@ -200,7 +182,6 @@ class ConversationController extends Controller
             ->orderBy('created_at')
             ->paginate(50);
 
-        // Marcar como leídos al abrir la conversación
         $conversation->participants()->updateExistingPivot(auth()->id(), [
             'last_read_at' => now(),
         ]);
@@ -215,10 +196,7 @@ class ConversationController extends Controller
         ]);
     }
 
-    // =========================================================================
-    // ENVIAR MENSAJE
-    // =========================================================================
-
+    // Sends a new message in a conversation and broadcasts it via websockets
     public function sendMessage(Request $request, Conversation $conversation)
     {
         $this->authorizeParticipant($conversation);
@@ -232,18 +210,14 @@ class ConversationController extends Controller
 
         $message->load('sender:id,name,nickname,avatar_url');
 
-        // Cargar conversation + participants para que el evento pueda
-        // emitir en los canales personales de cada receptor sin N+1
         $message->load('conversation.participants:id');
 
-        // Marcar como leído para el propio emisor
         $conversation->participants()->updateExistingPivot(auth()->id(), [
             'last_read_at' => now(),
         ]);
 
         broadcast(new MessageSent($message));
 
-        // Create notifications for other participants
         $otherParticipants = $conversation->participants->where('id', '!=', auth()->id());
         foreach ($otherParticipants as $participant) {
             \App\Models\Notification::createAndBroadcast([
@@ -262,17 +236,13 @@ class ConversationController extends Controller
         return response()->json($message, 201);
     }
 
-    // =========================================================================
-    // ELIMINAR MENSAJE (soft-delete de contenido)
-    // =========================================================================
-
+    // Soft deletes a message (restricted to the message sender or group owner)
     public function deleteMessage(Request $request, Conversation $conversation, Message $message)
     {
         $this->authorizeParticipant($conversation);
 
         $userId = auth()->id();
 
-        // Puede borrar si es suyo, O si es propietario del grupo
         $isOwner    = $conversation->is_group && $conversation->owner_id === $userId;
         $isMine     = $message->sender_id === $userId;
 
@@ -287,10 +257,7 @@ class ConversationController extends Controller
         return response()->noContent();
     }
 
-    // =========================================================================
-    // MARCAR CONVERSACIÓN COMO LEÍDA
-    // =========================================================================
-
+    // Marks a conversation as read for the authenticated user
     public function markRead(Conversation $conversation)
     {
         $this->authorizeParticipant($conversation);
@@ -302,16 +269,7 @@ class ConversationController extends Controller
         return response()->noContent();
     }
 
-    // =========================================================================
-    // AUTORIZACIÓN DE CANAL REVERB (llamado desde routes/channels.php)
-    // =========================================================================
-
-    // (La lógica está en routes/channels.php directamente)
-
-    // =========================================================================
-    // HELPERS PRIVADOS
-    // =========================================================================
-
+    // Helper method to ensure the authenticated user is a participant in the conversation
     private function authorizeParticipant(Conversation $conversation): void
     {
         $isParticipant = $conversation->participants()
@@ -321,11 +279,11 @@ class ConversationController extends Controller
         abort_unless($isParticipant, 403, 'You are not a participant of this conversation.');
     }
 
+    // Helper method to format a conversation for the API response
     private function formatConversation(Conversation $conversation, int $userId): array
     {
         $lastMsg = $conversation->lastMessage;
 
-        // Para conversaciones directas, el "nombre" es el otro usuario
         $otherUser = !$conversation->is_group
             ? $conversation->participants->firstWhere('id', '!=', $userId)
             : null;
@@ -334,7 +292,6 @@ class ConversationController extends Controller
             ? ($conversation->group_name ?? "Group Chat")
             : ($otherUser?->nickname ?? $otherUser?->name ?? 'Unknown');
 
-        // Avatar:
         $avatarUrl = null;
         if ($conversation->is_group) {
             $team = \App\Models\Team::where('conversation_id', $conversation->id)->first();

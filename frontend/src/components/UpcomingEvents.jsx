@@ -38,7 +38,6 @@ function getField(tryout, field) {
   return null;
 }
 
-// datos de ejemplo para cuando wordpress no esta corriendo
 const MOCK_EVENTS = [
   {
     id: 1,
@@ -64,13 +63,13 @@ const MOCK_EVENTS = [
 ];
 
 export default function UpcomingEvents() {
-  // arranco con los mock para que siempre haya contenido visible
+  
   const [events, setEvents] = useState(MOCK_EVENTS);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // intento traer los eventos reales de wordpress, si falla me quedo con los mock
+    
     fetch(`${WP_API}?per_page=3&page=1&_embed=1&orderby=date&order=desc`)
       .then(r => r.ok ? r.json() : null)
       .then(data => { if (Array.isArray(data) && data.length > 0) setEvents(data); })
@@ -110,7 +109,7 @@ export default function UpcomingEvents() {
                   key={event.id}
                   className="group bg-[#121212] border border-gray-800 rounded-2xl overflow-hidden transition-all duration-300 hover:border-brand-red hover:shadow-[0_0_20px_rgba(255,51,51,0.1)] hover:-translate-y-1"
                 >
-                  {/* imagen del evento */}
+                  {}
                   <div className="relative h-44 overflow-hidden bg-[#1a1a1a]">
                     {img ? (
                       <img
@@ -151,7 +150,7 @@ export default function UpcomingEvents() {
                     </div>
 
                     <div className="flex gap-2 mt-5">
-                      {/* View Event — links to the actual WP post page */}
+                      {}
                       {event.link ? (
                         <a
                           href={event.link}

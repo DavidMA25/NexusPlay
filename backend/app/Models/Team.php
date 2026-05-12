@@ -22,16 +22,19 @@ class Team extends Model
         'conversation_id',
     ];
 
+    // Relationship: The specific privileged user controlling management of this team object
     public function owner()
     {
         return $this->belongsTo(User::class, 'owner_id');
     }
 
+    // Relationship: Published job opening listings from this team looking for members
     public function vacancies()
     {
         return $this->hasMany(Vacancy::class);
     }
 
+    // Relationship: Many-to-many collection lookup associating accepted members to team
     public function members()
     {
         return $this->belongsToMany(User::class, 'team_members')

@@ -24,11 +24,13 @@ class Vacancy extends Model
         'game_igdb_id' => 'integer'
     ];
 
+    // Relationship: Connects this job slot entry back to its parent team model
     public function team()
     {
         return $this->belongsTo(Team::class);
     }
 
+    // Relationship: List of individual interested player forms submitted targeting this specific slot
     public function applications()
     {
         return $this->hasMany(VacancyApplication::class);

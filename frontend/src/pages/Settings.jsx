@@ -1,17 +1,16 @@
 import { useState } from 'react';
-import { User, Shield, Lock, Bell } from 'lucide-react';
+import { User, Shield, Bell } from 'lucide-react';
 import ProfileSettingsTab from '../components/settings/ProfileSettingsTab';
 import AccountSettingsTab from '../components/settings/AccountSettingsTab';
-import PrivacySettingsTab from '../components/settings/PrivacySettingsTab';
 import NotificationsSettingsTab from '../components/settings/NotificationsSettingsTab';
 
+// Main settings layout component that manages tab navigation (Profile, Account, Notifications)
 export default function Settings() {
     const [activeTab, setActiveTab] = useState('profile');
 
     const tabs = [
         { id: 'profile', label: 'Profile', icon: <User size={16} /> },
         { id: 'account', label: 'Account', icon: <Shield size={16} /> },
-        { id: 'privacy', label: 'Privacy', icon: <Lock size={16} /> },
         { id: 'notifications', label: 'Notifications', icon: <Bell size={16} /> },
     ];
 
@@ -21,8 +20,6 @@ export default function Settings() {
                 return <ProfileSettingsTab />;
             case 'account':
                 return <AccountSettingsTab />;
-            case 'privacy':
-                return <PrivacySettingsTab />;
             case 'notifications':
                 return <NotificationsSettingsTab />;
             default:
@@ -33,7 +30,7 @@ export default function Settings() {
     return (
         <div className="flex flex-col md:flex-row gap-6 pb-10">
 
-            {/* Sidebar de Settings */}
+            {}
             <aside className="w-full md:w-44 shrink-0">
                 <h1 className="text-2xl font-bold text-white mb-4 pl-4">Settings</h1>
 
@@ -55,7 +52,7 @@ export default function Settings() {
                 </nav>
             </aside>
 
-            {/* Contenido Principal de Settings */}
+            {}
             <main className="flex-1 min-w-0">
                 {renderTabContent()}
             </main>

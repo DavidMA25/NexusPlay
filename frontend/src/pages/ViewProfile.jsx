@@ -1,12 +1,13 @@
 import { useAuth } from '../context/AuthContext';
 import ProfileCard from '../components/ProfileCard';
 
+// Public or personal view mirror that renders full ProfileCard components
 export default function ViewProfile() {
     const { user } = useAuth();
 
     return (
         <div className="space-y-8">
-            {/* Cabecera */}
+            {}
             <div>
                 <h1 className="text-3xl font-bold text-white mb-2">My Profile</h1>
                 <p className="text-gray-400 text-sm">
@@ -14,7 +15,7 @@ export default function ViewProfile() {
                 </p>
             </div>
 
-            {/* Se reutiliza el componente ProfileCard con los datos del usuario logueado */}
+            {}
             <ProfileCard playerData={user} isOwnProfile={true} />
         </div>
     );

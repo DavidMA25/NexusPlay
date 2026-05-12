@@ -15,11 +15,13 @@ class PlayerAd extends Model
         'message',
     ];
 
+    // Relationship: User poster owning this finding group advertisement
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
+    // Relationship: Direct attachment connection to detailed gaming static metadata row
     public function stat()
     {
         return $this->belongsTo(PlayerStat::class, 'player_stat_id');

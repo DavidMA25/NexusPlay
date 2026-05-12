@@ -20,7 +20,7 @@ class DatabaseSeeder extends Seeder
         // Ensure test user exists with profile and ads
         $testUser = User::updateOrCreate(
             ['email' => 'test@example.com'],
-            ['name' => 'Test User', 'password' => bcrypt('password'), 'email_verified_at' => now()]
+            ['name' => 'Test User', 'password' => bcrypt('password'), 'email_verified_at' => now(), 'role' => 'admin']
         );
 
         $testUser2 = User::updateOrCreate(

@@ -55,12 +55,12 @@ const TAB_FILTERS = {
   upcoming:     'scheduled',
   live:         'ongoing',
   completed:    'finished',
-  // 'participating' and 'my-events' are handled client-side after fetching
+  
 };
 
 function resolveAsset(url) {
   if (!url) return null;
-  if (/^https?:\/\//.test(url)) return url;
+  if (/^https?:\/\
   return `${LARAVEL_BASE}${url.startsWith('/') ? '' : '/'}${url}`;
 }
 
@@ -73,10 +73,10 @@ function tryoutField(tryout, field) {
 }
 
 function featuredImage(tryout) {
-  // _embed=1 puts the media object at _embedded['wp:featuredmedia'][0]
+  
   const media = tryout._embedded?.['wp:featuredmedia']?.[0];
   if (!media) return null;
-  // Prefer medium_large size, fall back to full source_url
+  
   return media.media_details?.sizes?.medium_large?.source_url
       || media.media_details?.sizes?.medium?.source_url
       || media.source_url
@@ -324,7 +324,7 @@ function EventCard({ tryout, token, userRole }) {
   return (
     <div className="bg-[#121212] border border-gray-800 rounded-xl overflow-hidden transition-all duration-300 hover:border-brand-red/40 hover:shadow-[0_0_18px_rgba(255,51,51,0.1)] hover:-translate-y-1 flex flex-col">
 
-      {/* Banner — featured image or gradient fallback */}
+      {}
       <div className="h-32 relative flex items-center justify-center border-b border-gray-800 overflow-hidden bg-gradient-to-br from-[#FF3333]/10 to-transparent">
         {imgSrc ? (
           <img src={imgSrc} alt={tryout.title?.rendered || ''}
@@ -332,7 +332,7 @@ function EventCard({ tryout, token, userRole }) {
         ) : (
           <Trophy size={34} className="text-brand-red opacity-50" />
         )}
-        {/* Gradient overlay so badges stay readable over images */}
+        {}
         {imgSrc && <div className="absolute inset-0 bg-gradient-to-t from-[#121212]/80 to-transparent" />}
 
         {status === 'ongoing' && (
@@ -345,7 +345,7 @@ function EventCard({ tryout, token, userRole }) {
         </span>
       </div>
 
-      {/* Body */}
+      {}
       <div className="p-5 flex flex-col flex-1">
         <h3 className="text-base font-bold text-white leading-tight line-clamp-2 mb-1"
             dangerouslySetInnerHTML={{ __html: tryout.title?.rendered || '—' }} />
@@ -375,7 +375,7 @@ function EventCard({ tryout, token, userRole }) {
           )}
         </div>
 
-        {/* Footer */}
+        {}
         <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-800">
           <div className="flex items-baseline gap-1">
             {prize
@@ -411,13 +411,11 @@ export default function Events() {
   const [page, setPage]               = useState(1);
   const [totalPages, setTotalPages]   = useState(1);
 
-  // las pestañas "Participating" y "My Events" no paginan, filtro aqui en el cliente
   const [myParticipations, setMyParticipations] = useState(null);
   const [myTeamIds, setMyTeamIds]               = useState(null);
 
   const isSpecialTab = activeTab === 'participating' || activeTab === 'my-events';
 
-  // cargo esto solo la primera vez que el usuario entra a la pestaña
   useEffect(() => {
     if (activeTab !== 'participating' || !token) return;
     if (myParticipations !== null) return;
@@ -452,7 +450,7 @@ export default function Events() {
   }, [page, activeTab, searchQuery]);
 
   const fetchTryouts = useCallback(async () => {
-    // en pestañas especiales traigo todo de golpe y filtro aqui, no son muchos eventos
+    
     setLoading(true); setError(null);
     try {
       const url = isSpecialTab
@@ -480,7 +478,7 @@ export default function Events() {
   }, [buildApiUrl, isSpecialTab, activeTab, searchQuery, myParticipations, myTeamIds]);
 
   useEffect(() => {
-    // espero a tener los datos cargados antes de lanzar el fetch de los tryouts
+    
     if (activeTab === 'participating' && myParticipations === null) return;
     if (activeTab === 'my-events' && myTeamIds === null) return;
     const t = setTimeout(fetchTryouts, searchQuery ? 400 : 0);
@@ -501,7 +499,7 @@ export default function Events() {
   return (
     <div className="space-y-8">
 
-      {/* Header */}
+      {}
       <div>
         <h1 className="text-3xl font-bold text-white mb-1">Events & Tryouts</h1>
         <p className="text-gray-400 text-sm">Find and compete in tryouts across all games.</p>
@@ -518,7 +516,7 @@ export default function Events() {
         )}
       </div>
 
-      {/* Tabs */}
+      {}
       <div className="flex flex-wrap gap-2">
         {tabs.map(({ key, label, icon }) => (
           <button key={key}
@@ -533,7 +531,7 @@ export default function Events() {
         ))}
       </div>
 
-      {/* Search */}
+      {}
       <div className="relative max-w-md">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
         <input type="text" value={searchQuery}
@@ -542,7 +540,7 @@ export default function Events() {
           className="w-full bg-[#121212] border border-gray-800 rounded-lg pl-11 pr-4 py-3 text-sm text-white focus:outline-none focus:border-brand-red transition-colors placeholder-gray-500" />
       </div>
 
-      {/* Grid */}
+      {}
       {loading ? (
         <div className="flex justify-center items-center py-20">
           <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-brand-red" />
@@ -572,7 +570,7 @@ export default function Events() {
         </div>
       )}
 
-      {/* Pagination (hidden on special tabs — already filtered client-side) */}
+      {}
       {!loading && !isSpecialTab && totalPages > 1 && (
         <div className="flex justify-center items-center gap-4 mt-8">
           <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}

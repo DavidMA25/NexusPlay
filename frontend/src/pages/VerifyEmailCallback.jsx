@@ -7,7 +7,7 @@ export default function VerifyEmailCallback() {
     const [searchParams] = useSearchParams();
     const { verifyEmail, token } = useAuth();
     const navigate = useNavigate();
-    const [status, setStatus] = useState('verifying'); // verifying | success | error | no_token
+    const [status, setStatus] = useState('verifying'); 
 
     useEffect(() => {
         const verifyUrl = searchParams.get('verify_url');
@@ -18,7 +18,7 @@ export default function VerifyEmailCallback() {
         }
 
         if (!token) {
-            // El usuario llegó al enlace sin estar logueado: guarda la URL y mándalo al login
+            
             sessionStorage.setItem('pending_verify_url', verifyUrl);
             navigate('/login?redirect=verify');
             return;

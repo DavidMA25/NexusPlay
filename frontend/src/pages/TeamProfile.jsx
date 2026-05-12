@@ -11,6 +11,7 @@ import {
     Users
 } from 'lucide-react';
 
+// Component displaying the public profile of a team, including roster, achievements, and stats
 export default function TeamProfile() {
     const [activeTab, setActiveTab] = useState('Overview');
     const tabs = ['Overview', 'Roster', 'Achievements', 'Match History', 'Recruitment'];

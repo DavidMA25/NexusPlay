@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import logo from '../assets/logo.png';
 
+// Global top navigation controlling guest routing and authenticated entry points
 export default function Navbar() {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
@@ -15,18 +16,18 @@ export default function Navbar() {
         <nav className="fixed top-0 left-0 right-0 z-50 text-white bg-black/40 backdrop-blur-md border-b border-white/5">
             <div className="container mx-auto px-4 h-20 flex items-center justify-between">
 
-                {/* Logo */}
+                {}
                 <div className="flex items-center gap-2 cursor-pointer">
                     <Link to="/" className="flex items-center gap-2 cursor-pointer">
                         <img src={logo} alt="NexusPlay Logo" className="h-8 w-auto object-contain" />
                     </Link>
                 </div>
 
-                {/* Enlaces centrales */}
+                {}
                 <div className="hidden md:flex items-center gap-12 text-sm text-gray-300">
                 </div>
 
-                {/* Botones de Auth — cambian según estado de sesión */}
+                {}
                 <div className="flex items-center gap-3 md:gap-6">
                     {user ? (
                         <>

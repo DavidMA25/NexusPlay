@@ -32,7 +32,7 @@ function App() {
         }}>
 
         <Routes>
-          {/* Public routes */}
+          {}
           <Route path="/" element={
             <>
               <Navbar />
@@ -48,11 +48,11 @@ function App() {
           <Route path="/login" element={<><Navbar /><Login /><Footer /></>} />
           <Route path="/register" element={<><Navbar /><Register /><Footer /></>} />
 
-          {/* Email verification */}
+          {}
           <Route path="/verify-email" element={<><Navbar /><VerifyEmailNotice /><Footer /></>} />
           <Route path="/verify-email-callback" element={<><Navbar /><VerifyEmailCallback /><Footer /></>} />
 
-          {/* Protected dashboard routes */}
+          {}
           <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
             <Route index element={<DashboardHome />} />
             <Route path="players" element={<FindPlayers />} />

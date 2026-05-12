@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 
 class PlayerProfileController extends Controller
 {
+    // Retrieves and formats the current user's player profile
     public function show()
     {
         return new PlayerProfileResource(
@@ -17,6 +18,7 @@ class PlayerProfileController extends Controller
         );
     }
 
+    // Creates or updates the player profile for the authenticated user
     public function store(StorePlayerProfileRequest $request)
     {
         $profile = PlayerProfile::updateOrCreate(

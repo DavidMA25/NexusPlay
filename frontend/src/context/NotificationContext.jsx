@@ -10,10 +10,10 @@ export const useNotifications = () => {
     return ctx;
 };
 
+// Context tracking unread counts and latest user notification feed updates automatically
 export function NotificationProvider({ children }) {
     const { user, api } = useAuth();
-    // notificationHandlerRef is owned by ChatContext — we register our handler
-    // there so both contexts share the single private-user.{id} channel
+
     const { notificationHandlerRef } = useChat();
 
     const [notifications, setNotifications] = useState([]);
@@ -53,7 +53,6 @@ export function NotificationProvider({ children }) {
         }
     }, [user?.id]);
 
-    // Register our handler into ChatContext's ref — no separate channel needed
     useEffect(() => {
         notificationHandlerRef.current = (data) => {
             setNotifications(prev => [data, ...prev]);

@@ -17,10 +17,6 @@ class IGDBService
         $this->clientSecret = env('IGDB_CLIENT_SECRET');
     }
 
-    /**
-     * Get the OAuth2 access token for Twitch/IGDB API.
-     * Caches the token for its valid duration (usually ~60 days).
-     */
     public function getAccessToken()
     {
         if (!$this->clientId || !$this->clientSecret) {
@@ -44,9 +40,6 @@ class IGDBService
         });
     }
 
-    /**
-     * Search for games matching the query.
-     */
     public function searchGames(string $query)
     {
         $token = $this->getAccessToken();
@@ -65,22 +58,18 @@ class IGDBService
 
         if ($response->successful()) {
             $data = $response->json();
-            
-            // Sort results by popularity (total_rating_count + follows)
+
             usort($data, function($a, $b) {
                 $scoreA = ($a['total_rating_count'] ?? 0) + ($a['follows'] ?? 0);
                 $scoreB = ($b['total_rating_count'] ?? 0) + ($b['follows'] ?? 0);
                 return $scoreB <=> $scoreA;
             });
 
-            // Keep top 10 after sorting by popularity
             $data = array_slice($data, 0, 10);
 
-            // Format the cover URLs to be full size instead of thumbnails
             return array_map(function ($game) {
                 if (isset($game['cover']['url'])) {
-                    // IGDB returns URLs like //images.igdb.com/igdb/image/upload/t_thumb/co1r7h.jpg
-                    // We replace t_thumb with t_cover_big to get a nicer image
+
                     $game['cover']['url'] = 'https:' . str_replace('t_thumb', 't_cover_big', $game['cover']['url']);
                 }
                 return $game;

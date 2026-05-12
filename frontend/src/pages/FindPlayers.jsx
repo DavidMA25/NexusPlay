@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Search, Filter, Bot, MapPin, Globe, MessageSquare, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Filter, Bot, MapPin, Globe, MessageSquare, X, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 import pcIcon from '../assets/pc.svg';
 import nintendoIcon from '../assets/nintendo.svg';
 import xboxIcon from '../assets/xbox.svg';
 import playstationIcon from '../assets/playstation.svg';
 import mobileIcon from '../assets/mobile.svg';
 import ProfileCard from '../components/ProfileCard';
+import ConfirmModal from '../components/ConfirmModal';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
@@ -34,6 +35,7 @@ const platformStyles = {
   mobile: "bg-[#007AFF] text-white"
 };
 
+// Community explorer handling paginated listings and faceted searching of player advertisements
 export default function FindPlayers() {
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const { api, user } = useAuth();
@@ -56,6 +58,34 @@ export default function FindPlayers() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const [adToDelete, setAdToDelete] = useState(null);
+  const [userToDelete, setUserToDelete] = useState(null);
+
+  const handleDeleteAd = async () => {
+    if (!adToDelete) return;
+    try {
+      await api.delete(`/player-ads/${adToDelete}`);
+      setAds(prev => prev.filter(a => a.id !== adToDelete));
+    } catch (e) {
+      console.error('Error deleting ad:', e);
+    } finally {
+      setAdToDelete(null);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return;
+    try {
+      await api.delete(`/players/${userToDelete}`);
+      setAds(prev => prev.filter(a => a.user?.id !== userToDelete));
+      setSelectedPlayer(null);
+    } catch (e) {
+      console.error('Error deleting user:', e);
+    } finally {
+      setUserToDelete(null);
+    }
+  };
 
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
@@ -143,7 +173,6 @@ export default function FindPlayers() {
     };
   };
 
-  // esta segunda funcion la necesito porque el ProfileCard espera un formato distinto al de la card
   const buildProfileData = (ad) => {
     const data = mapAdData(ad);
     return {
@@ -247,8 +276,17 @@ export default function FindPlayers() {
             return (
               <div
                 key={player.id}
-                className="bg-[#121212] border border-gray-800 rounded-xl p-6 flex flex-col items-center text-center transition-all duration-300 hover:border-brand-red hover:shadow-[0_0_15px_rgba(255,51,51,0.15)] hover:-translate-y-1"
+                className="bg-[#121212] border border-gray-800 rounded-xl p-6 flex flex-col items-center text-center transition-all duration-300 hover:border-brand-red hover:shadow-[0_0_15px_rgba(255,51,51,0.15)] hover:-translate-y-1 relative"
               >
+                {user?.role === 'admin' && (
+                  <button
+                    onClick={() => setAdToDelete(player.id)}
+                    className="absolute top-3 right-3 text-gray-500 hover:text-red-500 transition-colors bg-[#1a1a1a] p-1.5 rounded-md border border-gray-800"
+                    title="Delete Ad"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                )}
 
                 <div className="relative mb-4">
                   {player.avatarUrl ? (
@@ -329,7 +367,7 @@ export default function FindPlayers() {
         </div>
       )}
 
-      {/* Pagination Controls */}
+      {}
       {!loading && totalPages > 1 && (
         <div className="flex justify-center items-center gap-4 mt-8">
           <button
@@ -359,15 +397,40 @@ export default function FindPlayers() {
             if (e.target === e.currentTarget) setSelectedPlayer(null);
           }}
         >
-          <div className="w-full max-w-2xl animate-[slideUp_0.3s_ease-out]">
+          <div className="w-full max-w-2xl animate-[slideUp_0.3s_ease-out] relative">
             <ProfileCard
               playerData={selectedPlayer}
               isOwnProfile={false}
               onClose={() => setSelectedPlayer(null)}
             />
+            {user?.role === 'admin' && (
+              <button 
+                onClick={() => setUserToDelete(selectedPlayer.id)}
+                className="absolute top-4 right-14 bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg flex items-center gap-2 text-xs font-bold transition-colors"
+                title="Delete User completely"
+              >
+                <Trash2 size={14} /> Delete User
+              </button>
+            )}
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={!!adToDelete}
+        onClose={() => setAdToDelete(null)}
+        onConfirm={handleDeleteAd}
+        title="Delete Player Ad"
+        message="Are you sure you want to delete this ad? This action cannot be undone."
+      />
+      
+      <ConfirmModal
+        isOpen={!!userToDelete}
+        onClose={() => setUserToDelete(null)}
+        onConfirm={handleDeleteUser}
+        title="Delete User"
+        message="Are you sure you want to completely delete this user and all their data? This action cannot be undone."
+      />
 
     </div>
   );

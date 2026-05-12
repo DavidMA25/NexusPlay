@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 export default function VerifyEmailNotice() {
     const { user, resendVerificationEmail, logout } = useAuth();
-    const [status, setStatus] = useState('idle'); // idle | sending | sent | error
+    const [status, setStatus] = useState('idle'); 
     const navigate = useNavigate();
 
     const handleResend = async () => {
@@ -30,10 +30,10 @@ export default function VerifyEmailNotice() {
             }}>
             <div className="bg-[#121212] border border-gray-800 rounded-2xl p-10 w-full max-w-md shadow-2xl relative overflow-hidden text-center">
 
-                {/* Brillo superior */}
+                {}
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-brand-red to-transparent opacity-50" />
 
-                {/* Icono */}
+                {}
                 <div className="w-16 h-16 bg-brand-red/10 border border-brand-red/30 rounded-full flex items-center justify-center mx-auto mb-6">
                     <Mail size={30} className="text-brand-red" />
                 </div>

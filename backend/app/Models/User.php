@@ -19,7 +19,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'nickname',
         'role',
         'avatar_url',
-        'bio'
+        'bio',
+        'notification_preferences'
     ];
 
     protected $hidden = [
@@ -32,29 +33,35 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'notification_preferences' => 'array',
         ];
     }
 
+    // Relationship: A user has one player profile
     public function profile()
     {
         return $this->hasOne(PlayerProfile::class);
     }
 
+    // Relationship: A user has many player statistics records
     public function stats()
     {
         return $this->hasMany(PlayerStat::class);
     }
 
+    // Relationship: A user belongs to many teams
     public function teams()
     {
         return $this->belongsToMany(Team::class, 'team_members');
     }
 
+    // Relationship: A user has many player ads
     public function ads()
     {
         return $this->hasMany(PlayerAd::class);
     }
 
+    // Relationship: A user participates in many conversations
     public function conversations()
     {
         return $this->belongsToMany(Conversation::class, 'conversation_participants')

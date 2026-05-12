@@ -5,6 +5,7 @@ import { useNotifications } from '../context/NotificationContext';
 import { useNavigate } from 'react-router-dom';
 import ProfileCard from '../components/ProfileCard';
 
+// User inbox list tracking all interactions, mentions, and application statuses with action controls
 export default function Notifications() {
     const { api } = useAuth();
     const { notifications, loading, markAsRead, markAllAsRead, unreadCount } = useNotifications();
@@ -73,7 +74,6 @@ export default function Notifications() {
         }
     };
 
-
     const buildText = (notif) => {
         switch (notif.type) {
             case 'team_application':
@@ -95,7 +95,7 @@ export default function Notifications() {
     return (
         <div className="max-w-4xl mx-auto space-y-6 pb-12">
 
-            {/* Header */}
+            {}
             <div className="flex items-start justify-between">
                 <div>
                     <h1 className="text-3xl font-bold text-white">Notifications</h1>
@@ -111,7 +111,7 @@ export default function Notifications() {
                 </button>
             </div>
 
-            {/* Filters */}
+            {}
             <div className="flex gap-2 flex-wrap">
                 {filters.map(filter => (
                     <button
@@ -128,7 +128,7 @@ export default function Notifications() {
                 ))}
             </div>
 
-            {/* List */}
+            {}
             <div className="space-y-3">
                 {loading ? (
                     <div className="flex justify-center py-10">
@@ -153,10 +153,7 @@ export default function Notifications() {
                             }`}
                         >
                             <div className="flex items-center gap-4 flex-1 min-w-0">
-                                {/*
-                                  Avatar replaces the icon when the notification has one.
-                                  Falls back to the icon if the image fails to load.
-                                */}
+                                {}
                                 {avatarSrc ? (
                                     <div className={`w-8 h-8 rounded-full flex-shrink-0 overflow-hidden border border-gray-700 ${bg}`}>
                                         <img
@@ -164,7 +161,7 @@ export default function Notifications() {
                                             alt={notif.data?.user_name ?? 'avatar'}
                                             className="w-full h-full object-cover"
                                             onError={(e) => {
-                                                // Image broken — swap to icon fallback
+                                                
                                                 e.currentTarget.style.display = 'none';
                                                 e.currentTarget.parentElement.classList.add(
                                                     'flex', 'items-center', 'justify-center'
@@ -196,7 +193,7 @@ export default function Notifications() {
                                 </div>
                             </div>
 
-                            {/* Accept / Decline — only for unread team_application */}
+                            {}
                             {notif.type === 'team_application' && !notif.read && (
                                 <div className="flex items-center gap-2 ml-12 sm:ml-0 flex-shrink-0">
                                     <button
@@ -224,7 +221,7 @@ export default function Notifications() {
                 })}
             </div>
 
-            {/* Profile modal */}
+            {}
             {selectedPlayer && (
                 <div
                     className="fixed inset-0 z-50 flex items-start justify-center bg-black/70 backdrop-blur-sm overflow-y-auto py-10 px-4 animate-[fadeIn_0.2s_ease-out]"

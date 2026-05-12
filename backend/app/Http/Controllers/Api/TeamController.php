@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 
 class TeamController extends Controller
 {
+    // Retrieves a paginated list of all teams with their owners and members
     public function index()
     {
         return TeamResource::collection(
@@ -17,6 +18,7 @@ class TeamController extends Controller
         );
     }
 
+    // Retrieves all teams owned by or containing the authenticated user
     public function myTeams()
     {
         $userId = auth()->id();
@@ -29,6 +31,7 @@ class TeamController extends Controller
         return TeamResource::collection($teams);
     }
 
+    // Creates a new team and its associated group conversation
     public function store(StoreTeamRequest $request)
     {
         $data = $request->validated();
@@ -50,7 +53,6 @@ class TeamController extends Controller
         ]);
         $conversation->participants()->attach(auth()->id());
 
-        // Link team ↔ conversation with a real FK
         $team->update(['conversation_id' => $conversation->id]);
 
         if ($request->has('members')) {
@@ -69,6 +71,7 @@ class TeamController extends Controller
         return new TeamResource($team->load(['owner', 'members']));
     }
 
+    // Retrieves details for a specific team
     public function show(Team $team)
     {
         return new TeamResource(
@@ -76,6 +79,7 @@ class TeamController extends Controller
         );
     }
 
+    // Updates a specific team's details (restricted to owner)
     public function update(StoreTeamRequest $request, Team $team)
     {
         if (auth()->id() !== $team->owner_id) {
@@ -92,6 +96,7 @@ class TeamController extends Controller
         return new TeamResource($team);
     }
 
+    // Deletes a specific team (restricted to owner)
     public function destroy(Team $team)
     {
         if (auth()->id() !== $team->owner_id) {
@@ -102,6 +107,7 @@ class TeamController extends Controller
         return response()->noContent();
     }
 
+    // Adds a member to a team (restricted to owner)
     public function addMember(Request $request, Team $team)
     {
         if (auth()->id() !== $team->owner_id) {
@@ -118,6 +124,7 @@ class TeamController extends Controller
         return response()->json(['message' => 'Member added']);
     }
 
+    // Removes a member from a team (restricted to owner)
     public function removeMember(Team $team, $userId)
     {
         if (auth()->id() !== $team->owner_id) {

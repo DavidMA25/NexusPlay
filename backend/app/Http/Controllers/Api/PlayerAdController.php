@@ -8,14 +8,12 @@ use Illuminate\Http\Request;
 
 class PlayerAdController extends Controller
 {
-    /**
-     * List all player ads (public, paginated, with filters).
-     */
+    
+    // Retrieves a paginated list of player ads, optionally filtered by search, region, game, and rank
     public function index(Request $request)
     {
         $query = PlayerAd::with(['user.profile', 'user.stats', 'stat']);
 
-        // Search by username or nickname
         if ($request->filled('search')) {
             $search = $request->input('search');
             $query->whereHas('user', function ($q) use ($search) {
@@ -24,7 +22,6 @@ class PlayerAdController extends Controller
             });
         }
 
-        // Filter by region
         if ($request->filled('region')) {
             $region = $request->input('region');
             $query->whereHas('user.profile', function ($q) use ($region) {
@@ -32,7 +29,6 @@ class PlayerAdController extends Controller
             });
         }
 
-        // Filter by game name
         if ($request->filled('game')) {
             $game = $request->input('game');
             $query->whereHas('stat', function ($q) use ($game) {
@@ -40,7 +36,6 @@ class PlayerAdController extends Controller
             });
         }
 
-        // Filter by rank
         if ($request->filled('rank')) {
             $rank = $request->input('rank');
             $query->whereHas('stat', function ($q) use ($rank) {
@@ -53,9 +48,7 @@ class PlayerAdController extends Controller
         return response()->json($ads);
     }
 
-    /**
-     * Create a new player ad (authenticated).
-     */
+    // Creates a new player ad and notifies interested users
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -63,7 +56,6 @@ class PlayerAdController extends Controller
             'message' => 'required|string|max:255',
         ]);
 
-        // Verify the stat belongs to the authenticated user
         $stat = \App\Models\PlayerStat::findOrFail($validated['player_stat_id']);
         abort_if($stat->user_id !== auth()->id(), 403, 'This stat does not belong to you.');
 
@@ -75,12 +67,10 @@ class PlayerAdController extends Controller
 
         $ad->load(['user.profile', 'stat']);
 
-        // Notification matching logic
         $gameId = $stat->game_igdb_id;
         $region = auth()->user()->profile?->region;
         $creatorName = auth()->user()->nickname ?? auth()->user()->name;
 
-        // Find users interested in this game and region
         $interestedUsers = \App\Models\User::where('id', '!=', auth()->id())
             ->whereHas('stats', function ($q) use ($gameId) {
                 $q->where('game_igdb_id', $gameId);
@@ -108,12 +98,12 @@ class PlayerAdController extends Controller
         return response()->json($ad, 201);
     }
 
-    /**
-     * Delete a player ad (only owner).
-     */
+    // Deletes a specific player ad (restricted to owner or admin)
     public function destroy(PlayerAd $playerAd)
     {
-        abort_if($playerAd->user_id !== auth()->id(), 403);
+        if ($playerAd->user_id !== auth()->id() && auth()->user()->role !== 'admin') {
+            abort(403, 'Unauthorized action.');
+        }
 
         $playerAd->delete();
 

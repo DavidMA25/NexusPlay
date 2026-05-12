@@ -8,19 +8,19 @@ export default function Hero() {
     return (
         <div className="relative flex flex-col items-center justify-center pt-24 pb-16 md:pt-32 md:pb-20 px-4 text-center overflow-hidden bg-[#0a0a0a]">
 
-            {/* foto de fondo, la opacidad baja para que no tape el texto */}
+            {}
             <img
                 src={heroBg}
                 alt=""
                 className="absolute inset-0 w-full h-full object-cover object-top opacity-20"
             />
             <div className="absolute inset-0 bg-red-950/25" />
-            {/* to-[#0a0a0a] para que coincida con el fondo del app y no se vea el corte */}
+            {}
             <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a]/50 via-transparent to-[#0a0a0a]" />
 
             <div className="relative z-10 flex flex-col items-center w-full">
 
-            {/* pillita de arriba */}
+            {}
             <div className="border border-gray-800 rounded-full px-4 py-1.5 mb-8 flex items-center gap-2 bg-black/50">
                 <div className="w-2 h-2 rounded-full bg-brand-red shadow-[0_0_8px_rgba(255,51,51,0.8)]"></div>
                 <span className="text-gray-400 text-sm">The #1 eSports Recruitment Platform</span>

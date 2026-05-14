@@ -66,14 +66,8 @@ export const AuthProvider = ({ children }) => {
         return userData;
     };
 
-    const register = async (name, email, password, role = 'player', teamName = null, region = null, website = null, description = null) => {
-        const payload = { name, email, password, role };
-        if (role === 'team') {
-            payload.team_name = teamName;
-            payload.region    = region;
-            payload.website   = website;
-            payload.description = description;
-        }
+    const register = async (name, email, password) => {
+        const payload = { name, email, password };
 
         const response = await api.post('/register', payload);
         const { user: userData, token: authToken } = response.data;

@@ -10,38 +10,20 @@ use App\Http\Controllers\Controller;
 
 class AuthController extends Controller
 {
-    // Registers a new user or team account
     public function register(Request $request)
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:6',
-            'role' => 'sometimes|in:player,team',
-            'team_name' => 'required_if:role,team|string|max:255',
-            'region' => 'required_if:role,team|string|max:100',
-            'website' => 'nullable|string|max:255',
-            'description' => 'nullable|string'
         ]);
-
-        $userRole = 'player';
 
         $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
-            'role' => $userRole,
+            'role' => 'player',
         ]);
-
-        if (isset($data['role']) && $data['role'] === 'team') {
-            \App\Models\Team::create([
-                'owner_id' => $user->id,
-                'name' => $data['team_name'],
-                'region' => $data['region'],
-                'website' => $data['website'] ?? null,
-                'description' => $data['description'] ?? null,
-            ]);
-        }
 
         event(new Registered($user));
 

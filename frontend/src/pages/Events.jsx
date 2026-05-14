@@ -152,8 +152,8 @@ function EnrollButton({ wpPostId, tryoutStatus, token, onOwnerResolved }) {
 
   const canEnroll = tryoutStatus === 'scheduled' || tryoutStatus === 'ongoing';
 
-  if (!token)         return <span className="text-[10px] text-gray-600 italic">Sign in to join</span>;
-  if (data.is_owner)  return <span className="text-[10px] text-gray-500 italic">Your event</span>;
+  if (!token)         return <span className="text-xs text-gray-600 italic">Sign in to join</span>;
+  if (data.is_owner)  return <span className="text-xs text-gray-500 italic">Your event</span>;
   if (!canEnroll)     return null;
 
   const ps = data.status ? P_STATUS[data.status] : null;
@@ -163,24 +163,24 @@ function EnrollButton({ wpPostId, tryoutStatus, token, onOwnerResolved }) {
       {data.enrolled ? (
         <div className="flex items-center gap-2">
           {ps && (
-            <span className={`flex items-center gap-1 text-[10px] font-semibold ${ps.color}`}>
+            <span className={`flex items-center gap-1 text-xs font-semibold ${ps.color}`}>
               <ps.Icon /> {ps.label}
             </span>
           )}
           {data.status === 'registered' && (
             <button onClick={leave} disabled={busy}
-              className="flex items-center gap-1 bg-gray-800 hover:bg-gray-700 text-gray-300 text-[10px] font-bold px-3 py-1.5 rounded transition-colors disabled:opacity-40">
-              <UserMinus size={10} /> Cancel
+              className="flex items-center gap-1 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-bold px-3 py-1.5 rounded transition-colors disabled:opacity-40">
+              <UserMinus size={14} /> Cancel
             </button>
           )}
         </div>
       ) : (
         <button onClick={join} disabled={busy}
-          className="flex items-center gap-1 bg-brand-red hover:bg-[#FF4D4D] text-white text-[10px] font-bold px-3 py-1.5 rounded transition-colors disabled:opacity-50">
-          <UserPlus size={10} /> {busy ? '...' : 'Join'}
+          className="flex items-center gap-1 bg-brand-red hover:bg-[#FF4D4D] text-white text-xs font-bold px-3 py-1.5 rounded transition-colors disabled:opacity-50">
+          <UserPlus size={14} /> {busy ? '...' : 'Join'}
         </button>
       )}
-      {error && <p className="text-[10px] text-red-400 max-w-[150px] text-right leading-tight">{error}</p>}
+      {error && <p className="text-xs text-red-400 max-w-[150px] text-right leading-tight">{error}</p>}
     </div>
   );
 }
@@ -230,22 +230,22 @@ function ParticipantsPanel({ wpPostId, token, isOwner }) {
   return (
     <div className="border-t border-gray-800">
       <button onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between px-5 py-3 text-xs text-gray-400 hover:text-white transition-colors">
+        className="w-full flex items-center justify-between px-5 py-3 text-sm text-gray-400 hover:text-white transition-colors">
         <span className="flex items-center gap-2">
-          <Users size={12} /> Participants
+          <Users size={16} /> Participants
           {stats && (
-            <span className="bg-gray-800 px-2 py-0.5 rounded-full text-[10px] font-bold text-gray-300">
+            <span className="bg-gray-800 px-2 py-0.5 rounded-full text-xs font-bold text-gray-300">
               {stats.total}
             </span>
           )}
         </span>
-        {open ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+        {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
       </button>
 
       {open && (
         <div className="px-5 pb-4">
           {stats && (
-            <div className="flex gap-3 mb-3 text-[10px] font-semibold flex-wrap">
+            <div className="flex gap-3 mb-3 text-xs font-semibold flex-wrap">
               <span className="text-green-400 flex items-center gap-1"><StatusIcon.approved /> {stats.approved} approved</span>
               <span className="text-yellow-400 flex items-center gap-1"><StatusIcon.registered /> {stats.registered} pending</span>
               <span className="text-red-400 flex items-center gap-1"><StatusIcon.rejected /> {stats.rejected} rejected</span>
@@ -256,7 +256,7 @@ function ParticipantsPanel({ wpPostId, token, isOwner }) {
               <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-brand-red" />
             </div>
           ) : parts.length === 0 ? (
-            <p className="text-gray-600 text-xs py-2">No participants yet.</p>
+            <p className="text-gray-600 text-sm py-2">No participants yet.</p>
           ) : (
             <ul className="space-y-2 max-h-52 overflow-y-auto pr-1">
               {parts.map(p => {
@@ -270,21 +270,21 @@ function ParticipantsPanel({ wpPostId, token, isOwner }) {
                           {(p.user.name || 'U')[0].toUpperCase()}
                         </span>
                     }
-                    <span className="flex-1 min-w-0 text-xs text-white truncate">{p.user.nickname || p.user.name}</span>
-                    <span className={`flex items-center gap-1 text-[10px] font-semibold ${si.color}`}>
+                    <span className="flex-1 min-w-0 text-sm text-white truncate">{p.user.nickname || p.user.name}</span>
+                    <span className={`flex items-center gap-1 text-xs font-semibold ${si.color}`}>
                       <si.Icon /> {si.label}
                     </span>
                     {isManager && (
                       <div className="flex gap-1 ml-1">
                         {p.status !== 'approved' && (
                           <button disabled={updatingId === p.id} onClick={() => updateStatus(p.id, 'approved')}
-                            className="text-[10px] font-bold px-2 py-0.5 rounded bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-colors disabled:opacity-40">
+                            className="text-xs font-bold px-2 py-0.5 rounded bg-green-500/10 text-green-400 hover:bg-green-500/20 transition-colors disabled:opacity-40">
                             ✓
                           </button>
                         )}
                         {p.status !== 'rejected' && (
                           <button disabled={updatingId === p.id} onClick={() => updateStatus(p.id, 'rejected')}
-                            className="text-[10px] font-bold px-2 py-0.5 rounded bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors disabled:opacity-40">
+                            className="text-xs font-bold px-2 py-0.5 rounded bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors disabled:opacity-40">
                             ✕
                           </button>
                         )}
@@ -330,46 +330,46 @@ function EventCard({ tryout, token, userRole }) {
           <img src={imgSrc} alt={tryout.title?.rendered || ''}
                className="absolute inset-0 w-full h-full object-cover opacity-60" />
         ) : (
-          <Trophy size={34} className="text-brand-red opacity-50" />
+          <Trophy size={48} className="text-brand-red opacity-50" />
         )}
         {}
         {imgSrc && <div className="absolute inset-0 bg-gradient-to-t from-[#121212]/80 to-transparent" />}
 
         {status === 'ongoing' && (
-          <span className="absolute top-3 right-3 flex items-center gap-1.5 bg-brand-red text-white text-[10px] font-bold px-2 py-1 rounded z-10">
+          <span className="absolute top-3 right-3 flex items-center gap-1.5 bg-brand-red text-white text-xs font-bold px-2 py-1 rounded z-10">
             <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" /> LIVE
           </span>
         )}
-        <span className={`absolute top-3 left-3 text-[10px] font-bold px-2 py-1 rounded z-10 ${statusInfo.style}`}>
+        <span className={`absolute top-3 left-3 text-xs font-bold px-2 py-1 rounded z-10 ${statusInfo.style}`}>
           {statusInfo.label}
         </span>
       </div>
 
       {}
       <div className="p-5 flex flex-col flex-1">
-        <h3 className="text-base font-bold text-white leading-tight line-clamp-2 mb-1"
+        <h3 className="text-lg font-bold text-white leading-tight line-clamp-2 mb-1"
             dangerouslySetInnerHTML={{ __html: tryout.title?.rendered || '—' }} />
 
         {gameName && (
-          <span className="inline-block text-[10px] font-bold text-brand-red bg-brand-red/10 px-2 py-0.5 rounded mb-3 w-fit">
+          <span className="inline-block text-xs font-bold text-brand-red bg-brand-red/10 px-2 py-0.5 rounded mb-3 w-fit">
             {gameName}
           </span>
         )}
 
-        <div className="space-y-2 text-xs text-gray-400 flex-1">
+        <div className="space-y-2 text-sm text-gray-400 flex-1">
           {eventDate && (
             <div className="flex items-center gap-2">
-              <Calendar size={12} className="flex-shrink-0" />
+              <Calendar size={16} className="flex-shrink-0" />
               <span>{formatDate(eventDate)}</span>
             </div>
           )}
           <div className="flex items-center gap-2">
-            <LocationIcon size={12} className="flex-shrink-0" />
+            <LocationIcon size={16} className="flex-shrink-0" />
             <span>{locationText}</span>
           </div>
           {maxParticipants && (
             <div className="flex items-center gap-2">
-              <Users size={12} className="flex-shrink-0" />
+              <Users size={16} className="flex-shrink-0" />
               <span>{maxParticipants} max slots</span>
             </div>
           )}
@@ -379,9 +379,9 @@ function EventCard({ tryout, token, userRole }) {
         <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-800">
           <div className="flex items-baseline gap-1">
             {prize
-              ? <><span className="text-brand-red font-bold text-sm">{prize}</span>
-                  <span className="text-gray-500 text-[10px] uppercase ml-1">Prize Pool</span></>
-              : <span className="text-gray-700 text-[10px] uppercase">No prize pool</span>
+              ? <><span className="text-brand-red font-bold text-base">{prize}</span>
+                  <span className="text-gray-500 text-xs uppercase ml-1">Prize Pool</span></>
+              : <span className="text-gray-700 text-xs uppercase">No prize pool</span>
             }
           </div>
           <div className="flex items-center gap-2">
@@ -389,7 +389,7 @@ function EventCard({ tryout, token, userRole }) {
               onOwnerResolved={setIsOwner} />
             <a href={tryout.link} target="_blank" rel="noopener noreferrer" title="View on WordPress"
               className="flex items-center border border-gray-700 hover:border-gray-500 text-gray-500 hover:text-white p-1.5 rounded transition-colors">
-              <ExternalLink size={10} />
+              <ExternalLink size={14} />
             </a>
           </div>
         </div>

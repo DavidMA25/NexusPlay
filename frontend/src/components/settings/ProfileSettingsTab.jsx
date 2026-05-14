@@ -140,24 +140,24 @@ export default function ProfileSettingsTab() {
         }
     };
 
-    const inputStyles = "w-full bg-[#1a1a1a] border border-transparent hover:border-gray-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-red transition-colors";
+    const inputStyles = "w-full bg-[#1a1a1a] border border-transparent hover:border-gray-800 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-brand-red transition-colors";
 
     return (
-        <div className="bg-[#121212] border border-gray-800 rounded-xl p-5">
-            <h2 className="text-lg font-bold text-white mb-4">Profile Settings</h2>
+        <div className="bg-[#121212] border border-gray-800 rounded-xl p-4">
+            <h2 className="text-lg font-bold text-white mb-2">Profile Settings</h2>
 
             {statusMessage && (
-                <div className={`mb-6 p-4 rounded-lg text-sm font-medium ${statusMessage.type === 'success' ? 'bg-green-500/20 border border-green-500 text-green-400' : 'bg-red-500/20 border border-red-500 text-red-500'}`}>
+                <div className={`mb-3 p-3 rounded-lg text-sm font-medium ${statusMessage.type === 'success' ? 'bg-green-500/20 border border-green-500 text-green-400' : 'bg-red-500/20 border border-red-500 text-red-500'}`}>
                     {statusMessage.text}
                 </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-3">
 
                 {}
-                <div className="flex items-center gap-4 mb-2">
+                <div className="flex items-center gap-4 mb-1">
                     <div className="relative group cursor-pointer shrink-0" onClick={handleAvatarClick}>
-                        <div className="w-20 h-20 rounded-full bg-brand-red/20 border-2 border-brand-red flex items-center justify-center text-brand-red font-bold text-2xl uppercase overflow-hidden">
+                        <div className="w-14 h-14 rounded-full bg-brand-red/20 border-2 border-brand-red flex items-center justify-center text-brand-red font-bold text-xl uppercase overflow-hidden">
                             {avatarPreview ? (
                                 <img src={avatarPreview.startsWith('blob:') ? avatarPreview : `http://localhost:8000${avatarPreview}`} alt="Avatar" className="w-full h-full object-cover" />
                             ) : (
@@ -269,15 +269,15 @@ export default function ProfileSettingsTab() {
                         <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">My Games</label>
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="space-y-2 max-h-[160px] overflow-y-auto custom-scrollbar pr-2">
                         {userGames.map((game) => (
-                            <div key={game.id} className="bg-[#1a1a1a] border border-gray-800 rounded-lg p-5 relative">
+                            <div key={game.id} className="bg-[#1a1a1a] border border-gray-800 rounded-lg p-3 relative">
                                 
                                 {userGames.length > 1 && (
                                     <button 
                                         type="button" 
                                         onClick={() => removeGameRow(game.id)}
-                                        className="absolute top-4 right-4 text-gray-500 hover:text-red-500 transition-colors"
+                                        className="absolute top-2 right-2 text-gray-500 hover:text-red-500 transition-colors"
                                     >
                                         <Trash2 size={16} />
                                     </button>
@@ -295,9 +295,9 @@ export default function ProfileSettingsTab() {
                                     </div>
                                 ) : (
                                     
-                                    <div className="space-y-6">
-                                        <div className="flex items-center gap-4 pr-8">
-                                            <img src={game.cover} alt={game.title} className="w-12 h-16 object-cover rounded shadow-md" />
+                                    <div className="space-y-2">
+                                        <div className="flex items-center gap-2 pr-6">
+                                            <img src={game.cover} alt={game.title} className="w-8 h-10 object-cover rounded shadow-sm" />
                                             <div>
                                                 <h4 className="text-white font-bold">{game.title}</h4>
                                                 <button 
@@ -310,31 +310,31 @@ export default function ProfileSettingsTab() {
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                            <div className="space-y-2">
-                                                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Platform</label>
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Platform</label>
                                                 <select
                                                     value={game.platform}
                                                     onChange={(e) => handleGameChange(game.id, 'platform', e.target.value)}
-                                                    className="w-full bg-[#121212] border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand-red appearance-none"
+                                                    className="w-full bg-[#121212] border border-gray-700 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-brand-red appearance-none"
                                                 >
                                                     {PLATFORMS.map(p => <option key={p} value={p}>{p}</option>)}
                                                 </select>
                                             </div>
 
-                                            <div className="space-y-2">
-                                                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Rank / Level</label>
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Rank / Level</label>
                                                 <input
                                                     type="text"
                                                     value={game.rank}
                                                     onChange={(e) => handleGameChange(game.id, 'rank', e.target.value)}
                                                     placeholder="e.g. Diamond"
-                                                    className="w-full bg-[#121212] border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand-red"
+                                                    className="w-full bg-[#121212] border border-gray-700 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-brand-red"
                                                 />
                                             </div>
 
-                                            <div className="space-y-2">
-                                                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
                                                     Role <span className="lowercase text-gray-500 font-normal">(optional)</span>
                                                 </label>
                                                 <input
@@ -342,7 +342,7 @@ export default function ProfileSettingsTab() {
                                                     value={game.role}
                                                     onChange={(e) => handleGameChange(game.id, 'role', e.target.value)}
                                                     placeholder="e.g. Entry, Support"
-                                                    className="w-full bg-[#121212] border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand-red"
+                                                    className="w-full bg-[#121212] border border-gray-700 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-brand-red"
                                                 />
                                             </div>
                                         </div>
@@ -350,15 +350,15 @@ export default function ProfileSettingsTab() {
                                 )}
                             </div>
                         ))}
-
-                        <button 
-                            type="button"
-                            onClick={addGameRow}
-                            className="flex items-center gap-1 text-sm text-brand-red hover:text-[#ff4d4d] font-medium transition-colors mt-2"
-                        >
-                            <Plus size={16} /> Add Another Game
-                        </button>
                     </div>
+
+                    <button 
+                        type="button"
+                        onClick={addGameRow}
+                        className="flex items-center gap-1 text-sm text-brand-red hover:text-[#ff4d4d] font-medium transition-colors mt-2"
+                    >
+                        <Plus size={16} /> Add Another Game
+                    </button>
                 </div>
 
                 {}

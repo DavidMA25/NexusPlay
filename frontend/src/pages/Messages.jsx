@@ -336,9 +336,9 @@ function ChatPanel({ conversation, onBack, initialInputText = '' }) {
                     </div>
                 )}
                 <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} max-w-[75%]`}>
-                    {showName && <span className="text-[11px] text-gray-400 mb-0.5 ml-1">{msg.sender?.nickname ?? msg.sender?.name}</span>}
+                    {showName && <span className="text-xs text-gray-400 mb-0.5 ml-1">{msg.sender?.nickname ?? msg.sender?.name}</span>}
                     <div className="relative group">
-                        <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
+                        <div className={`px-4 py-2.5 rounded-2xl text-[15px] leading-relaxed ${
                             isDeleted ? 'bg-[#1a1a1a] text-gray-600 italic border border-gray-800/50' :
                             isMe ? 'bg-brand-red/20 text-white border border-brand-red/30 rounded-tr-none' :
                             'bg-[#1a1a1a] text-gray-200 border border-gray-800/50 rounded-tl-none'
@@ -353,7 +353,7 @@ function ChatPanel({ conversation, onBack, initialInputText = '' }) {
                             </button>
                         )}
                     </div>
-                    <span className="text-[10px] text-gray-600 mt-0.5 px-1">{formatTime(msg.created_at)}</span>
+                    <span className="text-[11px] text-gray-500 mt-0.5 px-1">{formatTime(msg.created_at)}</span>
                 </div>
             </div>
         );
@@ -370,8 +370,8 @@ function ChatPanel({ conversation, onBack, initialInputText = '' }) {
                         : <Avatar name={conversation.name} avatarUrl={conversation.avatar_url} />
                     }
                     <div>
-                        <h3 className="font-bold text-sm text-white">{conversation.name}</h3>
-                        {conversation.is_group && <p className="text-xs text-gray-500">{conversation.participants?.length ?? 0} members</p>}
+                        <h3 className="font-bold text-base text-white">{conversation.name}</h3>
+                        {conversation.is_group && <p className="text-sm text-gray-500">{conversation.participants?.length ?? 0} members</p>}
                     </div>
                 </div>
                 <button onClick={() => setShowInfo(v => !v)} className={`hover:text-white transition-colors ${showInfo ? 'text-white' : 'text-gray-500'}`} title="Info">
@@ -409,7 +409,7 @@ function ChatPanel({ conversation, onBack, initialInputText = '' }) {
                                 onChange={e => setInputText(e.target.value)}
                                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
                                 placeholder="Type a message..."
-                                className="flex-1 bg-[#121212] border border-gray-800 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-red transition-colors placeholder-gray-600" />
+                                className="flex-1 bg-[#121212] border border-gray-800 rounded-lg px-4 py-3 text-[15px] text-white focus:outline-none focus:border-brand-red transition-colors placeholder-gray-600" />
                             <button onClick={handleSend} disabled={!inputText.trim() || sending}
                                 className="w-10 h-10 bg-brand-red rounded-lg flex items-center justify-center hover:bg-[#FF4D4D] disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-[0_0_10px_rgba(255,51,51,0.2)]">
                                 <Send size={17} className="text-white" />
@@ -422,15 +422,15 @@ function ChatPanel({ conversation, onBack, initialInputText = '' }) {
                 {showInfo && (
                     <div className="absolute top-16 bottom-0 right-0 w-64 z-20 md:static md:h-auto md:w-60 border-l border-gray-800 bg-[#0f0f0f] flex flex-col flex-shrink-0 shadow-xl md:shadow-none">
                         <div className="p-4 border-b border-gray-800">
-                            <h4 className="text-sm font-bold text-white">{conversation.is_group ? 'Members' : 'Profile'}</h4>
+                            <h4 className="text-base font-bold text-white">{conversation.is_group ? 'Members' : 'Profile'}</h4>
                         </div>
                         <div className="flex-1 overflow-y-auto p-3 space-y-1">
                             {(conversation.participants ?? []).map(p => (
                                 <div key={p.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-[#1a1a1a]">
                                     <Avatar name={p.nickname ?? p.name} avatarUrl={p.avatar_url} size="sm" />
                                     <div className="min-w-0">
-                                        <p className="text-sm text-white truncate">{p.nickname ?? p.name}</p>
-                                        {conversation.owner_id === p.id && <p className="text-[10px] text-brand-red">Owner</p>}
+                                        <p className="text-[15px] text-white truncate">{p.nickname ?? p.name}</p>
+                                        {conversation.owner_id === p.id && <p className="text-xs text-brand-red">Owner</p>}
                                     </div>
                                 </div>
                             ))}
@@ -521,7 +521,7 @@ export default function Messages() {
                     <div className="flex gap-1.5">
                         {['All', 'DMs', 'Teams'].map(tab => (
                             <button key={tab} onClick={() => setActiveTab(tab)}
-                                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${activeTab === tab ? 'bg-brand-red text-white' : 'text-gray-400 hover:text-white hover:bg-[#1a1a1a]'}`}>
+                                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${activeTab === tab ? 'bg-brand-red text-white' : 'text-gray-400 hover:text-white hover:bg-[#1a1a1a]'}`}>
                                 {tab}
                             </button>
                         ))}
@@ -547,10 +547,10 @@ export default function Messages() {
                                 <Avatar name={conv.name} avatarUrl={conv.avatar_url} isGroup={conv.is_group} />
                                 <div className="flex-1 min-w-0">
                                     <div className="flex justify-between items-baseline">
-                                        <span className={`text-sm font-medium truncate ${isActive ? 'text-white' : 'text-gray-200'}`}>{conv.name}</span>
-                                        <span className="text-[10px] text-gray-500 ml-2 flex-shrink-0">{formatTime(conv.last_message?.created_at)}</span>
+                                        <span className={`text-[15px] font-medium truncate ${isActive ? 'text-white' : 'text-gray-200'}`}>{conv.name}</span>
+                                        <span className="text-[11px] text-gray-500 ml-2 flex-shrink-0">{formatTime(conv.last_message?.created_at)}</span>
                                     </div>
-                                    <p className="text-xs text-gray-500 truncate mt-0.5">{conv.last_message?.content || 'No messages'}</p>
+                                    <p className="text-sm text-gray-500 truncate mt-0.5">{conv.last_message?.content || 'No messages'}</p>
                                 </div>
                                 {conv.unread_count > 0 && (
                                     <div className="w-5 h-5 bg-brand-red rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0">

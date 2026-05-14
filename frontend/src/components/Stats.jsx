@@ -8,7 +8,7 @@ export default function Stats() {
 
     return (
         
-        <div className="flex flex-wrap justify-center items-center gap-12 md:gap-24 py-12">
+        <div className="flex flex-wrap justify-center items-center gap-12 md:gap-24 pt-4 pb-12">
 
             {}
             {stats.map((item, index) => (

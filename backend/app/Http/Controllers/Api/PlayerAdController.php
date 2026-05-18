@@ -14,6 +14,31 @@ class PlayerAdController extends Controller
     {
         $query = PlayerAd::with(['user.profile', 'user.stats', 'stat']);
 
+        if ($request->filled('recommended') && $request->recommended == 'true') {
+            $userGameIds = array_filter(explode(',', $request->input('games', '')));
+            $userRegion = $request->input('region');
+            $currentUserId = auth('sanctum')->id();
+
+            if (count($userGameIds) > 0) {
+                if ($currentUserId) {
+                    $query->where('user_id', '!=', $currentUserId);
+                }
+                
+                $query->whereHas('stat', function ($q) use ($userGameIds) {
+                    $q->whereIn('game_igdb_id', $userGameIds);
+                });
+                
+                if ($userRegion) {
+                    $query->whereHas('user.profile', function ($q) use ($userRegion) {
+                        $q->where('region', $userRegion);
+                    });
+                }
+            } else {
+                // If user has no games, recommended should probably return nothing to be accurate
+                $query->whereRaw('1 = 0');
+            }
+        }
+
         if ($request->filled('search')) {
             $search = $request->input('search');
             $query->whereHas('user', function ($q) use ($search) {

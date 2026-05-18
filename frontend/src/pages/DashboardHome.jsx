@@ -106,18 +106,15 @@ export default function DashboardHome() {
         const userRegion = user.profile?.region;
         const userLanguage = user.profile?.languages;
 
-        const adsResponse = await api.get('/player-ads');
-        const allAds = adsResponse.data.data || [];
-        
-        const matchingAds = allAds.filter(ad => {
-          const adGameId = String(ad.stat?.game_igdb_id);
-          const adRegion = ad.user?.profile?.region;
-          const isNotCurrentUser = ad.user_id !== user.id;
-          const hasMatchingGame = userGameIds.includes(adGameId);
-          const isMatchingRegion = userRegion ? adRegion === userRegion : true;
-          return isNotCurrentUser && hasMatchingGame && isMatchingRegion;
+        const adsResponse = await api.get('/player-ads', { 
+          params: { 
+            recommended: true,
+            games: userGameIds.join(','),
+            region: userRegion
+          } 
         });
-
+        const matchingAds = adsResponse.data.data || [];
+        
         matchingAds.sort((a, b) => {
           const aLangMatch = (userLanguage && a.user?.profile?.languages === userLanguage) ? 1 : 0;
           const bLangMatch = (userLanguage && b.user?.profile?.languages === userLanguage) ? 1 : 0;

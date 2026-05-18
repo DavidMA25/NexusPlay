@@ -33,8 +33,8 @@ export default function DashboardLayout() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     const [showAdModal, setShowAdModal] = useState(false);
-    const [myStats, setMyStats] = useState([]);
     const [selectedStatId, setSelectedStatId] = useState('');
+    const myStats = user?.stats || [];
     const [adMessage, setAdMessage] = useState('');
     const [publishing, setPublishing] = useState(false);
     const [publishSuccess, setPublishSuccess] = useState(false);
@@ -51,10 +51,6 @@ export default function DashboardLayout() {
     const [teamPublishError, setTeamPublishError] = useState('');
 
     useEffect(() => {
-        api.get('/player-stats').then(res => {
-            setMyStats(res.data.data || res.data);
-        }).catch(err => console.error('Error fetching stats:', err));
-
         api.get('/teams/my').then(res => {
             const teams = res.data.data || res.data;
             setMyTeams(teams.filter(t => t.is_admin));

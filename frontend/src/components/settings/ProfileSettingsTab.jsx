@@ -269,11 +269,10 @@ export default function ProfileSettingsTab() {
                         <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">My Games</label>
                     </div>
 
-                    <div className="space-y-2 max-h-[160px] overflow-y-auto custom-scrollbar pr-2">
-                        {userGames.map((game) => (
-                            <div key={game.id} className="bg-[#1a1a1a] border border-gray-800 rounded-lg p-3 relative">
-                                
-                                {userGames.length > 1 && (
+                    {userGames.filter(g => g.gameId).length > 0 && (
+                        <div className="space-y-2 max-h-[160px] overflow-y-auto custom-scrollbar pr-2 mb-2">
+                            {userGames.filter(g => g.gameId).map((game) => (
+                                <div key={game.id} className="bg-[#1a1a1a] border border-gray-800 rounded-lg p-3 relative">
                                     <button 
                                         type="button" 
                                         onClick={() => removeGameRow(game.id)}
@@ -281,19 +280,6 @@ export default function ProfileSettingsTab() {
                                     >
                                         <Trash2 size={16} />
                                     </button>
-                                )}
-
-                                {!game.gameId ? (
-                                    
-                                    <div className="space-y-2 pr-8">
-                                        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Search for a Game</label>
-                                        <GameSearchInput 
-                                            value={game.title}
-                                            onChange={(val) => handleGameSearch(game.id, val)}
-                                            onSelect={(selectedGame) => selectGame(game.id, selectedGame)}
-                                        />
-                                    </div>
-                                ) : (
                                     
                                     <div className="space-y-2">
                                         <div className="flex items-center gap-2 pr-6">
@@ -347,10 +333,36 @@ export default function ProfileSettingsTab() {
                                             </div>
                                         </div>
                                     </div>
-                                )}
-                            </div>
-                        ))}
-                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {userGames.filter(g => !g.gameId).length > 0 && (
+                        <div className="space-y-2 mb-2">
+                            {userGames.filter(g => !g.gameId).map((game) => (
+                                <div key={game.id} className="bg-[#1a1a1a] border border-gray-800 rounded-lg p-3 relative">
+                                    {userGames.length > 1 && (
+                                        <button 
+                                            type="button" 
+                                            onClick={() => removeGameRow(game.id)}
+                                            className="absolute top-2 right-2 text-gray-500 hover:text-red-500 transition-colors"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    )}
+                                    <div className="space-y-2 pr-8">
+                                        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Search for a Game</label>
+                                        <GameSearchInput 
+                                            value={game.title}
+                                            onChange={(val) => handleGameSearch(game.id, val)}
+                                            onSelect={(selectedGame) => selectGame(game.id, selectedGame)}
+                                        />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
 
                     <button 
                         type="button"
